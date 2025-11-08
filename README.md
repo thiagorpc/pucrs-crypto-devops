@@ -58,7 +58,7 @@ git add .
 git commit -m "Estrutura inicial do projeto e documentacao de planejamento (README)"
 
 ### 4.3. Adiciona o remote do GitHub (SUBSTITUA A URL)
-git remote add origin https://github.com/SEU_USUARIO/pucrs-crypto-devops.git
+git remote add origin **https://github.com/thiagorpc/pucrs-crypto-devops.git**
 
 ### 4.4. Envia para o GitHub (e define a branch principal como 'main' ou 'master')
 git push -u origin main

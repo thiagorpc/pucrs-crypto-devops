@@ -24,7 +24,7 @@ coverage
 ###########################################
 # REGRAS ESPECÍFICAS POR DIRETÓRIO
 ###########################################
-
+ git push -u origem main
 # NestJS Backend (crypto-api)
 # Geralmente o NestJS builda para 'dist', mas garantimos outras pastas
 /crypto-api/coverage
