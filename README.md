@@ -38,7 +38,6 @@ O projeto é composto por dois serviços:
 O projeto está organizado em três diretórios principais, seguindo as melhores práticas de separação de código de aplicação e infraestrutura:
 
 pucrs-crypto-devops\
-    |\
     ├── .github/workflows   # Arquivos YAML do GitHub Actions (CI) \
     ├── crypto-api          # Código-fonte do Backend (NestJS)\
     ├── crypto-ui           # Código-fonte do Frontend (Estático)\
