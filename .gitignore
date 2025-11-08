@@ -1,44 +1,37 @@
-# Nestjs specific
-/dist
-/node_modules
-/build
-/tmp
-
-# Logs
-logs
+# Arquivos de Dependências e Instalação
+node_modules
+# Logs de NPM/YARN
 *.log
 npm-debug.log*
-pnpm-debug.log*
 yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
 
-# dotenv environment variable files
-.env
-.env.development
-.env.test
-.env.production
+# Outputs de Build (Gerados pelo compilador/bundler)
+# Para NestJS e React/Vite
+dist
+build
+tmp
 
-# temp directory
-.temp
+# Arquivos de Testes e Cache
+coverage
 .tmp
+.temp
 
-# Dependências
-/node_modules
-/crypto-api/node_modules
-/crypto-ui/node_modules
-/npm-debug.log*
-/yarn-debug.log*
-/yarn-error.log*
+# Segredos e Arquivos de Ambiente
+# Evita o commit acidental de credenciais
+.env
+.env.*
 
-# Build e Outputs do TypeScript/NestJS
-/dist
-/crypto-api/dist
+###########################################
+# REGRAS ESPECÍFICAS POR DIRETÓRIO
+###########################################
+
+# NestJS Backend (crypto-api)
+# Geralmente o NestJS builda para 'dist', mas garantimos outras pastas
 /crypto-api/coverage
-/crypto-api/.env
+/crypto-api/logs
 
-# Build e Outputs do Terraform (IaC)
-# O Terraform armazena o estado da sua infraestrutura aqui (MUITO SENSÍVEL)
+# Infraestrutura como Código (IAC - Terraform) - CRÍTICO!
+# NUNCA versionar o estado da infraestrutura
 /iac/.terraform
 /iac/*.tfstate
 /iac/*.tfstate.*
