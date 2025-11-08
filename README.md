@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-# 🛡️ PUC-RS Crypto DevOps Case Study
+# 🛡️ PUC-RS Crypto DevOps
 
 Este é um estudo de caso prático focado na implementação completa de um fluxo de **Desenvolvimento, Integração Contínua (CI), e Infraestrutura como Código (IaC)** para uma aplicação Full-Stack.
 
@@ -38,7 +37,6 @@ O projeto é composto por dois serviços:
 
 O projeto está organizado em três diretórios principais, seguindo as melhores práticas de separação de código de aplicação e infraestrutura:
 
-
 pucrs-crypto-devops
     |
     ├── .github/workflows   # Arquivos YAML do GitHub Actions (CI) 
@@ -51,10 +49,7 @@ pucrs-crypto-devops
 
 **OBS.:** O restante da documentação de planejamento (Plano de CI e Especificação de Infraestrutura) está detalhada nos arquivos específicos.
 
-**Link do Repositório:** **[INSIRA O URL DO SEU REPOSITÓRIO GITHUB AQUI]**
-
-
-
+**Link do Repositório:** **https://github.com/thiagorpc/pucrs-crypto-devops**
 
 ## 4. Publicando o Projeto no GitHub
 # 1. Adiciona o README e a estrutura vazia
@@ -67,8 +62,5 @@ git commit -m "feat: Estrutura inicial do projeto e documentacao de planejamento
 git remote add origin https://github.com/SEU_USUARIO/pucrs-crypto-devops.git
 
 # 4. Envia para o GitHub (e define a branch principal como 'main' ou 'master')
-git push -u origin master
-=======
-# pucrs-crypto-devops
-Este projeto é o entregável da Fase 01 da disciplina DevOps na Prática e tem como objetivo principal demonstrar o domínio dos conceitos de Integração Contínua (CI) e Infraestrutura como Código (IaC).
->>>>>>> 19c858d685b5c6589e1445d5f785e0ad92b66298
+git push -u origin main
+
