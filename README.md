@@ -55,7 +55,7 @@ pucrs-crypto-devops\
 git add .
 
 ### 4.2. Faz o primeiro commit
-git commit -m "feat: Estrutura inicial do projeto e documentacao de planejamento (README)"
+git commit -m "Estrutura inicial do projeto e documentacao de planejamento (README)"
 
 ### 4.3. Adiciona o remote do GitHub (SUBSTITUA A URL)
 git remote add origin https://github.com/SEU_USUARIO/pucrs-crypto-devops.git
