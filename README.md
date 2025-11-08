@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🛡️ PUC-RS Crypto DevOps Case Study
 
 Este é um estudo de caso prático focado na implementação completa de um fluxo de **Desenvolvimento, Integração Contínua (CI), e Infraestrutura como Código (IaC)** para uma aplicação Full-Stack.
@@ -67,3 +68,7 @@ git remote add origin https://github.com/SEU_USUARIO/pucrs-crypto-devops.git
 
 # 4. Envia para o GitHub (e define a branch principal como 'main' ou 'master')
 git push -u origin master
+=======
+# pucrs-crypto-devops
+Este projeto é o entregável da Fase 01 da disciplina DevOps na Prática e tem como objetivo principal demonstrar o domínio dos conceitos de Integração Contínua (CI) e Infraestrutura como Código (IaC).
+>>>>>>> 19c858d685b5c6589e1445d5f785e0ad92b66298
