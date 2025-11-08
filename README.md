@@ -66,4 +66,4 @@ git commit -m "feat: Estrutura inicial do projeto e documentacao de planejamento
 git remote add origin https://github.com/SEU_USUARIO/pucrs-crypto-devops.git
 
 # 4. Envia para o GitHub (e define a branch principal como 'main' ou 'master')
-git push -u origin main
+git push -u origin master
