@@ -10,16 +10,17 @@ export const api = axios.create({
 // Health check
 export const getHealth = async () => {
   const response = await api.get('/health');
-
-  console.log("**********************************")
-  console.log(response)
-  console.log("**********************************")
-
   return response.data;
 };
 
 // Encriptar dado
 export const encryptData = async (payload: string) => {
   const response = await api.post('/security/encrypt', { payload });
+  return response.data;
+};
+
+// Descriptografar dado
+export const decryptData = async (encrypted: string) => {
+  const response = await api.post('/security/decrypt', { encrypted });
   return response.data;
 };
