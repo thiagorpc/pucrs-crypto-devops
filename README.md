@@ -38,10 +38,10 @@ O projeto é composto por dois serviços:
 O projeto está organizado em três diretórios principais, seguindo as melhores práticas de separação de código de aplicação e infraestrutura:
 
 pucrs-crypto-devops\
-    ├── .github/workflows   # Arquivos YAML do GitHub Actions (CI) \
-    ├── crypto-api          # Código-fonte do Backend (NestJS)\
-    ├── crypto-ui           # Código-fonte do Frontend (Estático)\
-    └── iac                 # Scripts de Infraestrutura como Código (Terraform)
+    ├─ .github/workflows   # Arquivos YAML do GitHub Actions (CI) \
+    ├─ crypto-api          # Código-fonte do Backend (NestJS)\
+    ├─ crypto-ui           # Código-fonte do Frontend (Estático)\
+    └─ iac                 # Scripts de Infraestrutura como Código (Terraform)
 
 
 ## 3. Link para o Repositório
@@ -57,7 +57,7 @@ git add .
 ### 4.2. Faz o primeiro commit
 git commit -m "Estrutura inicial do projeto e documentacao de planejamento (README)"
 
-### 4.3. Adiciona o remote do GitHub (SUBSTITUA A URL)
+### 4.3. Adiciona o remote do GitHub
 git remote add origin **https://github.com/thiagorpc/pucrs-crypto-devops.git**
 
 ### 4.4. Envia para o GitHub (e define a branch principal como 'main' ou 'master')
