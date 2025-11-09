@@ -14,6 +14,7 @@ function App() {
     setLoading(true);
     try {
       const data = await getHealth();
+      console.log(data)
       setHealth(data);
     } catch (err) {
       console.error(err);
@@ -23,7 +24,7 @@ function App() {
     }
   };
 
-  const handleHash = async () => {
+  const handleCrypto = async () => {
     if (!payload) return alert("Digite algum texto");
     setLoading(true);
     // Assumindo que a API de Criptografia fará Hash (Argon2), não criptografia simétrica
@@ -48,7 +49,7 @@ function App() {
       {/* 🔷 Barra Superior */}
       <header className="bg-blue-700 text-white shadow-lg fixed top-0 left-0 w-full z-10">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Crypto Service UI 🔑</h1>
+          <h1 className="text-3xl font-bold">🔒 Serviço de Criptografia </h1>
           <button 
              onClick={fetchHealth}
              className="text-sm border border-white/50 hover:bg-white/10 p-2 rounded transition-colors disabled:opacity-50"
@@ -77,12 +78,12 @@ function App() {
         {/* 🔐 Seção Criptografia/Hash */}
         <section className="bg-white p-8 rounded-xl shadow-2xl">
           <h2 className="text-2xl font-extrabold text-gray-700 mb-6 border-b pb-2">
-            Função de Hash (Argon2)
+            Função para criptografar com AES 256 GCM
           </h2>
           
           <div className="space-y-6">
             <label htmlFor="payload" className="block text-gray-700 font-medium">
-                Digite a string para hash/criptografar:
+                Digite a texto que deseja criptografar:
             </label>
             <input
               id="payload"
@@ -94,17 +95,17 @@ function App() {
             />
             
             <button
-              onClick={handleHash}
+              onClick={handleCrypto}
               disabled={loading || !payload}
               className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold py-3 rounded-lg text-lg shadow-md hover:shadow-lg transition-all"
             >
-              {loading ? "Gerando Hash..." : "Gerar Hash com Argon2"}
+              {loading ? "Aguarde..." : "Criptografar Texto"}
             </button>
           </div>
 
           {result && (
             <div className="mt-8">
-              <h3 className="text-xl font-semibold mb-3 text-gray-700">Resultado do Hash:</h3>
+              <h3 className="text-xl font-semibold mb-3 text-gray-700">Resultado:</h3>
               <pre className="bg-gray-800 text-green-400 p-6 rounded-lg text-sm overflow-x-auto whitespace-pre-wrap break-all shadow-inner">
                 {result}
               </pre>
@@ -116,7 +117,7 @@ function App() {
       
       {/* 🦶 Footer (Adicionado para completar a página) */}
       <footer className="bg-gray-200 mt-8 py-4 text-center text-sm text-gray-500">
-          <p>PUCRS DevOps Case Study | Backend: NestJS (Argon2) | Frontend: React/Vite</p>
+          <p>PUCRS DevOps na Prática| Backend: NestJS | Frontend: React/Vite</p>
       </footer>
     </div>
   );

@@ -1,11 +1,26 @@
+import { Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  await app.listen(process.env.PORT ?? 3000);
 
-  console.log(`🚀 App rodando na porta ${process.env.PORT ?? 3000}`);
+  const configService = app.get(ConfigService);
+  const port = configService.get<number>('PORT', 3000);
+  const host = configService.get<string>('HOST', 'localhost');
+
+  // Habilita CORS
+  app.enableCors({
+    origin: ['http://localhost:5173'],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+  });
+
+  await app.listen(port, host);
+
+  const logger = new Logger('Bootstrap');
+  logger.log(`🚀 App rodando em http://${host}:${port}`);
 }
 
 void bootstrap();

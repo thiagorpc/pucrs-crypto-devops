@@ -17,12 +17,12 @@ export class SecurityController {
    * Criptografa um texto simples (ou JSON) usando AES-256-GCM.
    */
   @Post('encrypt')
-  async encrypt(@Body('data') data: any) {
-    if (!data) {
+  async encrypt(@Body('payload') payload: any) {
+    if (!payload) {
       throw new BadRequestException('Campo "data" é obrigatório.');
     }
 
-    const encrypted = await this.securityService.encryptAES_256_GCM(data);
+    const encrypted = await this.securityService.encryptAES_256_GCM(payload);
     return { encrypted };
   }
 

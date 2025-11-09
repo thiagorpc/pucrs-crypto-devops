@@ -1,5 +1,6 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { HealthModule } from './health/health.module';
 import { SecurityModule } from './security/security.module';
 
@@ -15,4 +16,8 @@ import { SecurityModule } from './security/security.module';
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LoggerMiddleware).forRoutes('*'); // Aplica a todas as rotas
+  }
+}
