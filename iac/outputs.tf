@@ -16,10 +16,16 @@ output "ecr_repository_url" {
   description = "URL do repositório ECR para armazenar imagens Docker"
 }
 
-# Security Group utilizado pelo ECS e ALB
+# Security Group utilizado pelo ALB
+output "alb_security_group_id" {
+  value       = aws_security_group.alb_sg.id
+  description = "ID do Security Group utilizado pelo ALB (recebe tráfego da Internet)"
+}
+
+# Security Group utilizado pelo ECS
 output "ecs_security_group_id" {
   value       = aws_security_group.ecs_sg.id
-  description = "ID do Security Group utilizado pelo ECS e ALB"
+  description = "ID do Security Group utilizado pelas Tasks ECS (recebe tráfego do ALB)"
 }
 
 # ID da VPC criada
@@ -36,7 +42,7 @@ output "public_subnets_ids" {
 
 # URL pública do front-end React hospedado no S3
 output "react_ui_url" {
-  value       = "http://${aws_s3_bucket.crypto_ui.bucket}.s3-website-${var.aws_region}.amazonaws.com"
+  value       = aws_s3_bucket_website_configuration.crypto_ui_website.website_endpoint
   description = "URL pública do front-end React"
 }
 
@@ -46,3 +52,8 @@ output "ui_bucket_name" {
   value       = aws_s3_bucket.crypto_ui.bucket
 }
 
+# Nome do bucket S3 para Imagens
+output "images_bucket_name" {
+  description = "Nome do bucket S3 para armazenar imagens da API"
+  value       = aws_s3_bucket.crypto_images.bucket
+}

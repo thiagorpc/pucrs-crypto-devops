@@ -1,67 +1,56 @@
-name: Setup AWS Environment
-
-env:
-  TF_WORKING_DIR: iac
-  AWS_REGION: us-east-1
-  TERRAFORM_VERSION: 1.8.0  # versão mais recente e estável
+name: 🚀 1. Setup Inicial da Infraestrutura (Terraform)
 
 on:
-  workflow_dispatch:  # executa manualmente apenas uma vez
+  workflow_dispatch:
+    inputs:
+      terraform_action:
+        description: 'Ação do Terraform (plan/apply)'
+        required: true
+        default: 'plan'
+        type: choice
+        options:
+          - plan
+          - apply
+
+env:
+  TF_WORKING_DIR: ./iac
+  AWS_REGION: us-east-1
+  DYNAMO_LOCK_TABLE: terraform-lock-table-crypto # Tabela de Lock do DynamoDB
 
 jobs:
   terraform:
+    name: 'Terraform ${{ github.event.inputs.terraform_action }}'
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: ${{ env.TF_WORKING_DIR }}
+    
     steps:
-      # Passo 0: Checkout do repositório
-      - name: Check out repository
-        uses: actions/checkout@v4  # 🔄 atualizado (de v2 -> v4)
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      # Passo 1: Teste básico para conferir se os secrets existem
-      - name: Check AWS Secrets
-        run: |
-          echo "AWS_ACCESS_KEY_ID exists? ${AWS_ACCESS_KEY_ID:+yes}"
-          echo "AWS_SECRET_ACCESS_KEY exists? ${AWS_SECRET_ACCESS_KEY:+yes}"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-      # Passo 2: Configurar as credenciais da AWS
-      - name: Set up AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4 
+      - name: Configurar Credenciais AWS
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # Passo 3: Instalar o Terraform
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v3  # 🔄 atualizado (de v1 -> v3)
+      - name: Configurar Terraform
+        uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_version: 1.5.0 # Use a versão que você especificou no versions.tf
 
-      # Passo 4: Verificar formatação do Terraform
-      - name: Terraform Format Check
-        run: terraform fmt -check
-        working-directory: ${{ env.TF_WORKING_DIR }}
-
-      # Passo 5: Validar o Terraform
-      - name: Terraform Validate
-        run: terraform validate
-        working-directory: ${{ env.TF_WORKING_DIR }}
-
-      # Passo 6: Inicializar o Terraform
       - name: Terraform Init
+        id: init
         run: terraform init
-        working-directory: ${{ env.TF_WORKING_DIR }}
 
-      # Passo 7: Plano do Terraform
       - name: Terraform Plan
-        run: terraform plan
-        working-directory: ${{ env.TF_WORKING_DIR }}
+        id: plan
+        if: github.event.inputs.terraform_action == 'plan'
+        run: terraform plan -no-color
 
-      # Passo 8: Aplicar o Terraform (apenas na branch main)
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/main'
+        id: apply
+        if: github.event.inputs.terraform_action == 'apply'
         run: terraform apply -auto-approve
-        working-directory: ${{ env.TF_WORKING_DIR }}

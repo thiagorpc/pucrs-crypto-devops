@@ -1,0 +1,49 @@
+name: 🖼️ 3. Update UI (S3 Frontend)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'ui/**' # ❗️ Trigger: Apenas quando há push na pasta do Frontend
+
+env:
+  AWS_REGION: us-east-1
+  # ❗️ Usando o nome do bucket da variável react_bucket_name
+  S3_BUCKET_UI: pucrs-crypto-ui 
+
+jobs:
+  deploy_ui:
+    name: Build & Sync S3
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./ui # Assume que o código React está na pasta 'ui'
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configurar Credenciais AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          
+      # 1. Instalação de Dependências e Build do Frontend
+      - name: Instalar Dependências
+        run: npm install
+
+      - name: Build do Projeto React/UI
+        run: npm run build # ❗️ Este comando deve gerar os arquivos estáticos na pasta 'ui/build'
+
+      # 2. Sincronização com S3
+      - name: Sync Build com S3 Bucket
+        run: |
+          aws s3 sync build s3://${{ env.S3_BUCKET_UI }} \
+            --delete \
+            --acl public-read \
+            --cache-control max-age=300
+        # --delete remove arquivos que não existem mais no build local
+        # --acl public-read garante que os usuários possam acessar

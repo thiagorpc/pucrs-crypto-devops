@@ -14,30 +14,30 @@ variable "vpc_cidr" {
 
 # Subnets públicas
 variable "public_subnet_cidrs" {
-  description = "Lista de CIDRs das subnets públicas para o projeto. Exemplo: [\"10.0.1.0/24\", \"10.0.2.0/24\"]"
+  description = "Lista de CIDRs das subnets públicas para o projeto."
   type        = list(string)
   default     = ["10.0.1.0/24", "10.0.2.0/24"]
 }
 
 # Nome do serviço ECS
 variable "service_name" {
-  description = "Nome do serviço ECS que será executado no Fargate. Exemplo: 'crypto-api'"
+  description = "Nome do serviço ECS que será executado no Fargate."
   type        = string
   default     = "crypto-api"
 }
 
 # Porta do container
 variable "container_port" {
-  description = "Porta do container onde a aplicação está escutando. Exemplo: 3000 para aplicações Node.js"
+  description = "Porta do container onde a aplicação está escutando."
   type        = number
   default     = 3000
 }
 
 # Nome do bucket S3 para o front-end
 variable "react_bucket_name" {
-  description = "Nome do bucket S3 onde o front-end React será hospedado. O nome do bucket deve ser único na AWS."
+  description = "Nome do bucket S3 onde o front-end React será hospedado."
   type        = string
-  default     = "pucrs-crypto-frontend"
+  default     = "pucrs-crypto-ui"
 }
 
 # Tamanho da instância ECS Fargate (CPU)
@@ -54,9 +54,16 @@ variable "ecs_memory" {
   default     = "512"
 }
 
-# Nome do Bucket S3 para armazenar as imagens
+# Nome do Bucket S3 para armazenar as imagens (da API)
 variable "image_bucket_name" {
-  description = "Nome do bucket S3 onde as imagens serão armazenadas"
+  description = "Nome do bucket S3 onde as imagens da aplicação serão armazenadas"
   type        = string
   default     = "crypto-api-images"
+}
+
+# Tag da imagem Docker
+variable "image_tag" {
+  description = "A tag da imagem Docker a ser usada"
+  type        = string
+  default     = "latest" # Usado apenas para testes locais
 }
