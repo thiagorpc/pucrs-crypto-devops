@@ -14,7 +14,7 @@ O projeto consiste em uma **API de Criptografia (Backend)** e uma **Interface de
 ### Autores
 * [@thiagorpc](https://github.com/thiagorpc)
 
-
+---
 
 ## 🎯 1. Componentes e Objetivos
 
@@ -58,6 +58,7 @@ pucrs-crypto-devops\
 
 
 ---
+
 ## 🔑 3. Configuração do CI/CD com AWS
 
 Para que o GitHub Actions execute o Terraform e interaja com a AWS, é essencial configurar as credenciais de acesso como segredos no seu repositório.
@@ -113,7 +114,6 @@ Para que o GitHub Actions execute o Terraform e interaja com a AWS, é essencial
 
 ---
 
-
 ## ▶️ 4. Executando, Testando e Implantando
 
 ### 4.1. Fluxo de CI/CD (GitHub Actions)
@@ -165,6 +165,7 @@ Para rodar o projeto localmente, adicione as seguintes variáveis no seu arquivo
 
 `ANOTHER_API_KEY`
 
+---
 
 ## 5. Referências e Links Úteis
 
@@ -178,6 +179,7 @@ Para rodar o projeto localmente, adicione as seguintes variáveis no seu arquivo
 - [AWS ECS Fargate](https://aws.amazon.com/ecs/fargate/)
 - [AWS S3 Static Website Hosting](https://docs.aws.amazon.com/AmazonS3/latest/userguide/WebsiteHosting.html)
 
+---
 
 ## 6. Licença de uso
 
