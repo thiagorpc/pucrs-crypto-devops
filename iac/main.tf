@@ -18,7 +18,8 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
-  },
+  }
+  
   # Exemplo de configuração de Backend no código Terraform  
   backend "s3" {
     bucket         = "crypto-github-action-tfstate-bucket-unique"  # O NOME EXATO do bucket criado acima
