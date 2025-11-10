@@ -160,6 +160,8 @@ resource "aws_lb_target_group" "crypto_tg" {
   protocol = "HTTP"
   vpc_id   = aws_vpc.crypto_vpc.id
 
+  target_type = "ip"
+
   health_check {
     path                = "/health"
     interval            = 30
@@ -231,8 +233,11 @@ resource "aws_ecs_service" "crypto_service" {
 # ============================
 resource "aws_s3_bucket" "crypto_ui" {
   bucket = "crypto-ui-${var.aws_region}-${random_id.unique_id.hex}"
-  acl    = "public-read"
+  #acl    = "public-read"
 
+  object_ownership = "BucketOwnerEnforced"
+
+ #aws_s3_bucket_website_configuration
   website {
     index_document = "index.html"
     error_document = "index.html"
