@@ -5,7 +5,7 @@
 [![IaC (Terraform)](https://img.shields.io/badge/Infraestrutura-Aplicada-3498db?style=for-the-badge)](https://github.com/thiagorpc/pucrs-crypto-devops/tree/main/iac)
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](https://choosealicense.com/licenses/mit/)
 
-## 🌟 Visão Geral do Projeto
+## Visão Geral do Projeto
 
 Este é um estudo de caso prático focado na implementação completa de um fluxo de **Desenvolvimento, Integração Contínua (CI), e Infraestrutura como Código (IaC)** para uma aplicação Full-Stack.
 
@@ -16,14 +16,14 @@ O projeto consiste em uma **API de Criptografia (Backend)** e uma **Interface de
 
 ---
 
-## 🎯 1. Componentes e Objetivos
+## 1. Componentes e Objetivos
 
 ### 1.1. Descrição dos Serviços
 
 * **Crypto API (Backend):** Desenvolvida em **NestJS** (TypeScript), expõe *endpoints* RESTful (`/encrypt`, `/decrypt`, `/health`). A API é containerizada com Docker e rodará em **AWS Fargate** (serviço *serverless* de contêineres).
 * **Crypto UI (Frontend):** Desenvolvida em **NestJS** (TypeScript), aprezenta uma página web estática simples (HTML/CSS/JavaScript) que consome a Crypto API. A UI será hospedada em um **AWS S3 Bucket** configurado para hospedagem de sites estáticos.
 
-### 1.2. ⚙️ Stack Tecnológica
+### 1.2. Stack Tecnológica
 
 | Camada | Tecnologia Principal | Infraestrutura de Implantação | 
 | :--- | :--- | :--- | 
@@ -31,7 +31,7 @@ O projeto consiste em uma **API de Criptografia (Backend)** e uma **Interface de
 | **Frontend** | React + Vite para gerar HTML, CSS, JavaScript | AWS S3 Static Hosting | 
 | **DevOps** | GitHub Actions (CI), Terraform (IaC) | AWS Services | 
 
-### 1.3. 🚀 Metas de DevOps
+### 1.3. Metas de DevOps
 
 | Categoria | Objetivo | Requisito Atendido | 
 | :--- | :--- | :--- | 
@@ -42,7 +42,7 @@ O projeto consiste em uma **API de Criptografia (Backend)** e uma **Interface de
 
 ---
 
-## 📁 2. Estrutura do Repositório
+## 2. Estrutura do Repositório
 
 O projeto segue as melhores práticas de separação de código de aplicação e infraestrutura:
 
@@ -59,7 +59,7 @@ pucrs-crypto-devops\
 
 ---
 
-## 🔑 3. Configuração do CI/CD com AWS
+## 3. Configuração do CI/CD com AWS
 
 Para que o GitHub Actions execute o Terraform e interaja com a AWS, é essencial configurar as credenciais de acesso como segredos no seu repositório.
 
@@ -161,18 +161,22 @@ Para começar a trabalhar no projeto:
 
 Para rodar o projeto localmente, adicione as seguintes variáveis no seu arquivo **.env**:
 
-`API_KEY`
-
-`ANOTHER_API_KEY`
+`NODE_ENV="production" || "development"`
+`PORT=3000`
+`HOST="0.0.0.0"`
+`TZ="America/Sao_Paulo"`
+` `
+`# Chave usada na criptografia (Superior a 32 caracteres)`
+`ENCRYPTION_KEY="MinhaChaveUltraSecreta1234567890"`
 
 ---
 
 ## 5. Referências e Links Úteis
 
-### Ferramentas
+### 5.1. Ferramentas
 - [Editor README.md](https://readme.so/editor)
 
-### AWS
+### 5.2. AWS
 - AWS IAM: [Criando um usuário IAM](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html)
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
 - [Terraform AWS Provider](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
