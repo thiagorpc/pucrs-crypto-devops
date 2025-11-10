@@ -43,7 +43,9 @@ jobs:
         run: |
           aws s3 sync dist s3://${{ env.S3_BUCKET_UI }} \
             --delete \
-            --acl public-read \
+            
             --cache-control max-age=300
+        
+        # --acl public-read - Removi porque optei por definir object_ownership = "BucketOwnerEnforced"
         # --delete remove arquivos que não existem mais no build local
         # --acl public-read garante que os usuários possam acessar
