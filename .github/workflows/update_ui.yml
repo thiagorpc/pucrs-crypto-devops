@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env: 
-      API_URL_ALB: http://crypto-api-alb-1701207900.us-east-1.elb.amazonaws.com
+      API_URL_ALB: ""
 
     defaults:
       run:
