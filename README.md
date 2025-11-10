@@ -161,13 +161,16 @@ Para começar a trabalhar no projeto:
 
 Para rodar o projeto localmente, adicione as seguintes variáveis no seu arquivo **.env**:
 
-`NODE_ENV="production" || "development"`
-`PORT=3000`
-`HOST="0.0.0.0"`
-`TZ="America/Sao_Paulo"`
-` `
-`# Chave usada na criptografia (Superior a 32 caracteres)`
-`ENCRYPTION_KEY="MinhaChaveUltraSecreta1234567890"`
+```bash
+
+    NODE_ENV="production" || "development"
+    PORT=3000
+    HOST="0.0.0.0"
+    TZ="America/Sao_Paulo"
+
+    # Chave usada na criptografia (Superior a 32 caracteres)
+    ENCRYPTION_KEY="MinhaChaveUltraSecreta1234567890"
+```
 
 ---
 
