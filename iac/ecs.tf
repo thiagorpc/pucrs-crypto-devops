@@ -119,5 +119,34 @@ resource "aws_ecs_service" "crypto_service" {
     container_port   = var.container_port
   }
 
-  depends_on = [aws_iam_role_policy_attachment.ecs_task_execution_policy]
+  depends_on = [
+    aws_iam_role_policy_attachment.ecs_task_execution_policy,
+    aws_iam_role_policy_attachment.ecs_secret_access_attach
+  ]
+}
+
+# Define a política para acesso ao Secrets Manager
+resource "aws_iam_policy" "ecs_secret_access_policy" {
+  name        = "crypto-ecs-secrets-policy"
+  description = "Permite que a Task Execution Role acesse a chave de criptografia."
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "secretsmanager:GetSecretValue",
+        ],
+        Resource = "arn:aws:secretsmanager:us-east-1:202533542500:secret:crypto-api/encryption-key-kGeYT2*", 
+        # ⚠️ Ajuste o ARN acima. O '*' no final é para cobrir versões do secret -- :-)
+      },
+    ]
+  })
+}
+
+# Anexa a nova política de acesso ao Secret
+resource "aws_iam_role_policy_attachment" "ecs_secret_access_attach" {
+  role       = aws_iam_role.ecs_task_execution_role.name
+  policy_arn = aws_iam_policy.ecs_secret_access_policy.arn
 }
