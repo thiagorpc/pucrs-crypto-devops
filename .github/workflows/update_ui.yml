@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./ui # Assume que o código React está na pasta 'ui'
+        working-directory: ./crypto-ui # Assume que o código React está na pasta 'ui'
 
     steps:
       - name: Checkout Code
