@@ -1,12 +1,12 @@
 name: Setup AWS Environment
 
-on:
-  workflow_dispatch:  # executa manualmente apenas uma vez
-
 env:
   TF_WORKING_DIR: iac
   AWS_REGION: us-east-1
-  TERRAFORM_VERSION: 1.4.6
+  TERRAFORM_VERSION: 1.8.0  # versão mais recente e estável
+
+on:
+  workflow_dispatch:  # executa manualmente apenas uma vez
 
 jobs:
   terraform:
@@ -15,7 +15,7 @@ jobs:
     steps:
       # Passo 0: Checkout do repositório
       - name: Check out repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4  # 🔄 atualizado (de v2 -> v4)
 
       # Passo 1: Teste básico para conferir se os secrets existem
       - name: Check AWS Secrets
@@ -28,7 +28,7 @@ jobs:
 
       # Passo 2: Configurar as credenciais da AWS
       - name: Set up AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v4  # 🔄 atualizado (de v1 -> v4)
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -36,7 +36,7 @@ jobs:
 
       # Passo 3: Instalar o Terraform
       - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v1
+        uses: hashicorp/setup-terraform@v3  # 🔄 atualizado (de v1 -> v3)
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
 
@@ -55,12 +55,12 @@ jobs:
         run: terraform init
         working-directory: ${{ env.TF_WORKING_DIR }}
 
-      # Passo 7: Executar Terraform Plan
+      # Passo 7: Plano do Terraform
       - name: Terraform Plan
         run: terraform plan
         working-directory: ${{ env.TF_WORKING_DIR }}
 
-       # Passo 8: Aplicar o Terraform apenas no branch main
+      # Passo 8: Aplicar o Terraform (apenas na branch main)
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main'
         run: terraform apply -auto-approve
