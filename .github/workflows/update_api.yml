@@ -46,7 +46,7 @@ jobs:
       # 2. Build da Imagem e Push para ECR
       - name: Build, Tag e Push da Imagem
         run: |
-          docker build -t ${{ steps.vars.outputs.ECR_URI }}:${{ steps.vars.outputs.IMAGE_TAG }} ./api 
+          docker build -t ${{ steps.vars.outputs.ECR_URI }}:${{ steps.vars.outputs.IMAGE_TAG }} ./crypto-api 
           docker push ${{ steps.vars.outputs.ECR_URI }}:${{ steps.vars.outputs.IMAGE_TAG }}
 
       # 3. Deploy com Terraform
