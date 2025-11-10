@@ -235,7 +235,7 @@ resource "aws_s3_bucket" "crypto_ui" {
   bucket = "crypto-ui-${var.aws_region}-${random_id.unique_id.hex}"
   #acl    = "public-read"
 
-  object_ownership = "BucketOwnerEnforced"
+  #object_ownership = "BucketOwnerEnforced"
 
  #aws_s3_bucket_website_configuration
   website {
