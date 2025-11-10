@@ -3,7 +3,7 @@
 [![Status CI Backend](https://img.shields.io/badge/CI%20Backend-Sucesso-27ae60?style=for-the-badge)](https://github.com/thiagorpc/pucrs-crypto-devops/actions)
 [![Status CI Frontend](https://img.shields.io/badge/CI%20Frontend-Sucesso-27ae60?style=for-the-badge)](https://github.com/thiagorpc/pucrs-crypto-devops/actions)
 [![IaC (Terraform)](https://img.shields.io/badge/Infraestrutura-Aplicada-3498db?style=for-the-badge)](https://github.com/thiagorpc/pucrs-crypto-devops/tree/main/iac)
-[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](https://choosealicense.com/licenses/mit/)
 
 ## 🌟 Visão Geral do Projeto
 
