@@ -13,9 +13,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # Passo 1: Checkout do repositório
+    # Passo 0: Checkout do repositório
     - name: Check out repository
       uses: actions/checkout@v2
+
+
+    # Passo 1: Checkout do repositório
+    - name: Teste básico para conferir se os secrets existem
+      run: |
+        echo "AWS_ACCESS_KEY_ID exists? ${AWS_ACCESS_KEY_ID:+yes}"
+        echo "AWS_SECRET_ACCESS_KEY exists? ${AWS_SECRET_ACCESS_KEY:+yes}"
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
     # Passo 2: Configurar as credenciais da AWS
     - name: Set up AWS credentials
