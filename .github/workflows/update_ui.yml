@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'ui/**' # ❗️ Trigger: Apenas quando há push na pasta do Frontend
+      - 'crypto-ui/**' # ❗️ Trigger: Apenas quando há push na pasta do Frontend
 
 env:
   AWS_REGION: us-east-1
