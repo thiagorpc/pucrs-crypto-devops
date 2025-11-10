@@ -19,7 +19,19 @@ terraform {
       version = "~> 5.0"
     }
   }
+  # Exemplo de configuração de Backend no código Terraform
+
+  terraform {
+    backend "s3" {
+      bucket         = "crypto-github-action-tfstate-bucket-unique"  # O NOME EXATO do bucket criado acima
+      key            = "crypto-github-action/terraform.tfstate"      # Caminho do arquivo de estado dentro do bucket
+      region         = "us-east-1"
+      dynamodb_table = "terraform-state-lock"                        # Tabela DynamoDB para bloqueio de estado (Melhor Prática)
+      encrypt        = true
+    }
+  }
 }
+
 
 # ID aleatório para garantir nome único do bucket
 resource "random_id" "unique_id" {

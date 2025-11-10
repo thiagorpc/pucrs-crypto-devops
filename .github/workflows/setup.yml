@@ -50,13 +50,18 @@ jobs:
         run: terraform validate
         working-directory: ${{ env.TF_WORKING_DIR }}
 
-      # Passo 6: Importa os recursos no Terraform se eles já existem
-      - name: Import existing AWS resources if they exist
+        # Passo 6: CRIAR o S3 Bucket para o Backend (tfstate)
+      - name: Create S3 Backend Bucket if not exists
         run: |
-          terraform import aws_ecr_repository.crypto_api_repo pucrs-crypto-api-repo || true
-          terraform import aws_iam_role.ecs_task_execution_role crypto-ecs-task-execution-role || true
-          terraform import aws_lb.crypto_alb crypto-api-alb || true
-        working-directory: ${{ env.TF_WORKING_DIR }}
+          # O nome do bucket S3 deve ser globalmente único.
+          BUCKET_NAME="crypto-github-action-tfstate-bucket-unique"
+          REGION="${{ env.AWS_REGION }}"
+              
+          # Tenta criar o bucket. O '|| true' ignora o erro se o bucket já existir.
+          aws s3 mb s3://$BUCKET_NAME --region $REGION || true
+              
+          # Adicional: Habilitar o Versionamento (Melhor Prática)
+          aws s3 put-bucket-versioning --bucket $BUCKET_NAME --versioning-configuration Status=Enabled || true
 
       # Passo 7: Inicializar o Terraform
       - name: Terraform Init
