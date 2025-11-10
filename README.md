@@ -114,7 +114,7 @@ Para que o GitHub Actions execute o Terraform e interaja com a AWS, é essencial
 
 ---
 
-## ▶️ 4. Executando, Testando e Implantando
+## 4. Executando, Testando e Implantando
 
 ### 4.1. Fluxo de CI/CD (GitHub Actions)
 O workflow de CI/CD é acionado automaticamente:
