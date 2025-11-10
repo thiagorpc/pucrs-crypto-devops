@@ -41,11 +41,8 @@ jobs:
       # 2. Sincronização com S3
       - name: Sync Build com S3 Bucket
         run: |
-          aws s3 sync dist s3://${{ env.S3_BUCKET_UI }} \
-            --delete \
-            
-            --cache-control max-age=300
-        
+          aws s3 sync dist s3://${{ env.S3_BUCKET_UI }} --delete --cache-control max-age=300
         # --acl public-read - Removi porque optei por definir object_ownership = "BucketOwnerEnforced"
         # --delete remove arquivos que não existem mais no build local
         # --acl public-read garante que os usuários possam acessar
+        # --cache-control max-age=300
