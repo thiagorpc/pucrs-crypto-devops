@@ -1,12 +1,12 @@
 name: Setup AWS Environment
 
+on:
+  workflow_dispatch:  # executa manualmente apenas uma vez
+
 env:
   TF_WORKING_DIR: iac
   AWS_REGION: us-east-1
   TERRAFORM_VERSION: 1.4.6
-
-on:
-  workflow_dispatch:  # executa manualmente apenas uma vez
 
 jobs:
   terraform:
