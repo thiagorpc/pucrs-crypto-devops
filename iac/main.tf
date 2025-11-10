@@ -229,7 +229,7 @@ resource "aws_ecs_service" "crypto_service" {
 # ============================
 # S3 Bucket para o Front-End (React)
 # ============================
-resource "aws_s3_bucket" "crypto_frontend" {
+resource "aws_s3_bucket" "crypto_ui" {
   bucket = "crypto-ui-${var.aws_region}-${random_id.unique_id.hex}"
   acl    = "public-read"
 
@@ -244,8 +244,8 @@ resource "aws_s3_bucket" "crypto_frontend" {
 }
 
 # Política para permitir acesso público ao conteúdo do S3
-resource "aws_s3_bucket_policy" "crypto_frontend_policy" {
-  bucket = aws_s3_bucket.crypto_frontend.id
+resource "aws_s3_bucket_policy" "crypto_ui_policy" {
+  bucket = aws_s3_bucket.crypto_ui.id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -255,7 +255,7 @@ resource "aws_s3_bucket_policy" "crypto_frontend_policy" {
         Effect    = "Allow"
         Principal = "*"
         Action    = ["s3:GetObject"]
-        Resource  = "${aws_s3_bucket.crypto_frontend.arn}/*"
+        Resource  = "${aws_s3_bucket.crypto_ui.arn}/*"
       }
     ]
   })
@@ -264,7 +264,7 @@ resource "aws_s3_bucket_policy" "crypto_frontend_policy" {
 # Outputs para GitHub Actions
 output "frontend_bucket_name" {
   description = "Nome do bucket S3 para o front-end"
-  value       = aws_s3_bucket.crypto_frontend.bucket
+  value       = aws_s3_bucket.crypto_ui.bucket
 }
 
 output "ecr_repository_url" {
