@@ -1,4 +1,4 @@
-name: Terraform CI/CD
+name: Setup AWS Environment
 
 env:
   TF_WORKING_DIR: iac
@@ -6,12 +6,7 @@ env:
   TERRAFORM_VERSION: 1.4.6
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:  # executa manualmente apenas uma vez
 
 jobs:
   terraform:
@@ -60,12 +55,12 @@ jobs:
         run: terraform init
         working-directory: ${{ env.TF_WORKING_DIR }}
 
-      # Passo 7: Executar Terraform Plan
-      - name: Terraform Plan
-        run: terraform plan
-        working-directory: ${{ env.TF_WORKING_DIR }}
+        # Passo 7: Executar Terraform Plan
+       name: Terraform Plan
+       run: terraform plan
+       working-directory: ${{ env.TF_WORKING_DIR }}
 
-      # Passo 8: Aplicar o Terraform apenas no branch main
+       # Passo 8: Aplicar o Terraform apenas no branch main
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main'
         run: terraform apply -auto-approve
