@@ -1,4 +1,5 @@
 /*
+
 Autor: Thiago Costa
 
 ✅ Este Terraform faz:
@@ -20,24 +21,24 @@ terraform {
   }
 }
 
-provider "aws" {
-  region = var.aws_region
-}
-
+# ID aleatório para garantir nome único do bucket
 resource "random_id" "unique_id" {
   byte_length = 8
 }
 
+provider "aws" {
+  region = var.aws_region
+}
+
 # ============================
-# VPC e Rede
+# REDE: VPC, Subnets e Internet Gateway
 # ============================
 resource "aws_vpc" "crypto_vpc" {
   cidr_block           = var.vpc_cidr
   enable_dns_support   = true
   enable_dns_hostnames = true
-
-  tags = {
-    Name = "crypto-vpc"
+  tags = { 
+    Name = "crypto-vpc" 
   }
 }
 
@@ -49,10 +50,7 @@ resource "aws_subnet" "public_subnets" {
   cidr_block              = var.public_subnet_cidrs[count.index]
   map_public_ip_on_launch = true
   availability_zone       = data.aws_availability_zones.available.names[count.index]
-
-  tags = {
-    Name = "crypto-public-${count.index}"
-  }
+  tags = { Name = "crypto-public-${count.index}" }
 }
 
 resource "aws_internet_gateway" "igw" {
@@ -62,12 +60,10 @@ resource "aws_internet_gateway" "igw" {
 
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.crypto_vpc.id
-
   route {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.igw.id
   }
-
   tags = { Name = "crypto-public-rt" }
 }
 
@@ -78,7 +74,7 @@ resource "aws_route_table_association" "public_assoc" {
 }
 
 # ============================
-# Security Group
+# SECURITY GROUP
 # ============================
 resource "aws_security_group" "ecs_sg" {
   name        = "crypto-ecs-sg"
@@ -104,7 +100,7 @@ resource "aws_security_group" "ecs_sg" {
 }
 
 # ============================
-# ECR Repository
+# ECR (repositório Docker)
 # ============================
 resource "aws_ecr_repository" "crypto_api_repo" {
   name                 = "pucrs-crypto-api-repo"
@@ -117,15 +113,20 @@ resource "aws_ecr_repository" "crypto_api_repo" {
   lifecycle {
     prevent_destroy = false
   }
+
 }
 
 # ============================
-# ECS Cluster + IAM Role
+# ECS CLUSTER
 # ============================
 resource "aws_ecs_cluster" "crypto_cluster" {
   name = "pucrs-crypto-cluster"
 }
 
+
+# ============================
+# IAM ROLE para ECS Task
+# ============================
 data "aws_iam_policy_document" "ecs_task_assume_role" {
   statement {
     actions = ["sts:AssumeRole"]
@@ -147,24 +148,24 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy" {
 }
 
 # ============================
-# Application Load Balancer
+# LOAD BALANCER
 # ============================
 resource "aws_lb" "crypto_alb" {
-  name                       = "crypto-api-alb"
-  internal                   = false
-  load_balancer_type          = "application"
-  security_groups             = [aws_security_group.ecs_sg.id]
-  subnets                     = aws_subnet.public_subnets[*].id
-  enable_deletion_protection  = false
-
+  name               = "crypto-api-alb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.ecs_sg.id]
+  subnets            = aws_subnet.public_subnets[*].id
+  enable_deletion_protection = false
   tags = { Name = "crypto-api-alb" }
 }
 
 resource "aws_lb_target_group" "crypto_tg" {
-  name        = "crypto-api-tg"
-  port        = var.container_port
-  protocol    = "HTTP"
-  vpc_id      = aws_vpc.crypto_vpc.id
+  name     = "crypto-api-tg"
+  port     = var.container_port
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.crypto_vpc.id
+
   target_type = "ip"
 
   health_check {
@@ -191,7 +192,7 @@ resource "aws_lb_listener" "crypto_listener" {
 }
 
 # ============================
-# ECS Task Definition & Service
+# ECS TASK DEFINITION & SERVICE
 # ============================
 resource "aws_ecs_task_definition" "crypto_task" {
   family                   = var.service_name
@@ -205,11 +206,9 @@ resource "aws_ecs_task_definition" "crypto_task" {
     name      = var.service_name
     image     = "${aws_ecr_repository.crypto_api_repo.repository_url}:latest"
     essential = true
-    portMappings = [{
-      containerPort = var.container_port
-      hostPort      = var.container_port
-      protocol      = "tcp"
-    }]
+    portMappings = [
+      { containerPort = var.container_port, hostPort = var.container_port, protocol = "tcp" }
+    ]
   }])
 }
 
@@ -221,8 +220,8 @@ resource "aws_ecs_service" "crypto_service" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets          = aws_subnet.public_subnets[*].id
-    security_groups  = [aws_security_group.ecs_sg.id]
+    subnets         = aws_subnet.public_subnets[*].id
+    security_groups = [aws_security_group.ecs_sg.id]
     assign_public_ip = true
   }
 
@@ -232,7 +231,7 @@ resource "aws_ecs_service" "crypto_service" {
     container_port   = var.container_port
   }
 
-  depends_on = [aws_lb_listener.crypto_listener]
+  depends_on = [aws_iam_role_policy_attachment.ecs_task_execution_policy]
 }
 
 # ============================
@@ -266,7 +265,8 @@ resource "aws_s3_bucket_website_configuration" "crypto_ui_website" {
   }
 }
 
-# Política pública controlada
+
+# Política para permitir acesso público ao conteúdo do S3
 resource "aws_s3_bucket_policy" "crypto_ui_policy" {
   bucket = aws_s3_bucket.crypto_ui.id
 
@@ -283,3 +283,4 @@ resource "aws_s3_bucket_policy" "crypto_ui_policy" {
     ]
   })
 }
+
