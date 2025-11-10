@@ -50,17 +50,25 @@ jobs:
         run: terraform validate
         working-directory: ${{ env.TF_WORKING_DIR }}
 
-      # Passo 6: Inicializar o Terraform
+      # Passo 6: Importa os recursos no Terraform se eles já existem
+      - name: Import existing AWS resources if they exist
+        run: |
+          terraform import aws_ecr_repository.crypto_api_repo pucrs-crypto-api-repo || true
+          terraform import aws_iam_role.ecs_task_execution_role crypto-ecs-task-execution-role || true
+          terraform import aws_lb.crypto_alb crypto-api-alb || true
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+      # Passo 7: Inicializar o Terraform
       - name: Terraform Init
         run: terraform init
         working-directory: ${{ env.TF_WORKING_DIR }}
 
-      # Passo 7: Plano do Terraform
+      # Passo 8: Plano do Terraform
       - name: Terraform Plan
         run: terraform plan
         working-directory: ${{ env.TF_WORKING_DIR }}
 
-      # Passo 8: Aplicar o Terraform (apenas na branch main)
+      # Passo 9: Aplicar o Terraform (apenas na branch main)
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main'
         run: terraform apply -auto-approve
