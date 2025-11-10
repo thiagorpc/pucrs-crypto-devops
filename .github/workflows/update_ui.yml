@@ -16,6 +16,10 @@ jobs:
   deploy_ui:
     name: Build & Sync S3
     runs-on: ubuntu-latest
+
+    env: 
+      API_URL_ALB: http://crypto-api-alb-1701207900.us-east-1.elb.amazonaws.com
+
     defaults:
       run:
         working-directory: ./crypto-ui # Assume que o código React está na pasta 'ui'
@@ -30,13 +34,35 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
+
+      
+      - name: 🎯 Obter DNS do ALB
+        id: get_alb_dns
+        run: |
+          # 1. Busca o nome DNS do ALB pelo seu nome fixo
+          ALB_DNS_NAME=$(aws elbv2 describe-load-balancers \
+            --names "crypto-api-alb" \
+            --region ${{ env.AWS_REGION }} \
+            --query "LoadBalancers[0].DNSName" \
+            --output text)
           
+          # 2. Verifica se o nome DNS foi encontrado
+          if [ -z "$ALB_DNS_NAME" ]; then
+            echo "Erro: Não foi possível encontrar o DNS para o ALB 'crypto-api-alb'."
+            exit 1
+          fi
+          
+          # 3. Define a variável de ambiente para ser usada nos próximos passos
+          # Usamos o comando set-output (deprecated, mas funciona) ou salvamos em um arquivo
+          echo "API_URL_ALB=http://$ALB_DNS_NAME" >> $GITHUB_ENV
+          echo "DNS do ALB obtido: http://$ALB_DNS_NAME"
+
       # 1. Instalação de Dependências e Build do Frontend
       - name: Instalar Dependências
         run: npm install
 
       - name: Build do Projeto React/UI
-        run: npm run build # ❗️ Este comando deve gerar os arquivos estáticos na pasta 'ui/build'
+        run: VITE_API_URL=${{ env.API_URL_ALB }} npm run build
 
       # 2. Sincronização com S3
       - name: Sync Build com S3 Bucket
