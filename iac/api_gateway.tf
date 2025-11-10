@@ -28,7 +28,7 @@ resource "aws_api_gateway_integration" "alb_integration" {
 
   # Use o ARN do seu ALB Listener HTTPS (Porta 443) como endpoint
   # Supondo que você criou um Listener HTTPS chamado 'https_listener'
-  uri = aws_lb_listener.https_listener.arn 
+  uri = aws_lb_listener.crypto_https_listener.arn
 
   integration_http_method = "ANY"
   connection_type         = "VPC_LINK" # Necessário para se conectar ao ALB dentro da sua VPC
