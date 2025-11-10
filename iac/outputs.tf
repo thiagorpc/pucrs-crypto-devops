@@ -57,3 +57,8 @@ output "images_bucket_name" {
   description = "Nome do bucket S3 para armazenar imagens da API"
   value       = aws_s3_bucket.crypto_images.bucket
 }
+
+# URL do API Gateway
+output "api_gateway_url" {
+  value = "${aws_api_gateway_stage.prod_stage.invoke_url}/"
+}
