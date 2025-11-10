@@ -155,8 +155,6 @@ Para começar a trabalhar no projeto:
   npm run test
 ```
 
-
-
 ### 4.3. Variáveis de Ambiente
 
 Para rodar o projeto localmente, adicione as seguintes variáveis no seu arquivo **.env**:
