@@ -36,8 +36,8 @@ output "public_subnets_ids" {
 
 # URL pública do front-end React hospedado no S3
 output "react_ui_url" {
+  value       = "http://${aws_s3_bucket.crypto_ui.bucket}.s3-website-${var.aws_region}.amazonaws.com"
   description = "URL pública do front-end React"
-  value       = aws_s3_bucket.crypto_ui.website_endpoint
 }
 
 # Nome do bucket S3 para o front-end React
