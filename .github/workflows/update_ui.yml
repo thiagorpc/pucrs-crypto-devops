@@ -41,7 +41,7 @@ jobs:
       # 2. Sincronização com S3
       - name: Sync Build com S3 Bucket
         run: |
-          aws s3 sync build s3://${{ env.S3_BUCKET_UI }} \
+          aws s3 sync dist s3://${{ env.S3_BUCKET_UI }} \
             --delete \
             --acl public-read \
             --cache-control max-age=300
