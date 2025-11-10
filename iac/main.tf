@@ -18,17 +18,14 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
-  }
-  # Exemplo de configuração de Backend no código Terraform
-
-  terraform {
-    backend "s3" {
-      bucket         = "crypto-github-action-tfstate-bucket-unique"  # O NOME EXATO do bucket criado acima
-      key            = "crypto-github-action/terraform.tfstate"      # Caminho do arquivo de estado dentro do bucket
-      region         = "us-east-1"
-      dynamodb_table = "terraform-state-lock"                        # Tabela DynamoDB para bloqueio de estado (Melhor Prática)
-      encrypt        = true
-    }
+  },
+  # Exemplo de configuração de Backend no código Terraform  
+  backend "s3" {
+    bucket         = "crypto-github-action-tfstate-bucket-unique"  # O NOME EXATO do bucket criado acima
+    key            = "crypto-github-action/terraform.tfstate"      # Caminho do arquivo de estado dentro do bucket
+    region         = "us-east-1"
+    dynamodb_table = "terraform-state-lock"                        # Tabela DynamoDB para bloqueio de estado (Melhor Prática)
+    encrypt        = true
   }
 }
 
