@@ -239,10 +239,10 @@ resource "aws_s3_bucket" "crypto_ui" {
   }
 }
 
-resource "aws_s3_bucket_acl" "crypto_ui_acl" {
-  bucket = aws_s3_bucket.crypto_ui.id
-  acl    = "private"  # ou "private"
-}
+//resource "aws_s3_bucket_acl" "crypto_ui_acl" {
+//  bucket = aws_s3_bucket.crypto_ui.id
+//  acl    = "private"  # ou "private"
+//}
 
 resource "aws_s3_bucket_ownership_controls" "crypto_ui_ownership" {
   bucket = aws_s3_bucket.crypto_ui.id
