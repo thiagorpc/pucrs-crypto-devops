@@ -58,7 +58,7 @@ resource "aws_security_group" "alb_sg" {
   }
 
   egress {
-    description = "Saída total"
+    description = "Acesso Publico"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -82,7 +82,7 @@ resource "aws_security_group" "ecs_sg" {
   }
 
   egress {
-    description = "Saída total"
+    description = "Acesso Publico"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
