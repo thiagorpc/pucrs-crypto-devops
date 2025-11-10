@@ -16,27 +16,32 @@ output "ecr_repository_url" {
   description = "URL do repositório ECR para armazenar imagens Docker"
 }
 
-# Security Group
+# Security Group utilizado pelo ECS e ALB
 output "ecs_security_group_id" {
   value       = aws_security_group.ecs_sg.id
   description = "ID do Security Group utilizado pelo ECS e ALB"
 }
 
-# VPC ID
+# ID da VPC criada
 output "vpc_id" {
   value       = aws_vpc.crypto_vpc.id
   description = "ID da VPC criada"
 }
 
-# Subnets públicas
+# IDs das subnets públicas
 output "public_subnets_ids" {
   value       = aws_subnet.public_subnets[*].id
   description = "Lista de IDs das subnets públicas"
 }
 
-# url para o frontend Reacr
+# URL pública do front-end React hospedado no S3
 output "react_frontend_url" {
   description = "URL pública do front-end React"
-  value       = aws_s3_bucket.react_frontend.website_endpoint
+  value       = aws_s3_bucket.crypto_frontend.website_endpoint
 }
 
+# Nome do bucket S3 para o front-end React
+output "frontend_bucket_name" {
+  description = "Nome do bucket S3 para o front-end React"
+  value       = aws_s3_bucket.crypto_frontend.bucket
+}

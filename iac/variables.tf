@@ -1,41 +1,62 @@
 # Região da AWS
 variable "aws_region" {
-  description = "A região da AWS onde a infraestrutura será implantada."
+  description = "A região da AWS onde a infraestrutura será implantada. Exemplo: us-east-1, us-west-2"
   type        = string
   default     = "us-east-1"
 }
 
 # CIDR da VPC
 variable "vpc_cidr" {
-  description = "CIDR da VPC"
+  description = "CIDR da VPC. Exemplo: 10.0.0.0/16"
   type        = string
   default     = "10.0.0.0/16"
 }
 
 # Subnets públicas
 variable "public_subnet_cidrs" {
-  description = "Lista de CIDRs das subnets públicas"
+  description = "Lista de CIDRs das subnets públicas para o projeto. Exemplo: [\"10.0.1.0/24\", \"10.0.2.0/24\"]"
   type        = list(string)
   default     = ["10.0.1.0/24", "10.0.2.0/24"]
 }
 
 # Nome do serviço ECS
 variable "service_name" {
-  description = "Nome do serviço ECS"
+  description = "Nome do serviço ECS que será executado no Fargate. Exemplo: 'crypto-api'"
   type        = string
   default     = "crypto-api"
 }
 
 # Porta do container
 variable "container_port" {
-  description = "Porta do container da aplicação"
+  description = "Porta do container onde a aplicação está escutando. Exemplo: 3000 para aplicações Node.js"
   type        = number
   default     = 3000
 }
 
 # Nome do bucket S3 para o front-end
 variable "react_bucket_name" {
-  description = "Nome do bucket S3 para hospedar o front-end React"
+  description = "Nome do bucket S3 onde o front-end React será hospedado. O nome do bucket deve ser único na AWS."
   type        = string
   default     = "pucrs-crypto-frontend"
+}
+
+# Tamanho da instância ECS Fargate (CPU)
+variable "ecs_cpu" {
+  description = "Quantidade de CPU alocada para a task ECS Fargate. Exemplo: '256' (0.25 vCPU)"
+  type        = string
+  default     = "256"
+}
+
+# Tamanho da memória ECS Fargate (RAM)
+variable "ecs_memory" {
+  description = "Quantidade de memória (RAM) alocada para a task ECS Fargate. Exemplo: '512' (512MB)"
+  type        = string
+  default     = "512"
+}
+
+# Nome do Bucket S3 para armazenar as imagens
+variable "image_bucket_name" {
+  description = "Nome do bucket S3 onde as imagens serão armazenadas"
+  type        = string
+  default     = "crypto-api-images"
 }

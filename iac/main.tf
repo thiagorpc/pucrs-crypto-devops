@@ -11,6 +11,7 @@ Autor: Thiago Costa
   - Cria Application Load Balancer + Target Group + Listener
   - Cria ECS Fargate Service conectado ao ALB
   - Gera output com o DNS do ALB
+  - Cria o S3 para o Frontend
 */
 
 terraform {
@@ -22,13 +23,18 @@ terraform {
   }
 }
 
+# ID aleatório para garantir nome único do bucket
+resource "random_id" "unique_id" {
+  byte_length = 8
+}
+
 provider "aws" {
   region = var.aws_region
 }
 
-# ===========================
+# ============================
 # REDE: VPC, Subnets e Internet Gateway
-# ===========================
+# ============================
 resource "aws_vpc" "crypto_vpc" {
   cidr_block           = var.vpc_cidr
   enable_dns_support   = true
@@ -67,9 +73,9 @@ resource "aws_route_table_association" "public_assoc" {
   route_table_id = aws_route_table.public.id
 }
 
-# ===========================
+# ============================
 # SECURITY GROUP
-# ===========================
+# ============================
 resource "aws_security_group" "ecs_sg" {
   name        = "crypto-ecs-sg"
   description = "Permite acesso HTTP e ALB"
@@ -93,9 +99,9 @@ resource "aws_security_group" "ecs_sg" {
   tags = { Name = "crypto-ecs-sg" }
 }
 
-# ===========================
+# ============================
 # ECR (repositório Docker)
-# ===========================
+# ============================
 resource "aws_ecr_repository" "crypto_api_repo" {
   name                 = "pucrs-crypto-api-repo"
   image_tag_mutability = "MUTABLE"
@@ -105,16 +111,16 @@ resource "aws_ecr_repository" "crypto_api_repo" {
   }
 }
 
-# ===========================
+# ============================
 # ECS CLUSTER
-# ===========================
+# ============================
 resource "aws_ecs_cluster" "crypto_cluster" {
   name = "pucrs-crypto-cluster"
 }
 
-# ===========================
+# ============================
 # IAM ROLE para ECS Task
-# ===========================
+# ============================
 data "aws_iam_policy_document" "ecs_task_assume_role" {
   statement {
     actions = ["sts:AssumeRole"]
@@ -135,9 +141,9 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
-# ===========================
+# ============================
 # LOAD BALANCER
-# ===========================
+# ============================
 resource "aws_lb" "crypto_alb" {
   name               = "crypto-api-alb"
   internal           = false
@@ -177,9 +183,9 @@ resource "aws_lb_listener" "crypto_listener" {
   }
 }
 
-# ===========================
+# ============================
 # ECS TASK DEFINITION & SERVICE
-# ===========================
+# ============================
 resource "aws_ecs_task_definition" "crypto_task" {
   family                   = var.service_name
   cpu                      = "256"
@@ -188,16 +194,14 @@ resource "aws_ecs_task_definition" "crypto_task" {
   requires_compatibilities = ["FARGATE"]
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
 
-  container_definitions = jsonencode([
-    {
-      name      = var.service_name
-      image     = "${aws_ecr_repository.crypto_api_repo.repository_url}:latest"
-      essential = true
-      portMappings = [
-        { containerPort = var.container_port, hostPort = var.container_port, protocol = "tcp" }
-      ]
-    }
-  ])
+  container_definitions = jsonencode([{
+    name      = var.service_name
+    image     = "${aws_ecr_repository.crypto_api_repo.repository_url}:latest"
+    essential = true
+    portMappings = [
+      { containerPort = var.container_port, hostPort = var.container_port, protocol = "tcp" }
+    ]
+  }])
 }
 
 resource "aws_ecs_service" "crypto_service" {
@@ -222,26 +226,26 @@ resource "aws_ecs_service" "crypto_service" {
   depends_on = [aws_iam_role_policy_attachment.ecs_task_execution_policy]
 }
 
-# ===========================
-# S3 Bucket para React
-# ===========================
-resource "aws_s3_bucket" "react_frontend" {
-  bucket = var.react_bucket_name
+# ============================
+# S3 Bucket para o Front-End (React)
+# ============================
+resource "aws_s3_bucket" "crypto_frontend" {
+  bucket = "crypto-ui-${var.aws_region}-${random_id.unique_id.hex}"
+  acl    = "public-read"
 
-  # Habilita hosting estático
   website {
     index_document = "index.html"
     error_document = "index.html"
   }
 
   tags = {
-    Name = "crypto-react-frontend"
+    Name = "crypto-ui-bucket"
   }
 }
 
-# Permissão pública para acesso estático
-resource "aws_s3_bucket_policy" "react_frontend_policy" {
-  bucket = aws_s3_bucket.react_frontend.id
+# Política para permitir acesso público ao conteúdo do S3
+resource "aws_s3_bucket_policy" "crypto_frontend_policy" {
+  bucket = aws_s3_bucket.crypto_frontend.id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -251,8 +255,19 @@ resource "aws_s3_bucket_policy" "react_frontend_policy" {
         Effect    = "Allow"
         Principal = "*"
         Action    = ["s3:GetObject"]
-        Resource  = "${aws_s3_bucket.react_frontend.arn}/*"
+        Resource  = "${aws_s3_bucket.crypto_frontend.arn}/*"
       }
     ]
   })
+}
+
+# Outputs para GitHub Actions
+output "frontend_bucket_name" {
+  description = "Nome do bucket S3 para o front-end"
+  value       = aws_s3_bucket.crypto_frontend.bucket
+}
+
+output "ecr_repository_url" {
+  description = "URL do repositório ECR"
+  value       = aws_ecr_repository.crypto_api_repo.repository_url
 }
