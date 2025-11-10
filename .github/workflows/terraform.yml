@@ -2,6 +2,7 @@ name: Terraform CI/CD
 
 env:
   TF_WORKING_DIR: ./IAC
+  AWS_REGION: us-east-1
 
 on:
   push:
@@ -36,29 +37,25 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1 # Altere para a região desejada
+        aws-region: ${{ env.AWS_REGION }} 
 
     # Passo 3: Instalar o Terraform
     - name: Set up Terraform
       uses: hashicorp/setup-terraform@v1
       with:
-        terraform_version: 1.4.6 # Altere para a versão do Terraform desejada
+        terraform_version: 1.4.6
 
-    # Passo 4: Navegar para o diretório onde está o código Terraform
-    #- name: Change working directory to IAC
-    #  run: cd IAC
-
-    # Passo 5: Inicializar o Terraform
+    # Passo 4: Inicializar o Terraform
     - name: Initialize Terraform
       run: terraform init
       working-directory: ${{ env.TF_WORKING_DIR }}
 
-    # Passo 6: Verificar o plano do Terraform
+    # Passo 5: Verificar o plano do Terraform
     - name: Terraform Plan
       run: terraform plan
       working-directory: ${{ env.TF_WORKING_DIR }}
 
-    # Passo 7: Aplicar o plano do Terraform
+    # Passo 6: Aplicar o plano do Terraform
     - name: Terraform Apply
       run: terraform apply -auto-approve
       working-directory: ${{ env.TF_WORKING_DIR }}
