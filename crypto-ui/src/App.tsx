@@ -17,39 +17,39 @@ export default function App() {
   const [decryptedResult, setDecryptedResult] = useState<string | null>(null);
 
   const [loadingEncrypt, setLoadingEncrypt] = useState(false);
-const [loadingDecrypt, setLoadingDecrypt] = useState(false);
-const [loadingHealth, setLoadingHealth] = useState(false);
-
+  const [loadingDecrypt, setLoadingDecrypt] = useState(false);
+  const [loadingHealth, setLoadingHealth] = useState(false);
+  const [showHealth, setShowHealth] = useState(false); // <--- novo
 
   const fetchHealth = async () => {
     setLoadingHealth(true);
     try {
       const data = await getHealth();
       setHealth(data);
+      setShowHealth(true); // mostra o HealthCheck
     } catch (err) {
       console.error(err);
       setHealth({ error: "Falha ao acessar API" });
+      setShowHealth(true);
     } finally {
       setLoadingHealth(false);
     }
   };
 
-    const handleEncrypt = async () => {
-  if (!payload) return;
-  setLoadingEncrypt(true);
-  try {
-    const data = await encryptData(payload);
-
-    // NÃO usar JSON.stringify
-    setEncryptedResult(data.encrypted || "Erro ao gerar criptografia");
-  } catch (err) {
-    console.error(err);
-    setEncryptedResult(null);
-    alert("Erro ao criptografar");
-  } finally {
-    setLoadingEncrypt(false);
-  }
-};
+  const handleEncrypt = async () => {
+    if (!payload) return;
+    setLoadingEncrypt(true);
+    try {
+      const data = await encryptData(payload);
+      setEncryptedResult(data.encrypted || "Erro ao gerar criptografia");
+    } catch (err) {
+      console.error(err);
+      setEncryptedResult(null);
+      alert("Erro ao criptografar");
+    } finally {
+      setLoadingEncrypt(false);
+    }
+  };
 
   const handleDecrypt = async () => {
     if (!payloadEncryptData) return;
@@ -69,8 +69,14 @@ const [loadingHealth, setLoadingHealth] = useState(false);
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
       <Header loading={loadingHealth} onCheckHealth={fetchHealth} />
-      <main className="max-w-7xl mx-auto px-6 pt-20 pb-10 flex-grow space-y-8 w-full">
-        <HealthCheck health={health} />
+
+      <main className="max-w-7xl mx-auto px-6 pt-0 pb-5 flex-grow space-y-8 w-full">
+        <HealthCheck
+          health={health}
+          show={showHealth}
+          onClose={() => setShowHealth(false)}
+        />
+
         <EncryptForm
           payload={payload}
           onChange={setPayload}
@@ -78,6 +84,7 @@ const [loadingHealth, setLoadingHealth] = useState(false);
           loading={loadingEncrypt}
           result={encryptedResult}
         />
+
         <DecryptForm
           payload={payloadEncryptData}
           onChange={setPayloadEncryptData}
@@ -86,6 +93,7 @@ const [loadingHealth, setLoadingHealth] = useState(false);
           result={decryptedResult}
         />
       </main>
+
       <Footer />
     </div>
   );
