@@ -1,6 +1,7 @@
 import { useState } from "react";
 import HealthCheck from "./HealthCheck";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function AppHeader({ onCheckHealth, loading, health }: any) {
   const [showHealth, setShowHealth] = useState(false);
 
