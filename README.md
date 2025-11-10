@@ -28,7 +28,7 @@ O projeto consiste em uma **API de Criptografia (Backend)** e uma **Interface de
 | Camada | Tecnologia Principal | Infraestrutura de Implantação | 
 | :--- | :--- | :--- | 
 | **Backend** | NestJS (TypeScript), Docker | AWS ECS Fargate, AWS ECR, AWS ALB | 
-| **Frontend** | HTML, CSS, JavaScript | AWS S3 Static Hosting, AWS CloudFront (Opcional) | 
+| **Frontend** | React + Vite para gerar HTML, CSS, JavaScript | AWS S3 Static Hosting | 
 | **DevOps** | GitHub Actions (CI), Terraform (IaC) | AWS Services | 
 
 ### 1.3. 🚀 Metas de DevOps
@@ -37,7 +37,7 @@ O projeto consiste em uma **API de Criptografia (Backend)** e uma **Interface de
 | :--- | :--- | :--- | 
 | **Integração Contínua (CI)** | Implementar **dois pipelines de CI** (Backend e Frontend) no GitHub Actions, automatizando *linting*, testes, *build* de contêineres e empacotamento. | *Plano de Integração Contínua* | 
 | **Infraestrutura como Código (IaC)** | Utilizar **Terraform** para provisionar e gerenciar **toda** a infraestrutura AWS (VPC, Fargate, ECR, Load Balancer, S3). | *Especificação da Infraestrutura* | 
-| **Qualidade & Segurança** | Garantir 100% de testes automatizados e integrar uma etapa de **Análise de Segurança Estática (SAST)** no pipeline do Backend (DevSecOps). | *Critério de Sucesso do Estudo* | 
+| **Qualidade & Segurança** | Garantir 100% de testes automatizados e integrar uma etapa de **Análise de Segurança Estática (SAST)** no pipeline do Backend (DevSecOps). | *Define o critério de sucesso para esse caso prático de estudo* | 
 
 
 ---
@@ -133,12 +133,12 @@ Para começar a trabalhar no projeto:
 
 ```bash
 # Clone o repositório
-git clone [https://github.com/thiagorpc/pucrs-crypto-devops.git](https://github.com/thiagorpc/pucrs-crypto-devops.git)
+git clone https://github.com/thiagorpc/pucrs-crypto-devops.git
 cd pucrs-crypto-devops
 
 # Adicione seus arquivos e envie para o GitHub
 git add .
-git commit -m "Implementacao inicial de X"
+git commit -m "Implementacao inicial do projeto pucrs-crypto-devops"
 git push -u origin main
 ```
 
