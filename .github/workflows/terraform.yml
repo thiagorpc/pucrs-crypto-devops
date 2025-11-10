@@ -1,7 +1,7 @@
 name: Terraform CI/CD
 
 env:
-  TF_WORKING_DIR: ./IAC
+  TF_WORKING_DIR: iac
   AWS_REGION: us-east-1
 
 on:
