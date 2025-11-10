@@ -58,7 +58,7 @@ resource "tls_self_signed_cert" "crypto_cert" {
   private_key_pem = tls_private_key.crypto_key.private_key_pem
   
   # O Common Name deve ser o DNS do seu ALB
-  common_name = data.aws_lb.crypto_alb_data.dns_name 
+  # common_name = data.aws_lb.crypto_alb_data.dns_name 
 
   subject {
     common_name  = data.aws_lb.crypto_alb_data.dns_name
