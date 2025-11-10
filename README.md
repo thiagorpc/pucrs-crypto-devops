@@ -146,7 +146,12 @@ git push -u origin main
 Para começar a trabalhar no projeto:
 
 ```bash
-  # Executa todos os testes do projeto
+  # Executa todos os testes do projeto crypto-api
+  cd  .\crypto-api\
+  npm run test
+
+  # Executa todos os testes do projeto crypto-ui
+  cd  .\crypto-ui\
   npm run test
 ```
 
@@ -163,12 +168,18 @@ Para rodar o projeto localmente, adicione as seguintes variáveis no seu arquivo
 
 ## 5. Referências e Links Úteis
 
+### Ferramentas
+- [Editor README.md](https://readme.so/editor)
+
+### AWS
 - AWS IAM: [Criando um usuário IAM](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html)
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
 - [Terraform AWS Provider](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
 - [AWS ECS Fargate](https://aws.amazon.com/ecs/fargate/)
 - [AWS S3 Static Website Hosting](https://docs.aws.amazon.com/AmazonS3/latest/userguide/WebsiteHosting.html)
-## Licença de uso
+
+
+## 6. Licença de uso
 
 Este projeto está licenciado sob a licença [MIT](https://choosealicense.com/licenses/mit/)
 
