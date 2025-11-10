@@ -82,7 +82,7 @@ resource "aws_security_group" "ecs_sg" {
   vpc_id      = aws_vpc.crypto_vpc.id
 
   ingress {
-    description = "HTTP acesso público"
+    description = "HTTP acesso publico"
     from_port   = var.container_port
     to_port     = var.container_port
     protocol    = "tcp"
@@ -90,9 +90,10 @@ resource "aws_security_group" "ecs_sg" {
   }
 
   egress {
+    description = "HTTP acesso publico"
     from_port   = 0
     to_port     = 0
-    protocol    = "tcp"
+    protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
