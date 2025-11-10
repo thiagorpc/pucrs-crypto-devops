@@ -54,7 +54,7 @@ resource "tls_private_key" "crypto_key" {
 
 # 2. Gerar o Certificado Autoassinado (Self-Signed)
 resource "tls_self_signed_cert" "crypto_cert" {
-  key_algorithm   = "RSA"
+  # key_algorithm   = "RSA"
   private_key_pem = tls_private_key.crypto_key.private_key_pem
   
   # O Common Name deve ser o DNS do seu ALB
