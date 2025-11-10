@@ -1,138 +1,174 @@
 # 🛡️ PUC-RS Crypto DevOps
 
+[![Status CI Backend](https://img.shields.io/badge/CI%20Backend-Sucesso-27ae60?style=for-the-badge)](https://github.com/thiagorpc/pucrs-crypto-devops/actions)
+[![Status CI Frontend](https://img.shields.io/badge/CI%20Frontend-Sucesso-27ae60?style=for-the-badge)](https://github.com/thiagorpc/pucrs-crypto-devops/actions)
+[![IaC (Terraform)](https://img.shields.io/badge/Infraestrutura-Aplicada-3498db?style=for-the-badge)](https://github.com/thiagorpc/pucrs-crypto-devops/tree/main/iac)
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
+
+## 🌟 Visão Geral do Projeto
+
 Este é um estudo de caso prático focado na implementação completa de um fluxo de **Desenvolvimento, Integração Contínua (CI), e Infraestrutura como Código (IaC)** para uma aplicação Full-Stack.
 
-O projeto consiste em uma **API de Criptografia (Backend)** e uma **Interface de Usuário Estática (Frontend)**, implantados na AWS utilizando contêineres e hospedagem estática.
+O projeto consiste em uma **API de Criptografia (Backend)** e uma **Interface de Usuário Estática (Frontend)**, implantados na AWS utilizando contêineres e hospedagem estática, gerenciados integralmente pelo **GitHub Actions** e **Terraform**.
+
+### Autores
+* [@thiagorpc](https://github.com/thiagorpc)
+
+
+
+## 🎯 1. Componentes e Objetivos
+
+### 1.1. Descrição dos Serviços
+
+* **Crypto API (Backend):** Desenvolvida em **NestJS** (TypeScript), expõe *endpoints* RESTful (`/encrypt`, `/decrypt`, `/hash`). A API é containerizada com Docker e rodará em **AWS Fargate** (serviço *serverless* de contêineres).
+* **Crypto UI (Frontend):** Uma página web estática simples (HTML/CSS/JavaScript) que consome a Crypto API. A UI será hospedada em um **AWS S3 Bucket** configurado para hospedagem de sites estáticos.
+
+### 1.2. ⚙️ Stack Tecnológica
+
+| Camada | Tecnologia Principal | Infraestrutura de Implantação | 
+| :--- | :--- | :--- | 
+| **Backend** | NestJS (TypeScript), Docker | AWS ECS Fargate, AWS ECR, AWS ALB | 
+| **Frontend** | HTML, CSS, JavaScript | AWS S3 Static Hosting, AWS CloudFront (Opcional) | 
+| **DevOps** | GitHub Actions (CI), Terraform (IaC) | AWS Services | 
+
+### 1.3. 🚀 Metas de DevOps
+
+| Categoria | Objetivo | Requisito Atendido | 
+| :--- | :--- | :--- | 
+| **Integração Contínua (CI)** | Implementar **dois pipelines de CI** (Backend e Frontend) no GitHub Actions, automatizando *linting*, testes, *build* de contêineres e empacotamento. | *Plano de Integração Contínua* | 
+| **Infraestrutura como Código (IaC)** | Utilizar **Terraform** para provisionar e gerenciar **toda** a infraestrutura AWS (VPC, Fargate, ECR, Load Balancer, S3). | *Especificação da Infraestrutura* | 
+| **Qualidade & Segurança** | Garantir 100% de testes automatizados e integrar uma etapa de **Análise de Segurança Estática (SAST)** no pipeline do Backend (DevSecOps). | *Critério de Sucesso do Estudo* | 
+
 
 ---
 
-## 1. Documentação de Planejamento
+## 📁 2. Estrutura do Repositório
 
-### 1.1. Descrição do Projeto
+O projeto segue as melhores práticas de separação de código de aplicação e infraestrutura:
 
-O projeto é composto por dois serviços:
-
-* **Crypto API (Backend):** Desenvolvida em **NestJS** (TypeScript), expõe *endpoints* RESTful para operações de criptografia (`/encrypt`, `/decrypt`, `/hash`). A API será containerizada com Docker e rodará em **AWS Fargate** (serviço *serverless* de contêineres).
-* **Crypto UI (Frontend):** Uma página web estática simples (HTML/CSS/JavaScript) que consome a Crypto API, permitindo ao usuário interagir com os serviços de criptografia. A UI será hospedada em um **AWS S3 Bucket** configurado para hospedagem de sites estáticos.
-
-### 1.2. Objetivos do Projeto
-
-| Categoria | Objetivo | Requisito Atendido |
-| :--- | :--- | :--- |
-| **Integração Contínua (CI)** | Implementar **dois pipelines de CI** no GitHub Actions que automatizam o *linting*, testes, *build* de contêineres (Backend) e o empacotamento (Frontend). | *1.b) Plano de Integração Contínua* |
-| **Infraestrutura como Código (IaC)** | Utilizar **Terraform** para provisionar e gerenciar **toda** a infraestrutura AWS (VPC, Fargate, ECR, Load Balancer, S3 para UI). | *1.c) Especificação da Infraestrutura* |
-| **Qualidade & Segurança** | Garantir 100% de passagem nos testes automatizados e integrar uma etapa de **Análise de Segurança Estática (SAST)** no pipeline do Backend (DevSecOps). | *Critério de Sucesso do Estudo* |
-
-### 1.3. Requisitos Técnicos
-
-| Camada | Tecnologia Principal | Infraestrutura de Implantação |
-| :--- | :--- | :--- |
-| **Backend** | NestJS (TypeScript), Docker | AWS ECS Fargate, AWS ECR, AWS ALB |
-| **Frontend** | HTML, CSS, JavaScript | AWS S3 Static Hosting, AWS CloudFront (Opcional) |
-| **DevOps** | GitHub Actions (CI), Terraform (IaC) | AWS Services |
-
----
-
-## 2. Estrutura do Repositório
-
-O projeto está organizado em três diretórios principais, seguindo as melhores práticas de separação de código de aplicação e infraestrutura:
-
+```
 pucrs-crypto-devops\
     ├─ .github/workflows   # Arquivos YAML do GitHub Actions (CI) \
     ├─ crypto-api          # Código-fonte do Backend (NestJS)\
     ├─ crypto-ui           # Código-fonte do Frontend (Estático)\
     └─ iac                 # Scripts de Infraestrutura como Código (Terraform)
+```
+
+**Link do Repositório:** <https://github.com/thiagorpc/pucrs-crypto-devops>
 
 
-## 3. Link para o Repositório
+---
+## 🔑 3. Configuração do CI/CD com AWS
 
-**OBS.:** O restante da documentação de planejamento (Plano de CI e Especificação de Infraestrutura) está detalhada nos arquivos específicos.
+Para que o GitHub Actions execute o Terraform e interaja com a AWS, é essencial configurar as credenciais de acesso como segredos no seu repositório.
 
-**Link do Repositório:** **https://github.com/thiagorpc/pucrs-crypto-devops**
+### 3.1. Criando um Usuário IAM na AWS
 
-## 4. Publicando o Projeto no GitHub
-### 4.1. Adiciona o README e a estrutura vazia
-git add .
+1. Acesse o **IAM Management Console** na AWS.
 
-### 4.2. Faz o primeiro commit
-git commit -m "Estrutura inicial do projeto e documentacao de planejamento (README)"
+2. Crie um novo usuário (ex: `github-actions-user`).
 
-### 4.3. Adiciona o remote do GitHub
-git remote add origin **https://github.com/thiagorpc/pucrs-crypto-devops.git**
+3. Selecione **Programmatic access** (Acesso programático).
 
-### 4.4. Envia para o GitHub (e define a branch principal como 'main' ou 'master')
-git push -u origin main
+4. Anexe as permissões necessárias.
+
+> [!WARNING]
+> **Permissões Mínimas Recomendadas:** Para a execução completa do Terraform, este usuário precisará de acesso administrativo ou uma política personalizada abrangente que cubra `ec2`, `ecs`, `ecr`, `s3`, `iam`, `alb` e `logs`. Use a política a seguir (ou **AdministratorAccess** se estiver em um ambiente de estudo):
+
+**Permissões Mínimas Recomendadas:** Para que o Terraform provisione todos os recursos (ECS, ECR, S3, IAM, etc.), utilize a política abaixo.
 
 
-## 5. Configurando o GitHub Actions com AWS
-
-Para que o GitHub Actions execute o Terraform e interaja com os serviços da AWS (como Fargate, S3, ECR), você precisará configurar as credenciais de acesso à AWS no seu repositório do GitHub. Siga os passos abaixo:
-
-### 5.1. Criando um Usuário IAM na AWS com as Permissões Necessárias
-
-#### 5.1.1. Acesse o IAM Management Console.
-#### 5.1.2. Clique em Users no menu lateral esquerdo e depois clique em Add user.
-#### 5.1.3. Escolha um nome para o usuário (por exemplo, github-actions-user).
-#### 5.1.4. Selecione Programmatic access como tipo de acesso.
-#### 5.1.5. Na próxima tela, selecione as permissões necessárias para que o usuário possa executar o Terraform. Você pode usar uma política gerenciada da AWS como a AdministratorAccess ou criar permissões personalizadas.
-
-**Recomendação para permissões mínimas necessárias:**
-
-[!WARNING]
+```javascript
 {
-  "Version": "2012-10-17",
+  "Version": "2025-11-09",
   "Statement": [
     {
       "Effect": "Allow",
       "Action": [
-        "ec2:*",
-        "ecs:*",
-        "ecr:*",
-        "s3:*",
-        "iam:*",
-        "cloudwatch:*",
-        "logs:*",
-        "elb:*",
-        "route53:*",
-        "autoscaling:*",
-        "logs:*",
-        "lambda:*"
+        "ec2:*", "ecs:*", "ecr:*", "s3:*", "iam:*", 
+        "cloudwatch:*", "logs:*", "elasticloadbalancing:*"
       ],
       "Resource": "*"
     }
   ]
 }
+```
 
-#### 5.1.6. Após a criação do usuário, guarde o Access Key ID e o Secret Access Key, pois serão necessários para configurar as credenciais no GitHub.
-
-### 5.2. onfigurando as Credenciais no GitHub
-
-#### 5.2.1. No seu repositório GitHub, vá para Settings > Secrets and Variables > Actions.
-#### 5.2.2. Clique em New repository secret para adicionar os segredos de acesso.
-#### 5.2.3. Crie os seguintes secrets:
-
-- AWS_ACCESS_KEY_ID com o valor do Access Key ID do IAM User.
-- AWS_SECRET_ACCESS_KEY com o valor do Secret Access Key do IAM User.
-
-Com isso, o GitHub Actions poderá acessar sua conta AWS e executar os comandos Terraform.
+> [!IMPORTANT]
+> Após a criação, guarde o **Access Key ID** e o **Secret Access Key**. Eles serão usados no próximo passo.
 
 
-## 6. Executando o Workflow de CI/CD no GitHub Actions
 
-### 6.1. Quando você fizer um push para a branch main ou um pull request para main, o GitHub Actions será disparado automaticamente.
+### 3.2. Configurando Segredos no GitHub
 
-### 6.2. O workflow irá:
- - Configurar as credenciais AWS.
- - Inicializar o Terraform.
- - Executar o plano (terraform plan) e aplicar (terraform apply) a infraestrutura na AWS.
+1. No seu repositório GitHub, vá para **Settings > Secrets and Variables > Actions**.
 
-### 6.3. Os recursos serão provisionados na AWS, como a API no ECS Fargate, Bucket S3 para o Frontend, Load Balancer e ECR.
+2. Clique em **New repository secret** e crie os dois segredos a seguir, utilizando as chaves geradas pelo IAM:
+
+| Nome do Secret | Valor | 
+| ----- | ----- |
+| **AWS_ACCESS_KEY_ID** | Chave de Acesso do Usuário IAM | 
+| **AWS_SECRET_ACCESS_KEY** | Chave Secreta do Usuário IAM |
 
 
-## 7. Referências e Links Úteis
+---
+
+
+## ▶️ 4. Executando, Testando e Implantando
+
+### 4.1. Fluxo de CI/CD (GitHub Actions)
+O workflow de CI/CD é acionado automaticamente:
+
+1. Push ou Pull Request para main: Dispara os pipelines de CI (Linting, Testes, Build do Backend/Frontend).
+
+2. Merge na main: Dispara o pipeline de IaC (Terraform).
+
+[!NOTE] O pipeline de IaC executa terraform plan e terraform apply, provisionando o ECS Fargate, S3 para o Frontend e o Load Balancer na AWS.
+
+
+### 4.2. Comandos de Inicialização e Testes
+
+Para começar a trabalhar no projeto:
+
+
+```bash
+# Clone o repositório
+git clone [https://github.com/thiagorpc/pucrs-crypto-devops.git](https://github.com/thiagorpc/pucrs-crypto-devops.git)
+cd pucrs-crypto-devops
+
+# Adicione seus arquivos e envie para o GitHub
+git add .
+git commit -m "Implementacao inicial de X"
+git push -u origin main
+```
+
+
+Para começar a trabalhar no projeto:
+
+```bash
+  # Executa todos os testes do projeto
+  npm run test
+```
+
+
+
+### 4.3. Variáveis de Ambiente
+
+Para rodar o projeto localmente, adicione as seguintes variáveis no seu arquivo **.env**:
+
+`API_KEY`
+
+`ANOTHER_API_KEY`
+
+
+## 5. Referências e Links Úteis
 
 - AWS IAM: [Criando um usuário IAM](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html)
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
 - [Terraform AWS Provider](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
 - [AWS ECS Fargate](https://aws.amazon.com/ecs/fargate/)
 - [AWS S3 Static Website Hosting](https://docs.aws.amazon.com/AmazonS3/latest/userguide/WebsiteHosting.html)
+## Licença de uso
+
+Este projeto está licenciado sob a licença [MIT](https://choosealicense.com/licenses/mit/)
+
