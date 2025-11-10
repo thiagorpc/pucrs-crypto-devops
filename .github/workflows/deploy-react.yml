@@ -71,6 +71,6 @@ jobs:
       # 8️⃣ Deploy React to S3
       - name: Deploy React to S3
         run: |
-          FRONTEND_BUCKET=$(terraform -chdir=${{ env.TF_WORKING_DIR }} output -raw frontend_bucket_name)
+          FRONTEND_BUCKET=$(terraform -chdir=${{ env.TF_WORKING_DIR }} output -raw ui_bucket_name)
           aws s3 sync ./crypto-ui/build s3://$FRONTEND_BUCKET --delete
 

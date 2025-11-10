@@ -41,7 +41,8 @@ output "react_ui_url" {
 }
 
 # Nome do bucket S3 para o front-end React
-output "frontend_bucket_name" {
+output "ui_bucket_name" {
   description = "Nome do bucket S3 para o front-end React"
   value       = aws_s3_bucket.crypto_ui.bucket
 }
+

@@ -261,13 +261,3 @@ resource "aws_s3_bucket_policy" "crypto_ui_policy" {
   })
 }
 
-# Outputs para GitHub Actions
-output "frontend_bucket_name" {
-  description = "Nome do bucket S3 para o front-end"
-  value       = aws_s3_bucket.crypto_ui.bucket
-}
-
-output "ecr_repository_url" {
-  description = "URL do repositório ECR"
-  value       = aws_ecr_repository.crypto_api_repo.repository_url
-}
