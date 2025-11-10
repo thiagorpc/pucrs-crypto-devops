@@ -63,3 +63,76 @@ git remote add origin **https://github.com/thiagorpc/pucrs-crypto-devops.git**
 ### 4.4. Envia para o GitHub (e define a branch principal como 'main' ou 'master')
 git push -u origin main
 
+
+## 5. Configurando o GitHub Actions com AWS
+
+Para que o GitHub Actions execute o Terraform e interaja com os serviços da AWS (como Fargate, S3, ECR), você precisará configurar as credenciais de acesso à AWS no seu repositório do GitHub. Siga os passos abaixo:
+
+### 5.1. Criando um Usuário IAM na AWS com as Permissões Necessárias
+
+#### 5.1.1. Acesse o IAM Management Console.
+#### 5.1.2. Clique em Users no menu lateral esquerdo e depois clique em Add user.
+#### 5.1.3. Escolha um nome para o usuário (por exemplo, github-actions-user).
+#### 5.1.4. Selecione Programmatic access como tipo de acesso.
+#### 5.1.5. Na próxima tela, selecione as permissões necessárias para que o usuário possa executar o Terraform. Você pode usar uma política gerenciada da AWS como a AdministratorAccess ou criar permissões personalizadas.
+
+**Recomendação para permissões mínimas necessárias:**
+
+[!WARNING]
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ec2:*",
+        "ecs:*",
+        "ecr:*",
+        "s3:*",
+        "iam:*",
+        "cloudwatch:*",
+        "logs:*",
+        "elb:*",
+        "route53:*",
+        "autoscaling:*",
+        "logs:*",
+        "lambda:*"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+
+#### 5.1.6. Após a criação do usuário, guarde o Access Key ID e o Secret Access Key, pois serão necessários para configurar as credenciais no GitHub.
+
+### 5.2. onfigurando as Credenciais no GitHub
+
+#### 5.2.1. No seu repositório GitHub, vá para Settings > Secrets and Variables > Actions.
+#### 5.2.2. Clique em New repository secret para adicionar os segredos de acesso.
+#### 5.2.3. Crie os seguintes secrets:
+
+- AWS_ACCESS_KEY_ID com o valor do Access Key ID do IAM User.
+- AWS_SECRET_ACCESS_KEY com o valor do Secret Access Key do IAM User.
+
+Com isso, o GitHub Actions poderá acessar sua conta AWS e executar os comandos Terraform.
+
+
+## 6. Executando o Workflow de CI/CD no GitHub Actions
+
+### 6.1. Quando você fizer um push para a branch main ou um pull request para main, o GitHub Actions será disparado automaticamente.
+
+### 6.2. O workflow irá:
+ - Configurar as credenciais AWS.
+ - Inicializar o Terraform.
+ - Executar o plano (terraform plan) e aplicar (terraform apply) a infraestrutura na AWS.
+
+### 6.3. Os recursos serão provisionados na AWS, como a API no ECS Fargate, Bucket S3 para o Frontend, Load Balancer e ECR.
+
+
+## 7. Referências e Links Úteis
+
+- AWS IAM: [Criando um usuário IAM](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html)
+- [GitHub Actions Documentation](https://docs.github.com/en/actions)
+- [Terraform AWS Provider](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
+- [AWS ECS Fargate](https://aws.amazon.com/ecs/fargate/)
+- [AWS S3 Static Website Hosting](https://docs.aws.amazon.com/AmazonS3/latest/userguide/WebsiteHosting.html)
