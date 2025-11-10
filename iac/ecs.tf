@@ -62,6 +62,41 @@ resource "aws_ecs_task_definition" "crypto_task" {
     portMappings = [
       { containerPort = var.container_port, hostPort = var.container_port, protocol = "tcp" }
     ]
+
+    secrets = [
+      {
+        name = "ENCRYPTION_KEY", # O nome da variável que sua aplicação espera
+
+        # ⚠️ SUBSTITUA PELO ARN COMPLETO DO SEU SECRET
+        valueFrom = "arn:aws:secretsmanager:us-east-1:202533542500:secret:crypto-api/encryption-key-kGeYT2" 
+      }
+    ]
+
+
+    environment = [
+      # Variáveis Simples (Diretamente Injetadas)
+      {
+        name  = "NODE_ENV",
+        value = "production"
+      },
+      {
+        name  = "PORT",
+        value = "3000" # Use var.container_port se preferir
+      },
+      {
+        name  = "HOST",
+        value = "0.0.0.0"
+      },
+      {
+        name  = "TZ",
+        value = "America/Sao_Paulo"
+      },
+      # Variável do bucket de imagens (mantida)
+      {
+        name  = "IMAGE_BUCKET_NAME",
+        value = aws_s3_bucket.crypto_images.bucket
+      }
+    ]
   }])
 }
 
