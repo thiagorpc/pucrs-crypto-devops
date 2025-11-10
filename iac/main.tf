@@ -1,5 +1,4 @@
 /*
-
 Autor: Thiago Costa
 
 ✅ Este Terraform faz:
@@ -19,25 +18,72 @@ terraform {
       version = "~> 5.0"
     }
   }
-  
-  # Exemplo de configuração de Backend no código Terraform  
+
+  # ==================================
+  # 🚨 CORREÇÃO DE BACKEND
+  # ==================================
   backend "s3" {
-    bucket         = "crypto-github-action-tfstate-bucket-unique"  # O NOME EXATO do bucket criado acima
-    key            = "crypto-github-action/terraform.tfstate"      # Caminho do arquivo de estado dentro do bucket
-    region         = "us-east-1"
-    dynamodb_table = "terraform-state-lock"                        # Tabela DynamoDB para bloqueio de estado (Melhor Prática)
-    encrypt        = true
+    bucket = "aws-s3-crypto-github-action-tfstate-unique" # O NOME EXATO do bucket criado acima
+    key    = "terraform.tfstate"                          # Caminho do arquivo de estado dentro do bucket
+    region = "us-east-1"
+    encrypt = true
+    
+    # ❗️ CORREÇÃO: Adicionado state locking com DynamoDB
+    # (Lembre-se de criar manualmente esta tabela com a Primary Key "LockID")
+    dynamodb_table = "terraform-lock-table-crypto"
   }
-}
-
-
-# ID aleatório para garantir nome único do bucket
-resource "random_id" "unique_id" {
-  byte_length = 8
 }
 
 provider "aws" {
   region = var.aws_region
+}
+
+# ============================
+# VARIÁVEIS
+# (Centralizadas aqui para facilitar a configuração)
+# ============================
+variable "aws_region" {
+  description = "Região da AWS"
+  type        = string
+  default     = "us-east-1"
+}
+
+variable "vpc_cidr" {
+  description = "Bloco CIDR para a VPC"
+  type        = string
+  default     = "10.0.0.0/16"
+}
+
+variable "public_subnet_cidrs" {
+  description = "Lista de blocos CIDR para as subnets públicas"
+  type        = list(string)
+  default     = ["10.0.1.0/24", "10.0.2.0/24"]
+}
+
+variable "container_port" {
+  description = "Porta que o contêiner expõe"
+  type        = number
+  default     = 8080 # ❗️ Exemplo: ajuste para a porta da sua API (ex: 8080, 5000, 3000)
+}
+
+variable "service_name" {
+  description = "Nome do serviço ECS e Task"
+  type        = string
+  default     = "crypto-api-service"
+}
+
+variable "image_tag" {
+  description = "A tag da imagem Docker a ser usada (ex: o Git SHA)"
+  type        = string
+  default     = "latest" # Padrão para testes locais
+}
+
+
+# ============================
+# ID aleatório para S3
+# ============================
+resource "random_id" "unique_id" {
+  byte_length = 8
 }
 
 # ============================
@@ -47,9 +93,7 @@ resource "aws_vpc" "crypto_vpc" {
   cidr_block           = var.vpc_cidr
   enable_dns_support   = true
   enable_dns_hostnames = true
-  tags = { 
-    Name = "crypto-vpc" 
-  }
+  tags                 = { Name = "crypto-vpc" }
 }
 
 data "aws_availability_zones" "available" {}
@@ -60,7 +104,7 @@ resource "aws_subnet" "public_subnets" {
   cidr_block              = var.public_subnet_cidrs[count.index]
   map_public_ip_on_launch = true
   availability_zone       = data.aws_availability_zones.available.names[count.index]
-  tags = { Name = "crypto-public-${count.index}" }
+  tags                    = { Name = "crypto-public-${count.index}" }
 }
 
 resource "aws_internet_gateway" "igw" {
@@ -84,31 +128,59 @@ resource "aws_route_table_association" "public_assoc" {
 }
 
 # ============================
-# SECURITY GROUP
+# 🚨 CORREÇÃO DE SECURITY GROUP
+# (Dividido em 2 SGs: 1 para ALB, 1 para ECS)
 # ============================
-resource "aws_security_group" "ecs_sg" {
-  name        = "crypto-ecs-sg"
-  description = "Permite acesso HTTP e ALB"
+
+# 1. Security Group para o ALB (Público, Porta 80)
+resource "aws_security_group" "alb_sg" {
+  name        = "crypto-alb-sg"
+  description = "Permite acesso HTTP publico (Porta 80)"
   vpc_id      = aws_vpc.crypto_vpc.id
 
   ingress {
     description = "HTTP acesso publico"
-    from_port   = var.container_port
-    to_port     = var.container_port
+    from_port   = 80 # ❗️ Apenas porta 80
+    to_port     = 80 # ❗️ Apenas porta 80
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
-    description = "HTTP acesso publico"
+    description = "Saída total"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  tags = { Name = "crypto-alb-sg" }
+}
 
+# 2. Security Group para o ECS (Privado, Porta do Contêiner)
+resource "aws_security_group" "ecs_sg" {
+  name        = "crypto-ecs-sg"
+  description = "Permite acesso apenas do ALB"
+  vpc_id      = aws_vpc.crypto_vpc.id
+
+  ingress {
+    description = "Acesso do ALB"
+    from_port   = var.container_port # ❗️ Porta da aplicação
+    to_port     = var.container_port # ❗️ Porta da aplicação
+    protocol    = "tcp"
+    # ❗️ Permite tráfego APENAS do Security Group do ALB
+    security_groups = [aws_security_group.alb_sg.id]
+  }
+
+  egress {
+    description = "Saída total"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
   tags = { Name = "crypto-ecs-sg" }
 }
+
 
 # ============================
 # ECR (repositório Docker)
@@ -124,7 +196,6 @@ resource "aws_ecr_repository" "crypto_api_repo" {
   lifecycle {
     prevent_destroy = false
   }
-
 }
 
 # ============================
@@ -162,32 +233,31 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy" {
 # LOAD BALANCER
 # ============================
 resource "aws_lb" "crypto_alb" {
-  name               = "crypto-api-alb"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.ecs_sg.id]
-  subnets            = aws_subnet.public_subnets[*].id
+  name                       = "crypto-api-alb"
+  internal                   = false
+  load_balancer_type         = "application"
+  # ❗️ CORREÇÃO: Usando o SG do ALB
+  security_groups            = [aws_security_group.alb_sg.id]
+  subnets                    = aws_subnet.public_subnets[*].id
   enable_deletion_protection = false
-  tags = { Name = "crypto-api-alb" }
+  tags                       = { Name = "crypto-api-alb" }
 }
 
 resource "aws_lb_target_group" "crypto_tg" {
-  name     = "crypto-api-tg"
-  port     = var.container_port
-  protocol = "HTTP"
-  vpc_id   = aws_vpc.crypto_vpc.id
-
+  name        = "crypto-api-tg"
+  port        = var.container_port
+  protocol    = "HTTP"
+  vpc_id      = aws_vpc.crypto_vpc.id
   target_type = "ip"
 
   health_check {
-    path                = "/health"
+    path                = "/health" # ❗️ Verifique se este é o path correto da sua API
     interval            = 30
     timeout             = 5
     healthy_threshold   = 2
     unhealthy_threshold = 2
     matcher             = "200"
   }
-
   tags = { Name = "crypto-api-tg" }
 }
 
@@ -215,7 +285,8 @@ resource "aws_ecs_task_definition" "crypto_task" {
 
   container_definitions = jsonencode([{
     name      = var.service_name
-    image     = "${aws_ecr_repository.crypto_api_repo.repository_url}:latest"
+    # ❗️ CORREÇÃO: Usando a variável 'image_tag'
+    image     = "${aws_ecr_repository.crypto_api_repo.repository_url}:${var.image_tag}"
     essential = true
     portMappings = [
       { containerPort = var.container_port, hostPort = var.container_port, protocol = "tcp" }
@@ -231,7 +302,8 @@ resource "aws_ecs_service" "crypto_service" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets         = aws_subnet.public_subnets[*].id
+    subnets = aws_subnet.public_subnets[*].id
+    # ❗️ CORREÇÃO: Usando o SG do ECS
     security_groups = [aws_security_group.ecs_sg.id]
     assign_public_ip = true
   }
@@ -250,15 +322,11 @@ resource "aws_ecs_service" "crypto_service" {
 # ============================
 resource "aws_s3_bucket" "crypto_ui" {
   bucket = "crypto-ui-${var.aws_region}-${random_id.unique_id.hex}"
-
-  tags = {
-    Name = "crypto-ui-bucket"
-  }
+  tags   = { Name = "crypto-ui-bucket" }
 }
 
 resource "aws_s3_bucket_ownership_controls" "crypto_ui_ownership" {
   bucket = aws_s3_bucket.crypto_ui.id
-
   rule {
     object_ownership = "BucketOwnerEnforced"
   }
@@ -266,21 +334,17 @@ resource "aws_s3_bucket_ownership_controls" "crypto_ui_ownership" {
 
 resource "aws_s3_bucket_website_configuration" "crypto_ui_website" {
   bucket = aws_s3_bucket.crypto_ui.id
-
   index_document {
     suffix = "index.html"
   }
-
   error_document {
     key = "error.html"
   }
 }
 
-
 # Política para permitir acesso público ao conteúdo do S3
 resource "aws_s3_bucket_policy" "crypto_ui_policy" {
   bucket = aws_s3_bucket.crypto_ui.id
-
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -295,3 +359,22 @@ resource "aws_s3_bucket_policy" "crypto_ui_policy" {
   })
 }
 
+# ============================
+# 🏛️ OUTPUTS (Saídas)
+# (Adicionado para saber os endereços criados)
+# ============================
+
+output "api_load_balancer_dns" {
+  description = "DNS público do Load Balancer (API)"
+  value       = aws_lb.crypto_alb.dns_name
+}
+
+output "frontend_s3_website_url" {
+  description = "URL do site S3 (Frontend)"
+  value       = aws_s3_bucket_website_configuration.crypto_ui_website.website_endpoint
+}
+
+output "ecr_repository_url" {
+  description = "URL do repositório ECR"
+  value       = aws_ecr_repository.crypto_api_repo.repository_url
+}
