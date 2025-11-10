@@ -232,7 +232,7 @@ resource "aws_ecs_service" "crypto_service" {
 # S3 Bucket para o Front-End (React)
 # ============================
 resource "aws_s3_bucket" "crypto_ui" {
-  bucket = "crypto-ui-${var.aws_region}-${random_id.suffix.hex}"
+  bucket = "crypto-ui-${var.aws_region}-${random_id.unique_id.hex}"
   object_ownership = "BucketOwnerEnforced"
 
    tags = {
