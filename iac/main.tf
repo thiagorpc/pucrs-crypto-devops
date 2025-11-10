@@ -232,21 +232,26 @@ resource "aws_ecs_service" "crypto_service" {
 # S3 Bucket para o Front-End (React)
 # ============================
 resource "aws_s3_bucket" "crypto_ui" {
-  bucket = "crypto-ui-${var.aws_region}-${random_id.unique_id.hex}"
-  #acl    = "public-read"
+  bucket = "crypto-ui-${var.aws_region}-${random_id.suffix.hex}"
+  object_ownership = "BucketOwnerEnforced"
 
-  #object_ownership = "BucketOwnerEnforced"
-
- #aws_s3_bucket_website_configuration
-  website {
-    index_document = "index.html"
-    error_document = "index.html"
-  }
-
-  tags = {
+   tags = {
     Name = "crypto-ui-bucket"
   }
 }
+
+resource "aws_s3_bucket_website_configuration" "crypto_ui_website" {
+  bucket = aws_s3_bucket.crypto_ui.id
+
+  index_document {
+    suffix = "index.html"
+  }
+
+  error_document {
+    key = "error.html"
+  }
+}
+
 
 # Política para permitir acesso público ao conteúdo do S3
 resource "aws_s3_bucket_policy" "crypto_ui_policy" {
