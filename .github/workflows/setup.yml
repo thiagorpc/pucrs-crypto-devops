@@ -28,7 +28,7 @@ jobs:
 
       # Passo 2: Configurar as credenciais da AWS
       - name: Set up AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v4 
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -50,30 +50,17 @@ jobs:
         run: terraform validate
         working-directory: ${{ env.TF_WORKING_DIR }}
 
-        # Passo 6: CRIAR o S3 Bucket para o Backend (tfstate)
-      - name: Create S3 Backend Bucket if not exists
-        run: |
-          # O nome do bucket S3 deve ser globalmente único.
-          BUCKET_NAME="crypto-github-action-tfstate-bucket-unique"
-          REGION="${{ env.AWS_REGION }}"
-              
-          # Tenta criar o bucket. O '|| true' ignora o erro se o bucket já existir.
-          aws s3 mb s3://$BUCKET_NAME --region $REGION || true
-              
-          # Adicional: Habilitar o Versionamento (Melhor Prática)
-          aws s3 put-bucket-versioning --bucket $BUCKET_NAME --versioning-configuration Status=Enabled || true
-
-      # Passo 7: Inicializar o Terraform
+      # Passo 6: Inicializar o Terraform
       - name: Terraform Init
         run: terraform init
         working-directory: ${{ env.TF_WORKING_DIR }}
 
-      # Passo 8: Plano do Terraform
+      # Passo 7: Plano do Terraform
       - name: Terraform Plan
         run: terraform plan
         working-directory: ${{ env.TF_WORKING_DIR }}
 
-      # Passo 9: Aplicar o Terraform (apenas na branch main)
+      # Passo 8: Aplicar o Terraform (apenas na branch main)
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main'
         run: terraform apply -auto-approve
