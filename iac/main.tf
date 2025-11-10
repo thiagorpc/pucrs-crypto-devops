@@ -233,10 +233,19 @@ resource "aws_ecs_service" "crypto_service" {
 # ============================
 resource "aws_s3_bucket" "crypto_ui" {
   bucket = "crypto-ui-${var.aws_region}-${random_id.unique_id.hex}"
-  object_ownership = "BucketOwnerEnforced"
 
-   tags = {
+  acl    = "public-read" //"private"
+  
+  tags = {
     Name = "crypto-ui-bucket"
+  }
+}
+
+resource "aws_s3_bucket_ownership_controls" "crypto_ui_ownership" {
+  bucket = aws_s3_bucket.crypto_ui.id
+
+  rule {
+    object_ownership = "BucketOwnerEnforced"
   }
 }
 
