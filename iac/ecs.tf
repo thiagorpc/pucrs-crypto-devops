@@ -152,9 +152,9 @@ resource "aws_ecs_task_definition" "crypto_task" {
       essential = true
       portMappings = [
         {
-          containerPort = var.container_port, 
-          hostPort = var.container_port, 
-          protocol = "tcp"
+          containerPort = var.container_port,
+          hostPort      = var.container_port,
+          protocol      = "tcp"
         }
       ]
 
@@ -176,21 +176,26 @@ resource "aws_ecs_task_definition" "crypto_task" {
 
       environment = [
         {
-          name = "NODE_ENV", value = "production"
+          name  = "NODE_ENV",
+          value = "production"
         },
 
         # Usando a variável da porta para consistência com o NLB
         {
-          name = "PORT", value = var.container_port
+          name  = "PORT",
+          value = var.container_port
         },
         {
-          name = "HOST", value = "0.0.0.0"
+          name  = "HOST",
+          value = "0.0.0.0"
         },
         {
-          name = "TZ", value = "America/Sao_Paulo"
+          name  = "TZ",
+          value = "America/Sao_Paulo"
         },
         {
-          name = "IMAGE_BUCKET_NAME", value = aws_s3_bucket.crypto_images.bucket
+          name  = "IMAGE_BUCKET_NAME",
+          value = aws_s3_bucket.crypto_images.bucket
         }
       ]
     }

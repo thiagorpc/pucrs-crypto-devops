@@ -35,9 +35,11 @@ resource "aws_s3_bucket_public_access_block" "crypto_ui_public_access_block" {
 
 resource "aws_s3_bucket_website_configuration" "crypto_ui_website" {
   bucket = aws_s3_bucket.crypto_ui.id
+
   index_document {
     suffix = "index.html"
   }
+  
   # Usar index.html para SPAs é mais comum.
   error_document {
     key = "index.html"
