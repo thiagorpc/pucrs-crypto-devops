@@ -44,49 +44,46 @@ resource "aws_route_table_association" "public_assoc" {
 # ============================
 
 # 1. Security Group para o ALB (Público, Porta 80)
-resource "aws_security_group" "alb_sg" {
-  name        = "crypto-alb-sg"
-  description = "Permite acesso HTTP publico (Porta 80)"
-  vpc_id      = aws_vpc.crypto_vpc.id
-
-  ingress {
-    description = "HTTP acesso publico"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-    ingress {
-    description = "HTTP acesso publico"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    description = "Acesso Publico"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  tags = { Name = "crypto-alb-sg" }
-}
+//resource "aws_security_group" "alb_sg" {
+//name        = "crypto-alb-sg"
+//description = "Permite acesso HTTP publico (Porta 80)"
+//vpc_id      = aws_vpc.crypto_vpc.id
+///ingress {
+//  description = "HTTP acesso publico"
+//  from_port   = 80
+//  to_port     = 80
+//  protocol    = "tcp"
+//  cidr_blocks = ["0.0.0.0/0"]
+//}
+///  ingress {
+//  description = "HTTP acesso publico"
+//  from_port   = 443
+//  to_port     = 443
+//  protocol    = "tcp"
+//  cidr_blocks = ["0.0.0.0/0"]
+//}
+///egress {
+//  description = "Acesso Publico"
+//  from_port   = 0
+//  to_port     = 0
+//  protocol    = "-1"
+//  cidr_blocks = ["0.0.0.0/0"]
+//}
+//tags = { Name = "crypto-alb-sg" }
+//}
 
 # 2. Security Group para o ECS (Privado, Porta do Contêiner)
 resource "aws_security_group" "ecs_sg" {
   name        = "crypto-ecs-sg"
-  description = "Permite acesso apenas do ALB"
+  description = "Permite acesso apenas do NLB"
   vpc_id      = aws_vpc.crypto_vpc.id
 
   ingress {
-    description = "Acesso do ALB"
+    description = "Acesso ao NLB"
     from_port   = var.container_port
     to_port     = var.container_port
     protocol    = "tcp"
-    security_groups = [aws_security_group.alb_sg.id]
+    cidr_blocks = [aws_vpc.crypto_vpc.cidr_block]
   }
 
   egress {

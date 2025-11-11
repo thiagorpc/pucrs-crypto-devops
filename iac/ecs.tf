@@ -90,7 +90,7 @@ resource "aws_ecs_task_definition" "crypto_task" {
       },
       {
         name  = "PORT",
-        value = "3000" # Use var.container_port se preferir
+        value = "443" # Use var.container_port se preferir
       },
       {
         name  = "HOST",
