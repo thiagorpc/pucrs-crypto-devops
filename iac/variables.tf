@@ -34,7 +34,7 @@ variable "service_name" {
 variable "container_port" {
   description = "Porta do container onde a aplicação está escutando."
   type        = string
-  default     = "3000"
+  default     = 3000
 }
 
 # Nome do bucket S3 para o front-end
