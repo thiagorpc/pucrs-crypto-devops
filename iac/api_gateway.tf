@@ -31,9 +31,9 @@ resource "aws_api_gateway_integration" "nlb_integration" {
   
   # A URI agora aponta para o NLB Listener (usando o ARN)
   #uri        = aws_lb_listener.crypto_https_listener.arn 
-  #uri        = "arn:aws:apigateway:${var.aws_region}:elasticloadbalancing/https/${aws_lb.crypto_nlb.arn}/"
+  #uri        = "arn:aws:apigateway:${var.aws_region}:elasticloadbalancing/https/${aws_lb.crypto_api_nlb.arn}/"
 
-  uri = "arn:aws:apigateway:${var.aws_region}:elasticloadbalancing/http/${aws_lb.crypto_nlb.arn}/"
+  uri = "arn:aws:apigateway:${var.aws_region}:elasticloadbalancing/http/${aws_lb.crypto_api_nlb.arn}/"
   
   # HTTPS
   #uri = "arn:aws:elasticloadbalancing:us-east-1:202533542500:listener/app/crypto-api-nlb/9583492550809c53/216f279877c166ec"
@@ -150,9 +150,7 @@ resource "aws_api_gateway_vpc_link" "crypto_vpc_link" {
   //type = "VPC_LINK"
   #target_arns = [aws_lb.crypto_alb.arn] 
   #target_arns = ["arn:aws:elasticloadbalancing:us-east-1:202533542500:listener/app/crypto-api-nlb/9583492550809c53/216f279877c166ec"] 
-  target_arns = [aws_lb.crypto_nlb.arn]
-
-  
+  target_arns = [aws_lb.crypto_api_nlb.arn]
 }
 
 # 10. Configuração de Logs e Métricas de Execução (Method Settings)

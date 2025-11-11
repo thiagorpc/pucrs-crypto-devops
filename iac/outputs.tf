@@ -1,6 +1,6 @@
 # DNS do Network Load Balancer (NLB)
 output "nlb_dns_name" {
- value = aws_lb.crypto_nlb.dns_name
+ value = aws_lb.crypto_api_nlb.dns_name
  description = "Endereço DNS público do NLB para acessar a API via API Gateway"
 }
 
