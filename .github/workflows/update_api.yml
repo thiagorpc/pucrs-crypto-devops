@@ -52,11 +52,17 @@ jobs:
           # 2. Tag: Marca a mesma imagem com a tag :latest para que o Fargate reconheça e aplique a nova imagem em produção
           docker tag ${{ steps.vars.outputs.ECR_URI }}:${{ steps.vars.outputs.IMAGE_TAG }} ${{ steps.vars.outputs.ECR_URI }}:latest
           
-          # 3. Push: Envia a tag SHA
+          # 3. Tag: Marca a mesma imagem com a tag :NomeProjeto para que a ""Lifecycle Policy"" possa excluir as imagens corretas
+          docker tag ${{ steps.vars.outputs.ECR_URI }}:${{ steps.vars.outputs.IMAGE_TAG }} ${{ steps.vars.outputs.ECR_URI }}:crypto-api
+
+          # 4. Push: Envia a tag SHA
           docker push ${{ steps.vars.outputs.ECR_URI }}:${{ steps.vars.outputs.IMAGE_TAG }}
           
-          # 4. Push: Envia a tag :latest (CRUCIAL para o Fargate iniciar imediatamente)
+          # 5. Push: Envia a tag :latest (CRUCIAL para o Fargate iniciar imediatamente)
           docker push ${{ steps.vars.outputs.ECR_URI }}:latest
+
+          # 6. Push: Envia a tag :NomeProjeto (CRUCIAL para o controle Lifecycle Policy)
+          docker push ${{ steps.vars.outputs.ECR_URI }}:crypto-api
        
           
       # 3. Deploy com Terraform
