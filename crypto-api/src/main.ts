@@ -13,6 +13,7 @@ async function bootstrap() {
   const corsOriginsString = [
     'http://localhost:5173',
     'https://crypto-api-alb-1701207900.us-east-1.elb.amazonaws.com/health',
+    'https://pucrs-crypto-ui.s3.us-east-1.amazonaws.com/',
   ];
 
   // Habilita CORS
