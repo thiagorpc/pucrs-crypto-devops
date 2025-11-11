@@ -178,26 +178,3 @@ resource "aws_ecr_lifecycle_policy" "crypto_api_cleanup_last_10" {
     ]
   })
 }
-
-resource "aws_ecr_lifecycle_policy" "crypto_api_cleanup_by_days" {
-  repository = aws_ecr_repository.crypto_api_repo.name
-
-  policy = jsonencode({
-    rules = [
-      {
-        # Regra 2: Deletar qualquer imagem (com ou sem tag) mais antiga que 90 dias
-        "rulePriority": 90,
-        "description": "Deletar imagens mais antigas que 90 dias",
-        "selection": {
-          "tagStatus": "any", 
-          "countType": "sinceImagePushed",
-          "countUnit": "days",
-          "countNumber": 90
-        },
-        "action": {
-          "type": "expire"
-        }
-      }
-    ]
-  })
-}
