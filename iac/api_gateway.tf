@@ -41,9 +41,9 @@ resource "aws_api_gateway_integration" "alb_integration" {
   # A integração HTTP_PROXY não precisa de 'connection_type = VPC_LINK'.
   # O API Gateway chama o ALB pela rede pública (DNS).
 
-  tls_config {
-    insecure_skip_verify = true 
-  }
+  //tls_config {
+  //  insecure_skip_verify = true 
+  //}
 
 }
 
