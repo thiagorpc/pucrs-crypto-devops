@@ -9,6 +9,8 @@ resource "aws_ecr_repository" "crypto_api_repo" {
     scan_on_push = true
   }
 
+  force_delete = true
+
   lifecycle {
     prevent_destroy = false
   }

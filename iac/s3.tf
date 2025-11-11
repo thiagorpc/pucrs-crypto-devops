@@ -4,6 +4,8 @@
 resource "aws_s3_bucket" "crypto_ui" {
   bucket = var.react_bucket_name # 🔄 Usando variável
   tags   = { Name = "crypto-ui-bucket" }
+
+  force_destroy = true
 }
 
 resource "aws_s3_bucket_ownership_controls" "crypto_ui_ownership" {
