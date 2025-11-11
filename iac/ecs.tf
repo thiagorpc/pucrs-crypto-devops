@@ -152,7 +152,9 @@ resource "aws_ecs_task_definition" "crypto_task" {
       essential = true
       portMappings = [
         {
-          containerPort = var.container_port, hostPort = var.container_port, protocol = "tcp"
+          containerPort = var.container_port, 
+          hostPort = var.container_port, 
+          protocol = "tcp"
         }
       ]
 
