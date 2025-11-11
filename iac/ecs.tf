@@ -183,7 +183,7 @@ resource "aws_ecs_task_definition" "crypto_task" {
         # Usando a variável da porta para consistência com o NLB
         {
           name  = "PORT",
-          value = var.container_port
+          value = 3000
         },
         {
           name  = "HOST",
