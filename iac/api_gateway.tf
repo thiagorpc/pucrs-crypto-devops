@@ -148,7 +148,6 @@ resource "aws_api_gateway_vpc_link" "crypto_vpc_link" {
   name= "crypto-alb-link"
   description = "VPC Link entre API Gateway e ALB"
   //type = "VPC_LINK"
-  type = "VPC_LINK" 
   #target_arns = [aws_lb.crypto_alb.arn] 
   #target_arns = ["arn:aws:elasticloadbalancing:us-east-1:202533542500:listener/app/crypto-api-alb/9583492550809c53/216f279877c166ec"] 
   target_arns = [aws_lb.crypto_alb.arn]
