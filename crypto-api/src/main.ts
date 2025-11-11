@@ -10,6 +10,18 @@ async function bootstrap() {
   const port = configService.get<number>('PORT', 3000);
   const host = configService.get<string>('HOST', 'localhost');
 
+  const corsOriginsString = [
+    'http://localhost:5173',
+    'https://crypto-api-alb-1701207900.us-east-1.elb.amazonaws.com/health',
+  ];
+
+  // Habilita CORS
+  app.enableCors({
+    origin: [corsOriginsString],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+  });
+
   await app.listen(port, host);
 
   const logger = new Logger('Bootstrap');
