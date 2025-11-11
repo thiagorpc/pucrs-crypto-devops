@@ -71,6 +71,23 @@ resource "aws_api_gateway_stage" "prod_stage" {
   deployment_id = aws_api_gateway_deployment.crypto_deployment.id
   rest_api_id   = aws_api_gateway_rest_api.crypto_gateway.id
   stage_name    = "prod"
+
+  # 🎯 Habilita o Logging
+  access_log_settings {
+    # ARN do CloudWatch Log Group de destino (você pode criar um ou usar o default)
+    destination_arn = "arn:aws:logs:us-east-1:202533542500:log-group:/aws/apigateway/crypto-api-prod" 
+    
+    # Formato dos logs (Exemplo: Logs completos)
+    format = "$context.requestId $context.identity.sourceIp $context.identity.caller $context.identity.user [$context.requestTime] \"$context.httpMethod $context.resourcePath $context.protocol\" $context.status $context.responseLength $context.integrationErrorMessage"
+  }
+
+  # Opcional: Habilita métricas detalhadas (Execution/Errors)
+  xray_tracing_enabled = true
+  
+  # 🎯 Define os níveis de log (INFO, ERROR, OFF)
+  # log_level pode ser "INFO" para logs detalhados
+  # metrics_enabled = true
+  # cache_cluster_enabled = false 
 }
 
 # 7. Política de Confiança: Permite que o serviço API Gateway assuma esta role
@@ -96,26 +113,3 @@ resource "aws_iam_role_policy_attachment" "apigw_cloudwatch_attach" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
 }
 
-# 9. Política de saída de Log
-resource "aws_api_gateway_stage" "prod_stage" {
-  deployment_id = aws_api_gateway_deployment.crypto_deployment.id
-  rest_api_id   = aws_api_gateway_rest_api.crypto_gateway.id
-  stage_name    = "prod"
-
-  # 🎯 NOVO: Habilita o Logging
-  access_log_settings {
-    # ARN do CloudWatch Log Group de destino (você pode criar um ou usar o default)
-    destination_arn = "arn:aws:logs:us-east-1:202533542500:log-group:/aws/apigateway/crypto-api-prod" 
-    
-    # Formato dos logs (Exemplo: Logs completos)
-    format = "$context.requestId $context.identity.sourceIp $context.identity.caller $context.identity.user [$context.requestTime] \"$context.httpMethod $context.resourcePath $context.protocol\" $context.status $context.responseLength $context.integrationErrorMessage"
-  }
-
-  # Opcional: Habilita métricas detalhadas (Execution/Errors)
-  xray_tracing_enabled = true
-  
-  # 🎯 NOVO: Define os níveis de log (INFO, ERROR, OFF)
-  # log_level pode ser "INFO" para logs detalhados
-  # metrics_enabled = true
-  # cache_cluster_enabled = false 
-}
