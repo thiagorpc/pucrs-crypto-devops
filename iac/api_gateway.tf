@@ -51,11 +51,20 @@ resource "aws_api_gateway_integration" "alb_integration" {
   # A integração HTTP_PROXY não precisa de 'connection_type = VPC_LINK'.
   # O API Gateway chama o ALB pela rede pública (DNS).
 
-  # 🎯 SOLUÇÃO: Ignorar a verificação do certificado SSL/TLS
-  # Necessário para aceitar certificados self-signed
-  tls_config {
-    insecure_skip_verify = true
-  }
+}
+
+resource "aws_api_gateway_integration_response" "alb_integration_tls_config" {
+  rest_api_id = aws_api_gateway_rest_api.crypto_gateway.id
+  
+  # Este é o ID da integração que estamos configurando
+  integration_id = aws_api_gateway_integration.alb_integration.id 
+  
+  # Ação para o método ANY no recurso {proxy+}
+  resource_id = aws_api_gateway_resource.proxy.id
+  http_method = aws_api_gateway_method.proxy_method.http_method 
+
+  # Apenas uma resposta básica é necessária para criar o recurso TLS
+  status_code = "200" 
 }
 
 
