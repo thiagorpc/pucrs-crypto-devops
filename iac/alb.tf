@@ -40,11 +40,25 @@ resource "aws_lb_listener" "crypto_listener" {
   }
 }
 
-# Obtém o Load Balancer existente pelo nome fixo
-data "aws_lb" "crypto_alb_data" {
-  name = "crypto-api-alb" 
-  # Nota: Se o ALB ainda não foi criado, você precisará de uma dependência ou garantir que esta consulta só ocorra após a criação.
+resource "aws_lb_listener" "crypto_https_listener" {
+  load_balancer_arn = aws_lb.crypto_alb.arn
+  port              = 443
+  protocol          = "HTTPS"
+  
+  # 🚨 PONTO CRÍTICO: SUBSTITUA PELA REFERÊNCIA VÁLIDA DO SEU CERTIFICADO
+  certificate_arn   = aws_iam_server_certificate.crypto_iam_cert.arn
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.crypto_tg.arn
+  }
 }
+
+# Obtém o Load Balancer existente pelo nome fixo
+#data "aws_lb" "crypto_alb_data" {
+#  name = "crypto-api-alb" 
+#  # Nota: Se o ALB ainda não foi criado, você precisará de uma dependência ou garantir que esta consulta só ocorra após a criação.
+#}
 
 # 1. Gerar a Chave Privada (crypto-api-key.pem)
 resource "tls_private_key" "crypto_key" {
@@ -61,7 +75,8 @@ resource "tls_self_signed_cert" "crypto_cert" {
   # common_name = data.aws_lb.crypto_alb_data.dns_name 
 
   subject {
-    common_name  = data.aws_lb.crypto_alb_data.dns_name
+    common_name  = "crypto-api-alb.poc.local"
+    #common_name  = data.aws_lb.crypto_alb_data.dns_name
     organization = "Crypto256"
   }
 
@@ -88,16 +103,3 @@ resource "aws_iam_server_certificate" "crypto_iam_cert" {
   }
 }
 
-resource "aws_lb_listener" "crypto_https_listener" {
-  load_balancer_arn = aws_lb.crypto_alb.arn
-  port              = 443
-  protocol          = "HTTPS"
-  
-  # 🚨 PONTO CRÍTICO: SUBSTITUA PELA REFERÊNCIA VÁLIDA DO SEU CERTIFICADO
-  certificate_arn   = aws_iam_server_certificate.crypto_iam_cert.arn
-
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.crypto_tg.arn
-  }
-}

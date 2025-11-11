@@ -31,7 +31,9 @@ resource "aws_api_gateway_integration" "alb_integration" {
   
   # A URI agora aponta para o ALB Listener (usando o ARN)
   #uri        = aws_lb_listener.crypto_https_listener.arn 
-  uri        = "arn:aws:apigateway:${var.aws_region}:elasticloadbalancing/https/${aws_lb.crypto_alb.arn}/"
+  #uri        = "arn:aws:apigateway:${var.aws_region}:elasticloadbalancing/https/${aws_lb.crypto_alb.arn}/"
+
+  uri = "arn:aws:apigateway:${var.aws_region}:elasticloadbalancing/http/${aws_lb.crypto_alb.arn}/"
   
   # HTTPS
   #uri = "arn:aws:elasticloadbalancing:us-east-1:202533542500:listener/app/crypto-api-alb/9583492550809c53/216f279877c166ec"
@@ -145,9 +147,11 @@ resource "aws_api_gateway_account" "crypto_apigw_account_settings" {
 resource "aws_api_gateway_vpc_link" "crypto_vpc_link" {
   name= "crypto-alb-link"
   description = "VPC Link entre API Gateway e ALB"
-  //type = "VPC_LINK" 
+  //type = "VPC_LINK"
+  type = "VPC_LINK" 
   #target_arns = [aws_lb.crypto_alb.arn] 
-  target_arns = ["arn:aws:elasticloadbalancing:us-east-1:202533542500:listener/app/crypto-api-alb/9583492550809c53/216f279877c166ec"] 
+  #target_arns = ["arn:aws:elasticloadbalancing:us-east-1:202533542500:listener/app/crypto-api-alb/9583492550809c53/216f279877c166ec"] 
+  target_arns = [aws_lb.crypto_alb.arn]
 
   
 }
