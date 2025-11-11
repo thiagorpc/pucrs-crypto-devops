@@ -11,6 +11,11 @@ on:
         options:
           - destroy
 
+env:
+  TF_WORKING_DIR: ./iac
+  AWS_REGION: us-east-1
+  DYNAMO_LOCK_TABLE: terraform-lock-table-crypto # Tabela de Lock do DynamoDB
+
 jobs:
   terraform:
     name: 'Terraform ${{ github.event.inputs.terraform_action }}'
