@@ -30,12 +30,13 @@ resource "aws_api_gateway_integration" "alb_integration" {
   type                    = "AWS_PROXY" 
   
   # A URI agora aponta para o ALB Listener (usando o ARN)
-  uri                     = aws_lb_listener.crypto_https_listener.arn 
+  #uri                     = aws_lb_listener.crypto_https_listener.arn 
+  uri = "arn:aws:apigateway:${var.aws_region}:elasticloadbalancing/https/${aws_lb.crypto_alb.arn}/"
   
   # Mantenha o integration_http_method
   integration_http_method = "ANY" 
 
-  # 🎯 NOVO: Use o VPC_LINK para rotear o tráfego internamente
+  # VPC_LINK para rotear o tráfego internamente
   connection_type         = "VPC_LINK" 
   connection_id           = aws_api_gateway_vpc_link.crypto_vpc_link.id
   
