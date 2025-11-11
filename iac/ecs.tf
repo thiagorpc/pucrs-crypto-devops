@@ -145,8 +145,50 @@ resource "aws_iam_policy" "ecs_secret_access_policy" {
   })
 }
 
-# Anexa a nova política de acesso ao Secret
+# ============================
+# Política de acesso ao Secret
+# ============================
 resource "aws_iam_role_policy_attachment" "ecs_secret_access_attach" {
   role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = aws_iam_policy.ecs_secret_access_policy.arn
+}
+
+
+# ====================================================================================
+# Política para excluir imagens antigas que estão no Amazon Elastic Container Registry
+# ====================================================================================
+resource "aws_ecr_lifecycle_policy" "crypto_api_cleanup" {
+  repository = aws_ecr_repository.crypto_api_repo.name
+
+  policy = jsonencode({
+    rules = [
+      {
+        # Regra 1: Manter a tag :latest e as últimas 10 imagens mais recentes (por contagem)
+        "rulePriority": 1,
+        "description": "Manter as últimas 10 imagens",
+        "selection": {
+          "tagStatus": "any", # Aplica-se a todas as imagens, exceto as sem tag (untagged)
+          "countType": "imageCountMoreThan",
+          "countNumber": 10
+        },
+        "action": {
+          "type": "expire" # Ação: Expirar/Deletar
+        }
+      },
+      {
+        # Regra 2: Deletar qualquer imagem (com ou sem tag) mais antiga que 90 dias
+        "rulePriority": 2,
+        "description": "Deletar imagens mais antigas que 90 dias",
+        "selection": {
+          "tagStatus": "any", 
+          "countType": "sinceImagePushed",
+          "countUnit": "days",
+          "countNumber": 90
+        },
+        "action": {
+          "type": "expire"
+        }
+      }
+    ]
+  })
 }
