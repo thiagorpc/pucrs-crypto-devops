@@ -137,7 +137,7 @@ resource "aws_api_gateway_account" "crypto_apigw_account_settings" {
 
 resource "aws_api_gateway_vpc_link" "crypto_vpc_link" {
   name= "crypto-alb-link"
-  type = "VPC_LINK" 
+  //type = "VPC_LINK" 
   target_arns = [aws_lb.crypto_alb.arn] 
 }
 
