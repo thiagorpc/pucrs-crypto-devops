@@ -167,7 +167,7 @@ resource "aws_ecr_lifecycle_policy" "crypto_api_cleanup_last_10" {
         "rulePriority": 1,
         "description": "Manter as últimas 10 imagens",
         "selection": {
-          "tagStatus": "crypto-api", # Aplica-se a todas as imagens, exceto as sem tag (untagged)
+          "tagStatus": "tagged", # Aplica-se a todas as imagens, exceto as sem tag (untagged)
           "countType": "imageCountMoreThan",
           "countNumber": 10
         },
