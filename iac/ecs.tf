@@ -80,7 +80,7 @@ resource "aws_iam_policy" "ecs_secret_access_policy" {
           "secretsmanager:GetSecretValue"
         ],
         # ⚠️ Ajuste o ARN abaixo. O '*' cobre versões do secret.
-        Resource = "arn:aws:secretsmanager:us-east-1:202533542500:secret:crypto-api/encryption-key-kGeYT2*",
+        Resource = var.secrets_encryption_key,
       },
     ]
   })
@@ -161,7 +161,7 @@ resource "aws_ecs_task_definition" "crypto_task" {
       secrets = [
         {
           name      = "ENCRYPTION_KEY",
-          valueFrom = "arn:aws:secretsmanager:us-east-1:202533542500:secret:crypto-api/encryption-key-kGeYT2"
+          valueFrom = var.secrets_encryption_key,
         }
       ]
 

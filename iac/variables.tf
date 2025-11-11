@@ -71,3 +71,10 @@ variable "image_tag" {
   type        = string
   default     = "latest" # Usado apenas para testes locais
 }
+
+# AWS Secrets encryption key
+variable "secrets_encryption_key" {
+  description = "Variavel Encription KEY na AWS."
+  type        = string
+  default     = "arn:aws:secretsmanager:us-east-1:202533542500:secret:crypto-api/encryption-key-kGeYT2*"
+}
