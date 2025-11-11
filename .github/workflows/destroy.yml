@@ -1,12 +1,15 @@
-name: 'Terraform CI/CD'
+name: 💣  1. Destroy Infraestrutura (Terraform)
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      terraform_action:
+        description: 'Ação do Terraform (destroy)'
+        required: true
+        default: 'destroy'
+        type: choice
+        options:
+          - destroy
 
 jobs:
   terraform:
@@ -15,40 +18,36 @@ jobs:
     env:
       AWS_REGION: 'us-east-1' # Sua região
 
+    defaults:
+        run:
+            working-directory: ${{ env.TF_WORKING_DIR }}
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+        - name: Checkout Code
+          uses: actions/checkout@v4
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        - name: Configurar Credenciais AWS
+          uses: aws-actions/configure-aws-credentials@v4
+          with:
+            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            aws-region: ${{ env.AWS_REGION }}
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+        - name: Configurar Terraform
+          uses: hashicorp/setup-terraform@v3
+          with:
+            # Use a mesma versão que está no seu setup.yml
+            terraform_version: 1.5.0 
 
-      - name: Terraform Init
-        id: init
-        run: terraform init
+        - name: Terraform Init
+          id: init
+          # Necessário para carregar o backend S3/DynamoDB e o estado
+          run: terraform init
 
-      - name: Terraform Plan (on PR or Push)
-        id: plan
-        run: terraform plan -no-color
+        - name: 💣 Executar Terraform Destroy
+          id: destroy
+          # O -auto-approve é necessário aqui, pois não há interação na Action
+          run: terraform destroy -auto-approve
 
-      - name: Publish Plan to PR 💬
-        uses: actions/github-script@v6
-        if: github.event_name == 'pull_request'
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `## Terraform Plan\n\n\`\`\`\n${{ steps.plan.outputs.stdout }}\n\`\`\``
-            })
-
-      - name: Terraform Apply (only on Push to main)
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform apply -auto-approve
+        - name: Notificar Sucesso
+          run: echo "🎉 Todos os recursos gerenciados pelo Terraform foram destruídos com sucesso!"
