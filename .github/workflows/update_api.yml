@@ -46,9 +46,19 @@ jobs:
       # 2. Build da Imagem e Push para ECR
       - name: Build, Tag e Push da Imagem
         run: |
+          # 1. Build da Imagem com a tag SHA (local)
           docker build -t ${{ steps.vars.outputs.ECR_URI }}:${{ steps.vars.outputs.IMAGE_TAG }} ./crypto-api 
+          
+          # 2. Tag: Marca a mesma imagem com a tag :latest para que o Fargate reconheça e aplique a nova imagem em produção
+          docker tag ${{ steps.vars.outputs.ECR_URI }}:${{ steps.vars.outputs.IMAGE_TAG }} ${{ steps.vars.outputs.ECR_URI }}:latest
+          
+          # 3. Push: Envia a tag SHA
           docker push ${{ steps.vars.outputs.ECR_URI }}:${{ steps.vars.outputs.IMAGE_TAG }}
-
+          
+          # 4. Push: Envia a tag :latest (CRUCIAL para o Fargate iniciar imediatamente)
+          docker push ${{ steps.vars.outputs.ECR_URI }}:latest
+       
+          
       # 3. Deploy com Terraform
       - name: Configurar Terraform
         uses: hashicorp/setup-terraform@v3
