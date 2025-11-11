@@ -62,7 +62,7 @@ resource "tls_self_signed_cert" "crypto_cert" {
 
   subject {
     common_name  = data.aws_lb.crypto_alb_data.dns_name
-    organization = "PUCRS"
+    organization = "Crypto256"
   }
 
   validity_period_hours = 8760 # 1 ano
