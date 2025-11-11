@@ -42,6 +42,9 @@ resource "aws_api_gateway_integration" "alb_integration" {
   //tls_config {
   //  insecure_skip_verify = true 
   //}
+  tls_config {
+    insecure_skip_verify = true 
+  }
 
 }
 
