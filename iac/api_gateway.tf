@@ -27,7 +27,6 @@ resource "aws_api_gateway_integration" "alb_integration" {
   type                    = "AWS_PROXY" # Tipo de integração para serviços AWS
 
   # Use o ARN do seu ALB Listener HTTPS (Porta 443) como endpoint
-  # Supondo que você criou um Listener HTTPS chamado 'https_listener'
   uri = aws_lb_listener.crypto_https_listener.arn
 
   integration_http_method = "ANY"
