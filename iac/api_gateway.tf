@@ -34,7 +34,7 @@ resource "aws_api_gateway_integration" "nlb_integration" {
   type = "AWS_PROXY"
 
   # A URI agora aponta para o NLB Listener (usando o ARN)
-  uri = "arn:aws:apigateway:${var.aws_region}:elasticloadbalancing/http/${aws_lb.crypto_api_nlb.arn}/{proxy}"
+  uri = "arn:aws:apigateway:${var.aws_region}:elasticloadbalancing/https/${aws_lb.crypto_api_nlb.arn}/{proxy}"
 
   # Mantenha o integration_http_method
   integration_http_method = "ANY"
