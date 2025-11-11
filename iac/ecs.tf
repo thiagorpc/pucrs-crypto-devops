@@ -73,6 +73,15 @@ resource "aws_ecs_task_definition" "crypto_task" {
     ]
 
 
+    logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = aws_cloudwatch_log_group.crypto_app.name
+          "awslogs-region"        = "us-east-1" 
+          "awslogs-stream-prefix" = "ecs" 
+        }
+    }
+
     environment = [
       # Variáveis Simples (Diretamente Injetadas)
       {
@@ -177,4 +186,9 @@ resource "aws_ecr_lifecycle_policy" "crypto_api_cleanup" {
       }
     ]
   })
+}
+
+resource "aws_cloudwatch_log_group" "crypto_app" {
+  name              = "/ecs/crypto-app"
+  retention_in_days = 7 # Exemplo: Logs retidos por 7 dias
 }
