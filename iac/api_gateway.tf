@@ -22,16 +22,16 @@ resource "aws_api_gateway_method" "proxy_method" {
 
 # 4. Integração com ALB
 resource "aws_api_gateway_integration" "alb_integration" {
-  rest_api_id             = aws_api_gateway_rest_api.crypto_gateway.id
-  resource_id             = aws_api_gateway_resource.proxy.id
-  http_method             = aws_api_gateway_method.proxy_method.http_method
+  rest_api_id = aws_api_gateway_rest_api.crypto_gateway.id
+  resource_id = aws_api_gateway_resource.proxy.id
+  http_method = aws_api_gateway_method.proxy_method.http_method
   
   # 🎯 Mude o tipo de integração para AWS_PROXY (ou AWS)
-  type                    = "AWS_PROXY" 
+  type        = "AWS_PROXY" 
   
   # A URI agora aponta para o ALB Listener (usando o ARN)
-  #uri                     = aws_lb_listener.crypto_https_listener.arn 
-  #uri = "arn:aws:apigateway:${var.aws_region}:elasticloadbalancing/https/${aws_lb.crypto_alb.arn}/"
+  #uri        = aws_lb_listener.crypto_https_listener.arn 
+  #uri        = "arn:aws:apigateway:${var.aws_region}:elasticloadbalancing/https/${aws_lb.crypto_alb.arn}/"
   
   # HTTPS
   uri = "arn:aws:elasticloadbalancing:us-east-1:202533542500:listener/app/crypto-api-alb/9583492550809c53/216f279877c166ec"
