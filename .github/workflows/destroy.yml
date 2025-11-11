@@ -1,4 +1,4 @@
-name: 💣  1. Destroy Infraestrutura (Terraform)
+name: 💣  1. Destroy a Infraestrutura (Terraform)
 
 on:
   workflow_dispatch:
