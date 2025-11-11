@@ -31,7 +31,13 @@ resource "aws_api_gateway_integration" "alb_integration" {
   
   # A URI agora aponta para o ALB Listener (usando o ARN)
   #uri                     = aws_lb_listener.crypto_https_listener.arn 
-  uri = "arn:aws:apigateway:${var.aws_region}:elasticloadbalancing/https/${aws_lb.crypto_alb.arn}/"
+  #uri = "arn:aws:apigateway:${var.aws_region}:elasticloadbalancing/https/${aws_lb.crypto_alb.arn}/"
+  
+  # HTTPS
+  uri = "arn:aws:elasticloadbalancing:us-east-1:202533542500:listener/app/crypto-api-alb/9583492550809c53/216f279877c166ec"
+  
+  # ALB
+  #arn:aws:elasticloadbalancing:us-east-1:202533542500:loadbalancer/app/crypto-api-alb/9583492550809c53
   
   # Mantenha o integration_http_method
   integration_http_method = "ANY" 
