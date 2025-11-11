@@ -15,12 +15,9 @@ jobs:
   terraform:
     name: 'Terraform ${{ github.event.inputs.terraform_action }}'
     runs-on: ubuntu-latest
-    env:
-      AWS_REGION: 'us-east-1' # Sua região
-
     defaults:
-        run:
-            working-directory: ${{ env.TF_WORKING_DIR }}
+      run:
+        working-directory: ${{ env.TF_WORKING_DIR }}
 
     steps:
         - name: Checkout Code
