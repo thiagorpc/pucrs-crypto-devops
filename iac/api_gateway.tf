@@ -130,8 +130,14 @@ resource "aws_api_gateway_account" "crypto_apigw_account_settings" {
 }
 
 # Crie o VPC Link que se conecta aos seus subnets do ALB
+#resource "aws_api_gateway_vpc_link" "crypto_vpc_link" {
+#  name        = "crypto-alb-link"
+#  target_arns = [aws_lb.crypto_alb.arn] 
+#}
+
 resource "aws_api_gateway_vpc_link" "crypto_vpc_link" {
-  name        = "crypto-alb-link"
+  name= "crypto-alb-link"
+  type = "VPC_LINK" 
   target_arns = [aws_lb.crypto_alb.arn] 
 }
 
