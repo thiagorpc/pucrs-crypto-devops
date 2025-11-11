@@ -90,10 +90,10 @@ resource "aws_api_gateway_stage" "prod_stage" {
   # 🎯 Define os níveis de log (INFO, ERROR, OFF)
   # log_level pode ser "INFO" para logs detalhados
   variables = {
-    "logging_level" = "DEBUG" 
+    "logging_level" = "DEBUG",
+    "metrics_enabled" = true
   }
 
-  metrics_enabled = true
   # cache_cluster_enabled = false 
 }
 
