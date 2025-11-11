@@ -1,4 +1,8 @@
 # ============================
+# File: ./iac/ecs.tf
+# ============================
+
+# ============================
 # ECR (repositório Docker)
 # ============================
 resource "aws_ecr_repository" "crypto_api_repo" {
@@ -24,8 +28,18 @@ resource "aws_ecs_cluster" "crypto_cluster" {
 }
 
 # ============================
-# IAM ROLE para ECS Task
+# CLOUDWATCH LOGS
 # ============================
+resource "aws_cloudwatch_log_group" "crypto_app" {
+  name              = "/ecs/crypto-app"
+  retention_in_days = 7
+}
+
+# ============================
+# IAM ROLES E POLÍTICAS DE ACESSO
+# ============================
+
+# Documento de política de confiança para que o ECS assuma as roles
 data "aws_iam_policy_document" "ecs_task_assume_role" {
   statement {
     actions = ["sts:AssumeRole"]
@@ -36,14 +50,76 @@ data "aws_iam_policy_document" "ecs_task_assume_role" {
   }
 }
 
+# 1. IAM ROLE: Task Execution Role (Usada pelo agente ECS para pull de imagem, logs e secrets)
 resource "aws_iam_role" "ecs_task_execution_role" {
   name               = "crypto-ecs-task-execution-role"
   assume_role_policy = data.aws_iam_policy_document.ecs_task_assume_role.json
 }
 
+# Anexa a política gerenciada padrão para Execution Role
 resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy" {
   role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+# Política para permitir acesso ao Secrets Manager (Anexada à Execution Role)
+resource "aws_iam_policy" "ecs_secret_access_policy" {
+  name        = "crypto-ecs-secrets-policy"
+  description = "Permite que a Task Execution Role acesse a chave de criptografia."
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = ["secretsmanager:GetSecretValue"],
+        # ⚠️ Ajuste o ARN abaixo. O '*' cobre versões do secret.
+        Resource = "arn:aws:secretsmanager:us-east-1:202533542500:secret:crypto-api/encryption-key-kGeYT2*", 
+      },
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_secret_access_attach" {
+  role       = aws_iam_role.ecs_task_execution_role.name
+  policy_arn = aws_iam_policy.ecs_secret_access_policy.arn
+}
+
+
+# 2. IAM ROLE: Task Role (Usada pelo código da aplicação para acessar recursos AWS, como S3/DynamoDB)
+resource "aws_iam_role" "crypto_task_role" {
+  name               = "crypto-ecs-task-role"
+  assume_role_policy = data.aws_iam_policy_document.ecs_task_assume_role.json
+}
+
+# Política para permitir acesso ao S3 de imagens (Anexada à Task Role)
+resource "aws_iam_policy" "ecs_s3_access_policy" {
+  name        = "crypto-ecs-s3-access-policy"
+  description = "Permite que a Task Role acesse o bucket de imagens."
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject",
+          "s3:ListBucket"
+        ],
+        Resource = [
+          aws_s3_bucket.crypto_images.arn,
+          "${aws_s3_bucket.crypto_images.arn}/*"
+        ]
+      },
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_s3_access_attach" {
+  role       = aws_iam_role.crypto_task_role.name
+  policy_arn = aws_iam_policy.ecs_s3_access_policy.arn
 }
 
 # ============================
@@ -51,15 +127,19 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy" {
 # ============================
 resource "aws_ecs_task_definition" "crypto_task" {
   family                   = var.service_name
-  cpu                      = var.ecs_cpu        # 🔄 Usando variável
-  memory                   = var.ecs_memory     # 🔄 Usando variável
+  cpu                      = var.ecs_cpu
+  memory                   = var.ecs_memory
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
+  
+  # Task Execution Role (para logs, secrets, pull de imagem)
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+  # Task Role (para acesso S3, usada pelo runtime da aplicação)
+  task_role_arn            = aws_iam_role.crypto_task_role.arn 
 
   container_definitions = jsonencode([{
-    name      = var.service_name
-    image     = "${aws_ecr_repository.crypto_api_repo.repository_url}:${var.image_tag}" # 🔄 Usando variável
+    name      = var.service_name
+    image     = "${aws_ecr_repository.crypto_api_repo.repository_url}:${var.image_tag}"
     essential = true
     portMappings = [
       { containerPort = var.container_port, hostPort = var.container_port, protocol = "tcp" }
@@ -67,46 +147,27 @@ resource "aws_ecs_task_definition" "crypto_task" {
 
     secrets = [
       {
-        name = "ENCRYPTION_KEY", # O nome da variável que sua aplicação espera
-
-        # ⚠️ SUBSTITUA PELO ARN COMPLETO DO SEU SECRET
+        name = "ENCRYPTION_KEY",
         valueFrom = "arn:aws:secretsmanager:us-east-1:202533542500:secret:crypto-api/encryption-key-kGeYT2" 
       }
     ]
 
-
     logConfiguration = {
         logDriver = "awslogs"
         options = {
-          "awslogs-group"         = aws_cloudwatch_log_group.crypto_app.name
-          "awslogs-region"        = "us-east-1" 
+          "awslogs-group"         = aws_cloudwatch_log_group.crypto_app.name
+          "awslogs-region"        = "us-east-1" 
           "awslogs-stream-prefix" = "ecs" 
         }
     }
 
     environment = [
-      # Variáveis Simples (Diretamente Injetadas)
-      {
-        name  = "NODE_ENV",
-        value = "production"
-      },
-      {
-        name  = "PORT",
-        value = "3000" # Use var.container_port se preferir
-      },
-      {
-        name  = "HOST",
-        value = "0.0.0.0"
-      },
-      {
-        name  = "TZ",
-        value = "America/Sao_Paulo"
-      },
-      # Variável do bucket de imagens (mantida)
-      {
-        name  = "IMAGE_BUCKET_NAME",
-        value = aws_s3_bucket.crypto_images.bucket
-      }
+      { name = "NODE_ENV", value = "production" },
+      # Usando a variável da porta para consistência com o NLB
+      { name = "PORT", value = var.container_port }, 
+      { name = "HOST", value = "0.0.0.0" },
+      { name = "TZ", value = "America/Sao_Paulo" },
+      { name = "IMAGE_BUCKET_NAME", value = aws_s3_bucket.crypto_images.bucket }
     ]
   }])
 }
@@ -130,43 +191,17 @@ resource "aws_ecs_service" "crypto_service" {
     container_port   = var.container_port
   }
 
+  # Dependências explícitas (garantindo que as roles estejam prontas)
   depends_on = [
     aws_iam_role_policy_attachment.ecs_task_execution_policy,
-    aws_iam_role_policy_attachment.ecs_secret_access_attach
+    aws_iam_role_policy_attachment.ecs_secret_access_attach,
+    aws_iam_role_policy_attachment.ecs_s3_access_attach
   ]
-}
-
-# Define a política para acesso ao Secrets Manager
-resource "aws_iam_policy" "ecs_secret_access_policy" {
-  name        = "crypto-ecs-secrets-policy"
-  description = "Permite que a Task Execution Role acesse a chave de criptografia."
-
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Effect = "Allow",
-        Action = [
-          "secretsmanager:GetSecretValue",
-        ],
-        Resource = "arn:aws:secretsmanager:us-east-1:202533542500:secret:crypto-api/encryption-key-kGeYT2*", 
-        # ⚠️ Ajuste o ARN acima. O '*' no final é para cobrir versões do secret -- :-)
-      },
-    ]
-  })
-}
-
-# ============================
-# Política de acesso ao Secret
-# ============================
-resource "aws_iam_role_policy_attachment" "ecs_secret_access_attach" {
-  role       = aws_iam_role.ecs_task_execution_role.name
-  policy_arn = aws_iam_policy.ecs_secret_access_policy.arn
 }
 
 
 # ====================================================================================
-# Política para excluir imagens antigas que estão no Amazon Elastic Container Registry
+# ECR LIFECYCLE POLICY (Limpeza de Imagens)
 # ====================================================================================
 resource "aws_ecr_lifecycle_policy" "crypto_api_cleanup" {
   repository = aws_ecr_repository.crypto_api_repo.name
@@ -174,23 +209,18 @@ resource "aws_ecr_lifecycle_policy" "crypto_api_cleanup" {
   policy = jsonencode({
     rules = [
       {
-        # Regra 1: Manter a tag :latest e as últimas 10 imagens mais recentes (por contagem)
+        # Regra 1: Manter as últimas 10 imagens mais recentes (por contagem)
         "rulePriority": 1,
         "description": "Manter as últimas 10 imagens",
         "selection": {
-          "tagStatus": "any", # Aplica-se a todas as imagens, exceto as sem tag (untagged)
+          "tagStatus": "any",
           "countType": "imageCountMoreThan",
           "countNumber": 10
         },
         "action": {
-          "type": "expire" # Ação: Expirar/Deletar
+          "type": "expire"
         }
       }
     ]
   })
-}
-
-resource "aws_cloudwatch_log_group" "crypto_app" {
-  name              = "/ecs/crypto-app"
-  retention_in_days = 7 # Exemplo: Logs retidos por 7 dias
 }

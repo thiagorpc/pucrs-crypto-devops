@@ -1,3 +1,7 @@
+# ============================
+# File: ./iac/outputs.tf
+# ============================
+
 # DNS do Network Load Balancer (NLB)
 output "nlb_dns_name" {
  value = aws_lb.crypto_api_nlb.dns_name

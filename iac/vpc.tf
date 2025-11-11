@@ -1,4 +1,6 @@
 # ============================
+# File: ./iac/vpc.tf
+# ============================
 # REDE: VPC, Subnets e Internet Gateway
 # ============================
 resource "aws_vpc" "crypto_vpc" {

@@ -1,3 +1,7 @@
+# ============================
+# File: ./iac/variables.tf
+# ============================
+
 # Região da AWS
 variable "aws_region" {
   description = "A região da AWS onde a infraestrutura será implantada. Exemplo: us-east-1, us-west-2"
