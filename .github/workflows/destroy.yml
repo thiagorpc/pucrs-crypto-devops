@@ -13,7 +13,7 @@ on:
 
 jobs:
   terraform:
-    name: 'Terraform Plan/Apply'
+    name: 'Terraform ${{ github.event.inputs.terraform_action }}'
     runs-on: ubuntu-latest
     env:
       AWS_REGION: 'us-east-1' # Sua região
