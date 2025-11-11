@@ -26,26 +26,26 @@ resource "aws_api_gateway_integration" "alb_integration" {
   resource_id             = aws_api_gateway_resource.proxy.id
   http_method             = aws_api_gateway_method.proxy_method.http_method
   
-  # 1. TIPO CORRIGIDO: Deve ser HTTP_PROXY para proxying de URL
-  type                    = "HTTP_PROXY" 
-
-  # 2. URI CORRIGIDA: Usa a URL HTTPS completa do ALB (incluindo o caminho root /)
-  # O ALB 'aws_lb.crypto_alb' deve ser definido em outro lugar, provavelmente em 'alb.tf'
-  uri                     = "https://${aws_lb.crypto_alb.dns_name}/{proxy}" 
+  # 🎯 Mude o tipo de integração para AWS_PROXY (ou AWS)
+  type                    = "AWS_PROXY" 
   
-  # O método HTTP que o API Gateway usará para chamar o Backend (ALB)
+  # A URI agora aponta para o ALB Listener (usando o ARN)
+  uri                     = aws_lb_listener.crypto_https_listener.arn 
+  
+  # Mantenha o integration_http_method
   integration_http_method = "ANY" 
-  
-  # A integração HTTP_PROXY não precisa de 'connection_type = VPC_LINK'.
-  # O API Gateway chama o ALB pela rede pública (DNS).
 
-  //tls_config {
-  //  insecure_skip_verify = true 
-  //}
-  tls_config {
-    insecure_skip_verify = true 
+  # 🎯 NOVO: Use o VPC_LINK para rotear o tráfego internamente
+  connection_type         = "VPC_LINK" 
+  connection_id           = aws_api_gateway_vpc_link.crypto_vpc_link.id
+  
+  # Opcional: Adicionar path mapping para o ALB
+  request_parameters = {
+      "integration.request.path.proxy" = "method.request.path.proxy"
   }
 
+  # ❌ REMOVA TUDO relacionado a TLS/Certificado
+  # tls_config e insecure_skip_verify não são mais necessários
 }
 
 # 5. Deployment
@@ -92,10 +92,10 @@ resource "aws_api_gateway_stage" "prod_stage" {
   
   # 🎯 Define os níveis de log (INFO, ERROR, OFF)
   # log_level pode ser "INFO" para logs detalhados
-  variables = {
-    "logging_level" = "DEBUG",
-    "metrics_enabled" = true
-  }
+  #variables = {
+  #  "logging_level" = "DEBUG",
+  #  "metrics_enabled" = true
+  #}
 
   # cache_cluster_enabled = false 
 }
@@ -127,4 +127,29 @@ resource "aws_iam_role_policy_attachment" "apigw_cloudwatch_attach" {
 resource "aws_api_gateway_account" "crypto_apigw_account_settings" {
   # 🎯 NOVO: Define a Role para o CloudWatch Logs em nível de conta/região
   cloudwatch_role_arn = aws_iam_role.apigw_cloudwatch_log_role.arn
+}
+
+# Crie o VPC Link que se conecta aos seus subnets do ALB
+resource "aws_api_gateway_vpc_link" "crypto_vpc_link" {
+  name        = "crypto-alb-link"
+  target_arns = [aws_lb.crypto_alb.arn] 
+}
+
+# 10. Configuração de Logs e Métricas de Execução (Method Settings)
+resource "aws_api_gateway_method_settings" "proxy_method_settings" {
+  rest_api_id = aws_api_gateway_rest_api.crypto_gateway.id
+  stage_name  = aws_api_gateway_stage.prod_stage.stage_name
+  
+  # Aplica a configuração a todos os métodos e recursos no Stage
+  method_path = "*/*" 
+
+  settings {
+    # 🎯 Define o nível de log de EXECUÇÃO
+    metrics_enabled = true
+    logging_level   = "INFO" # Use "INFO" ou "ERROR". "DEBUG" gera logs muito volumosos.
+    data_trace_enabled = true # Incluir corpo da requisição/resposta nos logs de INFO/DEBUG
+  }
+  
+  # O deployment precisa da nova Task Definition
+  depends_on = [aws_api_gateway_deployment.crypto_deployment]
 }
