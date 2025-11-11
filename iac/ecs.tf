@@ -145,61 +145,59 @@ resource "aws_ecs_task_definition" "crypto_task" {
   # Task Role (para acesso S3, usada pelo runtime da aplicação)
   task_role_arn = aws_iam_role.crypto_task_role.arn
 
-  container_definitions = jsonencode([
-    {
-      name      = var.service_name
-      image     = "${aws_ecr_repository.crypto_api_repo.repository_url}:${var.image_tag}"
-      essential = true
-      portMappings = [
-        {
-          containerPort = var.container_port,
-          hostPort      = var.container_port,
-          protocol      = "tcp"
-        }
-      ]
-
-      secrets = [
-        {
-          name      = "ENCRYPTION_KEY",
-          valueFrom = var.secrets_encryption_key,
-        }
-      ]
-
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          "awslogs-group"         = aws_cloudwatch_log_group.crypto_app.name
-          "awslogs-region"        = "us-east-1"
-          "awslogs-stream-prefix" = "ecs"
-        }
+  container_definitions = jsonencode([{
+    name      = var.service_name
+    image     = "${aws_ecr_repository.crypto_api_repo.repository_url}:${var.image_tag}"
+    essential = true
+    portMappings = [
+      {
+        containerPort = var.container_port,
+        hostPort      = var.container_port,
+        protocol      = "tcp"
       }
+    ]
 
-      environment = [
-        {
-          name  = "NODE_ENV",
-          value = "production"
-        },
+    secrets = [
+      {
+        name      = "ENCRYPTION_KEY",
+        valueFrom = var.secrets_encryption_key,
+      }
+    ]
 
-        # Usando a variável da porta para consistência com o NLB
-        {
-          name  = "PORT",
-          value = tostring(var.container_port)
-        },
-        {
-          name  = "HOST",
-          value = "0.0.0.0"
-        },
-        {
-          name  = "TZ",
-          value = "America/Sao_Paulo"
-        },
-        {
-          name  = "IMAGE_BUCKET_NAME",
-          value = aws_s3_bucket.crypto_images.bucket
-        }
-      ]
+    logConfiguration = {
+      logDriver = "awslogs"
+      options = {
+        "awslogs-group"         = aws_cloudwatch_log_group.crypto_app.name
+        "awslogs-region"        = "us-east-1"
+        "awslogs-stream-prefix" = "ecs"
+      }
     }
-  ])
+
+    environment = [
+      {
+        name  = "NODE_ENV",
+        value = "production"
+      },
+
+      # Usando a variável da porta para consistência com o NLB
+      {
+        name  = "PORT",
+        value = "3000"
+      },
+      {
+        name  = "HOST",
+        value = "0.0.0.0"
+      },
+      {
+        name  = "TZ",
+        value = "America/Sao_Paulo"
+      },
+      {
+        name  = "IMAGE_BUCKET_NAME",
+        value = aws_s3_bucket.crypto_images.bucket
+      }
+    ]
+  }])
 }
 
 resource "aws_ecs_service" "crypto_service" {
