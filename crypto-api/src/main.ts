@@ -28,7 +28,7 @@ async function bootstrap() {
   await app.listen(port, host);
 
   const logger = new Logger('Bootstrap');
-  logger.log(`🚀 API... rodando em http://${host}:${port}`);
+  logger.log(`🚀 API...... rodando em http://${host}:${port}`);
 }
 
 void bootstrap();
