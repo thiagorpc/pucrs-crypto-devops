@@ -164,7 +164,7 @@ resource "aws_ecr_lifecycle_policy" "crypto_api_cleanup_last_10" {
     rules = [
       {
         # Regra 1: Manter a tag :latest e as últimas 10 imagens mais recentes (por contagem)
-        "rulePriority": 100,
+        "rulePriority": 1,
         "description": "Manter as últimas 10 imagens",
         "selection": {
           "tagStatus": "crypto-api", # Aplica-se a todas as imagens, exceto as sem tag (untagged)
