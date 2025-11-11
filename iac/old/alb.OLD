@@ -2,13 +2,13 @@
 # LOAD BALANCER
 # ============================
 resource "aws_lb" "crypto_alb" {
-  name                       = "crypto-api-alb"
+  name                       = "crypto-api-nlb"
   internal                   = false
   load_balancer_type         = "application"
   security_groups            = [aws_security_group.alb_sg.id]
   subnets                    = aws_subnet.public_subnets[*].id
   enable_deletion_protection = false
-  tags                       = { Name = "crypto-api-alb" }
+  tags                       = { Name = "crypto-api-nlb" }
 }
 
 resource "aws_lb_target_group" "crypto_tg" {
@@ -56,8 +56,8 @@ resource "aws_lb_listener" "crypto_https_listener" {
 
 # Obtém o Load Balancer existente pelo nome fixo
 #data "aws_lb" "crypto_alb_data" {
-#  name = "crypto-api-alb" 
-#  # Nota: Se o ALB ainda não foi criado, você precisará de uma dependência ou garantir que esta consulta só ocorra após a criação.
+#  name = "crypto-api-nlb" 
+#  # Nota: Se o NLB ainda não foi criado, você precisará de uma dependência ou garantir que esta consulta só ocorra após a criação.
 #}
 
 # 1. Gerar a Chave Privada (crypto-api-key.pem)
@@ -71,11 +71,11 @@ resource "tls_self_signed_cert" "crypto_cert" {
   # key_algorithm   = "RSA"
   private_key_pem = tls_private_key.crypto_key.private_key_pem
   
-  # O Common Name deve ser o DNS do seu ALB
+  # O Common Name deve ser o DNS do seu NLB
   # common_name = data.aws_lb.crypto_alb_data.dns_name 
 
   subject {
-    common_name  = "crypto-api-alb.poc.local"
+    common_name  = "crypto-api-nlb.poc.local"
     #common_name  = data.aws_lb.crypto_alb_data.dns_name
     organization = "Crypto256"
   }

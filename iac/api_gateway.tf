@@ -1,7 +1,7 @@
 # 1. API Base
 resource "aws_api_gateway_rest_api" "crypto_gateway" {
   name        = "crypto-api-gateway"
-  description = "Gateway para o backend ECS/ALB"
+  description = "Gateway para o backend ECS/NLB"
 }
 
 # 2. Recurso Root (o path "/")
@@ -20,8 +20,8 @@ resource "aws_api_gateway_method" "proxy_method" {
 
 }
 
-# 4. Integração com ALB
-resource "aws_api_gateway_integration" "alb_integration" {
+# 4. Integração com NLB
+resource "aws_api_gateway_integration" "nlb_integration" {
   rest_api_id = aws_api_gateway_rest_api.crypto_gateway.id
   resource_id = aws_api_gateway_resource.proxy.id
   http_method = aws_api_gateway_method.proxy_method.http_method
@@ -29,17 +29,17 @@ resource "aws_api_gateway_integration" "alb_integration" {
   # 🎯 Mude o tipo de integração para AWS_PROXY (ou AWS)
   type        = "AWS_PROXY" 
   
-  # A URI agora aponta para o ALB Listener (usando o ARN)
+  # A URI agora aponta para o NLB Listener (usando o ARN)
   #uri        = aws_lb_listener.crypto_https_listener.arn 
   #uri        = "arn:aws:apigateway:${var.aws_region}:elasticloadbalancing/https/${aws_lb.crypto_nlb.arn}/"
 
   uri = "arn:aws:apigateway:${var.aws_region}:elasticloadbalancing/http/${aws_lb.crypto_nlb.arn}/"
   
   # HTTPS
-  #uri = "arn:aws:elasticloadbalancing:us-east-1:202533542500:listener/app/crypto-api-alb/9583492550809c53/216f279877c166ec"
+  #uri = "arn:aws:elasticloadbalancing:us-east-1:202533542500:listener/app/crypto-api-nlb/9583492550809c53/216f279877c166ec"
   
-  # ALB
-  #arn:aws:elasticloadbalancing:us-east-1:202533542500:loadbalancer/app/crypto-api-alb/9583492550809c53
+  # NLB
+  #arn:aws:elasticloadbalancing:us-east-1:202533542500:loadbalancer/app/crypto-api-nlb/9583492550809c53
   
   # Mantenha o integration_http_method
   integration_http_method = "ANY" 
@@ -48,7 +48,7 @@ resource "aws_api_gateway_integration" "alb_integration" {
   connection_type         = "VPC_LINK" 
   connection_id           = aws_api_gateway_vpc_link.crypto_vpc_link.id
   
-  # Opcional: Adicionar path mapping para o ALB
+  # Opcional: Adicionar path mapping para o NLB
   request_parameters = {
       "integration.request.path.proxy" = "method.request.path.proxy"
   }
@@ -66,7 +66,7 @@ resource "aws_api_gateway_deployment" "crypto_deployment" {
     redeployment = sha1(jsonencode([
       aws_api_gateway_resource.proxy.id,
       aws_api_gateway_method.proxy_method.id,
-      aws_api_gateway_integration.alb_integration.id,
+      aws_api_gateway_integration.nlb_integration.id,
     ]))
   }
   
@@ -138,9 +138,9 @@ resource "aws_api_gateway_account" "crypto_apigw_account_settings" {
   cloudwatch_role_arn = aws_iam_role.apigw_cloudwatch_log_role.arn
 }
 
-# Crie o VPC Link que se conecta aos seus subnets do ALB
+# Crie o VPC Link que se conecta aos seus subnets do NLB
 #resource "aws_api_gateway_vpc_link" "crypto_vpc_link" {
-#  name        = "crypto-alb-link"
+#  name        = "crypto-nlb-link"
 #  target_arns = [aws_lb.crypto_alb.arn] 
 #}
 
@@ -149,7 +149,7 @@ resource "aws_api_gateway_vpc_link" "crypto_vpc_link" {
   description = "VPC Link entre API Gateway e NLB"
   //type = "VPC_LINK"
   #target_arns = [aws_lb.crypto_alb.arn] 
-  #target_arns = ["arn:aws:elasticloadbalancing:us-east-1:202533542500:listener/app/crypto-api-alb/9583492550809c53/216f279877c166ec"] 
+  #target_arns = ["arn:aws:elasticloadbalancing:us-east-1:202533542500:listener/app/crypto-api-nlb/9583492550809c53/216f279877c166ec"] 
   target_arns = [aws_lb.crypto_nlb.arn]
 
   

@@ -36,26 +36,26 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       
-      - name: 🎯 Obter DNS do ALB
+      - name: 🎯 Obter DNS do NLB
         id: get_alb_dns
         run: |
-          # 1. Busca o nome DNS do ALB pelo seu nome fixo
+          # 1. Busca o nome DNS do NLB pelo seu nome fixo
           ALB_DNS_NAME=$(aws elbv2 describe-load-balancers \
-            --names "crypto-api-alb" \
+            --names "crypto-api-nlb" \
             --region ${{ env.AWS_REGION }} \
             --query "LoadBalancers[0].DNSName" \
             --output text)
           
           # 2. Verifica se o nome DNS foi encontrado
           if [ -z "$ALB_DNS_NAME" ]; then
-            echo "Erro: Não foi possível encontrar o DNS para o ALB 'crypto-api-alb'."
+            echo "Erro: Não foi possível encontrar o DNS para o NLB 'crypto-api-nlb'."
             exit 1
           fi
           
           # 3. Define a variável de ambiente para ser usada nos próximos passos
           # Usamos o comando set-output (deprecated, mas funciona) ou salvamos em um arquivo
           echo "API_URL_ALB=https://$ALB_DNS_NAME" >> $GITHUB_ENV
-          echo "DNS do ALB obtido: https://$ALB_DNS_NAME"
+          echo "DNS do NLB obtido: https://$ALB_DNS_NAME"
 
       # 1. Instalação de Dependências e Build do Frontend
       - name: Instalar Dependências

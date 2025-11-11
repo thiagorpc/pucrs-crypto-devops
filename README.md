@@ -27,7 +27,7 @@ O projeto consiste em uma **API de Criptografia (Backend)** e uma **Interface de
 
 | Camada | Tecnologia Principal | Infraestrutura de Implantação | 
 | :--- | :--- | :--- | 
-| **Backend** | NestJS (TypeScript), Docker | AWS ECS Fargate, AWS ECR, AWS ALB | 
+| **Backend** | NestJS (TypeScript), Docker | AWS ECS Fargate, AWS ECR, AWS NLB | 
 | **Frontend** | React + Vite para gerar HTML, CSS, JavaScript | AWS S3 Static Hosting | 
 | **DevOps** | GitHub Actions (CI), Terraform (IaC) | AWS Services | 
 
@@ -74,7 +74,7 @@ Para que o GitHub Actions execute o Terraform e interaja com a AWS, é essencial
 4. Anexe as permissões necessárias.
 
 > [!WARNING]
-> **Permissões Mínimas Recomendadas:** Para a execução completa do Terraform, este usuário precisará de acesso administrativo ou uma política personalizada abrangente que cubra `ec2`, `ecs`, `ecr`, `s3`, `iam`, `alb` e `logs`. Use a política a seguir (ou **AdministratorAccess** se estiver em um ambiente de estudo):
+> **Permissões Mínimas Recomendadas:** Para a execução completa do Terraform, este usuário precisará de acesso administrativo ou uma política personalizada abrangente que cubra `ec2`, `ecs`, `ecr`, `s3`, `iam`, `nlb` e `logs`. Use a política a seguir (ou **AdministratorAccess** se estiver em um ambiente de estudo):
 
 **Permissões Mínimas Recomendadas:** Para que o Terraform provisione todos os recursos (ECS, ECR, S3, IAM, etc.), utilize a política abaixo.
 

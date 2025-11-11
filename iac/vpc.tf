@@ -43,9 +43,9 @@ resource "aws_route_table_association" "public_assoc" {
 # SECURITY GROUPS (SEPARADOS POR CAMADA)
 # ============================
 
-# 1. Security Group para o ALB (Público, Porta 80)
+# 1. Security Group para o NLB (Público, Porta 80)
 //resource "aws_security_group" "alb_sg" {
-//name        = "crypto-alb-sg"
+//name        = "crypto-nlb-sg"
 //description = "Permite acesso HTTP publico (Porta 80)"
 //vpc_id      = aws_vpc.crypto_vpc.id
 ///ingress {
@@ -69,7 +69,7 @@ resource "aws_route_table_association" "public_assoc" {
 //  protocol    = "-1"
 //  cidr_blocks = ["0.0.0.0/0"]
 //}
-//tags = { Name = "crypto-alb-sg" }
+//tags = { Name = "crypto-nlb-sg" }
 //}
 
 # 2. Security Group para o ECS (Privado, Porta do Contêiner)

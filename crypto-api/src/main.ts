@@ -12,8 +12,8 @@ async function bootstrap() {
 
   const corsOriginsString = [
     'http://localhost:5173',
-    'https://crypto-api-alb-1701207900.us-east-1.elb.amazonaws.com/health',
-    'http://crypto-api-alb-1701207900.us-east-1.elb.amazonaws.com/health',
+    'https://crypto-api-nlb-1701207900.us-east-1.elb.amazonaws.com/health',
+    'http://crypto-api-nlb-1701207900.us-east-1.elb.amazonaws.com/health',
     'https://pucrs-crypto-ui.s3.us-east-1.amazonaws.com/',
     'http://pucrs-crypto-ui.s3.us-east-1.amazonaws.com/',
   ];
