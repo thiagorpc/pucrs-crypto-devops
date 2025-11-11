@@ -43,7 +43,7 @@ resource "aws_api_gateway_integration" "alb_integration" {
 
   # 2. URI CORRIGIDA: Usa a URL HTTPS completa do ALB (incluindo o caminho root /)
   # O ALB 'aws_lb.crypto_alb' deve ser definido em outro lugar, provavelmente em 'alb.tf'
-  uri                     = "https://${aws_lb.crypto_alb.dns_name}/{proxy}" 
+  uri                     = "https://${aws_lb.crypto_alb.dns_name}" 
   
   # O método HTTP que o API Gateway usará para chamar o Backend (ALB)
   integration_http_method = "ANY" 
