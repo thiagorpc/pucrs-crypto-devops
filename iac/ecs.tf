@@ -157,7 +157,7 @@ resource "aws_iam_role_policy_attachment" "ecs_secret_access_attach" {
 # ====================================================================================
 # Política para excluir imagens antigas que estão no Amazon Elastic Container Registry
 # ====================================================================================
-resource "aws_ecr_lifecycle_policy" "crypto_api_cleanup" {
+resource "aws_ecr_lifecycle_policy" "crypto_api_cleanup_last_10" {
   repository = aws_ecr_repository.crypto_api_repo.name
 
   policy = jsonencode({
@@ -174,7 +174,16 @@ resource "aws_ecr_lifecycle_policy" "crypto_api_cleanup" {
         "action": {
           "type": "expire" # Ação: Expirar/Deletar
         }
-      },
+      }
+    ]
+  })
+}
+
+resource "aws_ecr_lifecycle_policy" "crypto_api_cleanup_by_days" {
+  repository = aws_ecr_repository.crypto_api_repo.name
+
+  policy = jsonencode({
+    rules = [
       {
         # Regra 2: Deletar qualquer imagem (com ou sem tag) mais antiga que 90 dias
         "rulePriority": 2,
