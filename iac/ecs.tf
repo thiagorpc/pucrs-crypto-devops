@@ -157,7 +157,7 @@ resource "aws_iam_role_policy_attachment" "ecs_secret_access_attach" {
 # ====================================================================================
 # Política para excluir imagens antigas que estão no Amazon Elastic Container Registry
 # ====================================================================================
-resource "aws_ecr_lifecycle_policy" "crypto_api_cleanup_last_10" {
+resource "aws_ecr_lifecycle_policy" "crypto_api_cleanup" {
   repository = aws_ecr_repository.crypto_api_repo.name
 
   policy = jsonencode({
