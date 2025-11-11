@@ -7,10 +7,10 @@ resource "aws_lb" "crypto_api_nlb" {
   name               = "crypto-api-nlb"
   internal           = false # Deve ser externo se o API GW o acessa externamente
   load_balancer_type = "network"
-  subnets            = aws_subnet.public_subnets[*].id 
+  subnets            = aws_subnet.public_subnets[*].id
 
   enable_cross_zone_load_balancing = true
-  tags               = { Name = "crypto-api-nlb" }
+  tags                             = { Name = "crypto-api-nlb" }
 }
 
 # Target Group do NLB (por IP)
@@ -35,7 +35,7 @@ resource "aws_lb_target_group" "crypto_tg" {
 # Listener do NLB (Porta 443 ou 80)
 resource "aws_lb_listener" "crypto_nlb_listener" {
   load_balancer_arn = aws_lb.crypto_api_nlb.arn
-  port              = 80 
+  port              = 80
   protocol          = "TCP" # 🎯 Usar TLS se você quer criptografia no NLB
 
   # Você precisa de um certificado ACM para Terminação TLS no NLB
