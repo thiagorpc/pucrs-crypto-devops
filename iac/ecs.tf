@@ -164,7 +164,7 @@ resource "aws_ecr_lifecycle_policy" "crypto_api_cleanup_last_10" {
     rules = [
       {
         # Regra 1: Manter a tag :latest e as últimas 10 imagens mais recentes (por contagem)
-        "rulePriority": 1,
+        "rulePriority": 100,
         "description": "Manter as últimas 10 imagens",
         "selection": {
           "tagStatus": "any", # Aplica-se a todas as imagens, exceto as sem tag (untagged)
@@ -186,7 +186,7 @@ resource "aws_ecr_lifecycle_policy" "crypto_api_cleanup_by_days" {
     rules = [
       {
         # Regra 2: Deletar qualquer imagem (com ou sem tag) mais antiga que 90 dias
-        "rulePriority": 2,
+        "rulePriority": 90,
         "description": "Deletar imagens mais antigas que 90 dias",
         "selection": {
           "tagStatus": "any", 
