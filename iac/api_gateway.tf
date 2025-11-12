@@ -22,6 +22,10 @@ resource "aws_api_gateway_method" "proxy_method" {
   http_method   = "ANY"
   authorization = "NONE" # Nenhuma autorização (pode ser ajustado)
 
+  request_parameters = {
+    "method.request.path.proxy" = true
+  }
+
 }
 
 # 4. Integração com NLB
