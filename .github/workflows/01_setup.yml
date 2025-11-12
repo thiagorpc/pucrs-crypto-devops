@@ -46,7 +46,7 @@ jobs:
 
       - name: 🧱 Terraform Init
         id: init
-        run: terraform init -reconfigure
+        run: terraform init -backend-config=backend.hcl -reconfigure
 
       - name: 🧩 Terraform Plan
         id: plan
@@ -58,6 +58,12 @@ jobs:
         if: github.event.inputs.terraform_action == 'apply'
         run: terraform apply -auto-approve
 
+      - name: 💡 Exibir URL da API Gateway
+        run: |
+          API_URL=$(terraform output -raw api_gateway_invoke_url)
+          echo "🚀 URL da API Gateway: $API_URL"
+          echo "API_URL=$API_URL" >> $GITHUB_ENV
+          
       - name: 🏁 Marcar Apply Concluído
         if: ${{ github.event.inputs.terraform_action == 'apply' }}
         id: apply_status

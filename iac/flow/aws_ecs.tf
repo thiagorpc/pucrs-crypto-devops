@@ -164,16 +164,16 @@ resource "aws_ecs_task_definition" "crypto_task" {
       logDriver = "awslogs"
       options = {
         "awslogs-group"         = aws_cloudwatch_log_group.crypto_app.name
-        "awslogs-region"        = "us-east-1"
+        "awslogs-region"        = var.aws_region
         "awslogs-stream-prefix" = "ecs"
       }
     }
 
     environment = [
-      { name = "NODE_ENV", value = "production" },
-      { name = "PORT", value = "3000" },
-      { name = "HOST", value = "0.0.0.0" },
-      { name = "TZ", value = "America/Sao_Paulo" },
+      { name = "NODE_ENV", value = var.project_stage },
+      { name = "PORT", value = "${var.container_port}" },
+      { name = "HOST", value = var.container_host },
+      { name = "TZ", value = var.container_TZ },
       { name = "IMAGE_BUCKET_NAME", value = aws_s3_bucket.crypto_images.bucket }
     ]
   }])

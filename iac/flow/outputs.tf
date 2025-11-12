@@ -63,3 +63,37 @@ output "api_gateway_url" {
   value       = "${aws_api_gateway_stage.prod_stage.invoke_url}/"
   description = "URL base do API Gateway (Stage /prod)"
 }
+
+# ============================
+# File: ./iac/flow/outputs.tf
+# ============================
+
+# 🌐 URL pública da API Gateway
+output "api_gateway_invoke_url" {
+  description = "URL pública para acessar a API via API Gateway"
+  value       = "https://${aws_api_gateway_rest_api.project_api_gateway.id}.execute-api.${data.aws_region.current.name}.amazonaws.com/${aws_api_gateway_stage.prod_stage.stage_name}"
+}
+
+# 🧱 DNS do NLB (útil para integração direta, se necessário)
+output "nlb_dns_name" {
+  description = "DNS público do Network Load Balancer (NLB)"
+  value       = aws_lb.crypto_api_nlb.dns_name
+}
+
+# 🪣 Bucket do Frontend (UI)
+output "s3_bucket_ui" {
+  description = "Nome do bucket S3 para o front-end React"
+  value       = var.react_bucket_name
+}
+
+# 🔒 DynamoDB Table usada para lock do Terraform
+output "terraform_lock_table" {
+  description = "Tabela DynamoDB usada para controle de estado (lock)"
+  value       = var.terraform_lock_dynamodb_name
+}
+
+# ⚙️ Região padrão da AWS
+output "aws_region" {
+  description = "Região onde os recursos estão sendo criados"
+  value       = var.aws_region
+}

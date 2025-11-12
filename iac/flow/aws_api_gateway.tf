@@ -1,37 +1,37 @@
 # ============================
-# File: ./iac/flow/api_gateway.tf
+# File: ./iac/flow/aws_api_gateway.tf
 # ============================
 
+# Dados dinâmicos da conta e região
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
-# 1. API Base
+# 1️⃣ API Base
 resource "aws_api_gateway_rest_api" "project_api_gateway" {
   name        = "${var.project_name}-api-gateway"
-  description = "Gateway para o backend ECS/NLB"
+  description = "API Gateway para o backend ECS/NLB"
 }
 
-# 2. Recurso Root (o path "/")
+# 2️⃣ Recurso Root (path "/{proxy+}")
 resource "aws_api_gateway_resource" "proxy" {
   rest_api_id = aws_api_gateway_rest_api.project_api_gateway.id
   parent_id   = aws_api_gateway_rest_api.project_api_gateway.root_resource_id
   path_part   = "{proxy+}" # Captura qualquer path (ex: /health, /users, etc.)
 }
 
-# 3. Método (ANY para capturar todos)
+# 3️⃣ Método (ANY)
 resource "aws_api_gateway_method" "proxy_method" {
   rest_api_id   = aws_api_gateway_rest_api.project_api_gateway.id
   resource_id   = aws_api_gateway_resource.proxy.id
   http_method   = "ANY"
-  authorization = "NONE" # Nenhuma autorização (pode ser ajustado)
+  authorization = "NONE"
 
   request_parameters = {
     "method.request.path.proxy" = true
   }
-
 }
 
-# 4. Integração com NLB
+# 4️⃣ Integração com o NLB
 resource "aws_api_gateway_integration" "nlb_integration" {
   depends_on = [aws_api_gateway_method.proxy_method]
 
@@ -49,65 +49,31 @@ resource "aws_api_gateway_integration" "nlb_integration" {
   }
 }
 
-# 5. Deployment
+# 5️⃣ Deployment
 resource "aws_api_gateway_deployment" "project_deployment" {
   rest_api_id = aws_api_gateway_rest_api.project_api_gateway.id
 
-  # Gatilho para redeploy em caso de mudança na integração/método
+  # Gatilho para redeploy em caso de mudança
   triggers = {
     redeployment = sha1(jsonencode([
       aws_api_gateway_resource.proxy.id,
       aws_api_gateway_method.proxy_method.id,
-      aws_api_gateway_integration.nlb_integration.id,
+      aws_api_gateway_integration.nlb_integration.id
     ]))
   }
 
-  # O deployment depende da integração estar configurada
   lifecycle {
     create_before_destroy = true
   }
 }
 
+# 6️⃣ Log Group (dinâmico, sem dependência circular)
 resource "aws_cloudwatch_log_group" "api_gw_logs" {
-  name = "/aws/apigateway/${aws_api_gateway_stage.prod_stage.stage_name}"
+  name              = "/aws/apigateway/${var.project_name}-api-prod"
   retention_in_days = 14
 }
 
-# 6. Stage (Ex: /prod)
-resource "aws_api_gateway_stage" "prod_stage" {
-  deployment_id = aws_api_gateway_deployment.project_deployment.id
-  rest_api_id   = aws_api_gateway_rest_api.project_api_gateway.id
-  stage_name    = "prod"
-
-  # 🎯 NOVO: Dependência para garantir que a Role do CloudWatch foi configurada globalmente
-  depends_on = [
-    aws_api_gateway_account.apigw_account_settings,
-    aws_cloudwatch_log_group.api_gw_logs
-  ]
-
-  # 🎯 Habilita o Logging
-  access_log_settings {
-    # ARN do CloudWatch Log Group de destino (você pode criar um ou usar o default)
-    destination_arn = "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:${aws_cloudwatch_log_group.api_gw_logs.name}"
-
-    # Formato dos logs (Exemplo: Logs completos)
-    format = "$context.requestId $context.identity.sourceIp $context.identity.caller $context.identity.user [$context.requestTime] \"$context.httpMethod $context.resourcePath $context.protocol\" $context.status $context.responseLength $context.integrationErrorMessage"
-  }
-
-  # Opcional: Habilita métricas detalhadas (Execution/Errors)
-  xray_tracing_enabled = true
-
-  # 🎯 Define os níveis de log (INFO, ERROR, OFF)
-  # log_level pode ser "INFO" para logs detalhados
-  #variables = {
-  # "logging_level" = "DEBUG",
-  # "metrics_enabled" = true
-  #}
-
-  # cache_cluster_enabled = false 
-}
-
-# 7. Política de Confiança: Permite que o serviço API Gateway assuma esta role
+# 7️⃣ IAM Role para Logs
 data "aws_iam_policy_document" "apigw_log_assume_role" {
   statement {
     actions = ["sts:AssumeRole"]
@@ -123,49 +89,64 @@ resource "aws_iam_role" "apigw_cloudwatch_log_role" {
   assume_role_policy = data.aws_iam_policy_document.apigw_log_assume_role.json
 }
 
-# 8. Política de Permissão: Permite gravar logs no CloudWatch
 resource "aws_iam_role_policy_attachment" "apigw_cloudwatch_attach" {
-  role = aws_iam_role.apigw_cloudwatch_log_role.name
-  # Esta é a política gerenciada da AWS que dá as permissões exatas necessárias
+  role       = aws_iam_role.apigw_cloudwatch_log_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
 }
 
-
+# 8️⃣ Conta do API Gateway configurada para logs
 resource "aws_api_gateway_account" "apigw_account_settings" {
-  # 🎯 NOVO: Define a Role para o CloudWatch Logs em nível de conta/região
   cloudwatch_role_arn = aws_iam_role.apigw_cloudwatch_log_role.arn
 
-
-  // O recurso aws_api_gateway_account é global por região.
-  // Se você destruir o Terraform sem cuidado, pode gerar conflito com outras stacks.
-   lifecycle {
+  lifecycle {
     prevent_destroy = true
   }
 }
 
+# 9️⃣ Stage (ex: /prod)
+resource "aws_api_gateway_stage" "prod_stage" {
+  deployment_id = aws_api_gateway_deployment.project_deployment.id
+  rest_api_id   = aws_api_gateway_rest_api.project_api_gateway.id
+  stage_name    = "prod"
+
+  depends_on = [
+    aws_api_gateway_account.apigw_account_settings,
+    aws_cloudwatch_log_group.api_gw_logs,
+    aws_api_gateway_deployment.project_deployment
+  ]
+
+  access_log_settings {
+    destination_arn = "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:${aws_cloudwatch_log_group.api_gw_logs.name}"
+    format          = "$context.requestId $context.identity.sourceIp $context.httpMethod $context.resourcePath $context.protocol $context.status $context.responseLength"
+  }
+
+  xray_tracing_enabled = true
+}
+
+# 🔟 VPC Link (para o NLB)
 resource "aws_api_gateway_vpc_link" "project_vpc_link" {
   name        = "${var.project_name}-nlb-link"
   description = "VPC Link entre API Gateway e NLB"
-  //type = "VPC_LINK"
-  #target_arns = ["arn:aws:elasticloadbalancing:us-east-1:202533542500:listener/app/crypto-api-nlb/9583492550809c53/216f279877c166ec"] 
   target_arns = [aws_lb.crypto_api_nlb.arn]
 }
 
-# 10. Configuração de Logs e Métricas de Execução (Method Settings)
+# 1️⃣1️⃣ Configuração de Logs e Métricas (Method Settings)
 resource "aws_api_gateway_method_settings" "proxy_method_settings" {
   rest_api_id = aws_api_gateway_rest_api.project_api_gateway.id
   stage_name  = aws_api_gateway_stage.prod_stage.stage_name
-
-  # Aplica a configuração a todos os métodos e recursos no Stage
   method_path = "*/*"
 
   settings {
-    # 🎯 Define o nível de log de EXECUÇÃO
     metrics_enabled    = true
-    logging_level      = "INFO" # Use "INFO" ou "ERROR". "DEBUG" gera logs muito volumosos.
-    data_trace_enabled = true   # Incluir corpo da requisição/resposta nos logs de INFO/DEBUG
+    logging_level      = "INFO"
+    data_trace_enabled = true
   }
 
-  # O deployment precisa da nova Task Definition
-  depends_on = [aws_api_gateway_deployment.project_deployment]
+  depends_on = [aws_api_gateway_stage.prod_stage]
+}
+
+# 1️⃣2️⃣ (Opcional) Output da URL da API
+output "api_gateway_invoke_url" {
+  description = "URL base da API Gateway para acessar os endpoints do backend"
+  value       = "https://${aws_api_gateway_rest_api.project_api_gateway.id}.execute-api.${data.aws_region.current.name}.amazonaws.com/${aws_api_gateway_stage.prod_stage.stage_name}"
 }

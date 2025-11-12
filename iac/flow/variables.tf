@@ -8,6 +8,12 @@ variable "project_name" {
   default = "pucrs-crypto"
 }
 
+# NODEENV do projeto
+variable "project_stage" {
+  type    = string
+  default = "production"
+}
+
 # Região da AWS
 variable "aws_region" {
   description = "A região da AWS onde a infraestrutura será implantada. Exemplo: us-east-1, us-west-2"
@@ -36,11 +42,25 @@ variable "service_name" {
   default     = "${var.project_name}-api"
 }
 
+# Host do container
+variable "container_host" {
+  description = "HOst do container onde a aplicação está escutando."
+  type        = string
+  default     = "0.0.0.0"
+}
+
 # Porta do container
 variable "container_port" {
   description = "Porta do container onde a aplicação está escutando."
   type        = string
   default     = 3000
+}
+
+# Time ZOne
+variable "container_TZ" {
+  description = "Defini o valor do TimeZOne para o Container"
+  type        = string
+  default     = "America/Sao_Paulo"
 }
 
 # ============================

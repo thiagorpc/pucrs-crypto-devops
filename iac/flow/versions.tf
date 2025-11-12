@@ -1,7 +1,10 @@
 # ============================
-# File: ./iac/flow/versions.tf (Simplificado)
+# File: ./iac/flow/versions.tf
 # ============================
+
 terraform {
+  required_version = ">= 1.5.0"
+
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -9,8 +12,8 @@ terraform {
     }
   }
 
-  # REMOVIDO: O bloco 'backend' foi movido para a linha de comando (init)
-  #          para que possamos gerenciar o S3/DynamoDB como recursos.
+  # 🔸 O backend foi removido daqui para ser carregado dinamicamente via:
+  #     terraform init -backend-config=backend.hcl
 }
 
 provider "aws" {
