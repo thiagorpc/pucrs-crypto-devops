@@ -1,4 +1,4 @@
-name: 0. 🛠️Setup Terraform Backend
+name: 0. 🛠️Setup Backend AWS
 
 on:
   workflow_dispatch:

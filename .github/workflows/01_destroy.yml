@@ -1,4 +1,4 @@
-name: 1. 💣Destroy Infraestrutura
+name: 1. 💣Destroy Infraestrutura AWS
 
 on:
   workflow_dispatch:
