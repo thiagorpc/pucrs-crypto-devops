@@ -42,6 +42,4 @@ jobs:
 
       - name: Terraform Apply (Criar S3 e DynamoDB)
         id: apply
-        # Aplica APENAS os recursos de backend (se você isolá-los)
-        # Se você não isolar, certifique-se de que só há S3 e DynamoDB no seu código
         run: terraform apply -auto-approve
