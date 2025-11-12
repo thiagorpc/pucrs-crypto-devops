@@ -7,6 +7,11 @@ on:
     paths:
       - 'crypto-ui/**' # ❗️ Trigger: Apenas quando há push na pasta do Frontend
 
+  workflow_run:
+    workflows: ["🚀 2. Setup Inicial da Infraestrutura (Terraform)"]
+    types:
+      - completed
+
 env:
   AWS_REGION: us-east-1
   # ❗️ Usando o nome do bucket da variável react_bucket_name
