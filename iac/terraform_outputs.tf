@@ -56,8 +56,3 @@ output "images_bucket_name" {
   value       = aws_s3_bucket.crypto_images.bucket
 }
 
-# URL do API Gateway
-output "api_gateway_url" {
-  value       = "${aws_api_gateway_stage.prod_stage.invoke_url}/"
-  description = "URL base do API Gateway (Stage /prod)"
-}
