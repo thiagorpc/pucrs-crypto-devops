@@ -24,7 +24,7 @@ resource "aws_ecr_repository" "image_repo" {
 # ECS CLUSTER
 # ============================
 resource "aws_ecs_cluster" "cluster" {
-  name = "${var.project_name}-cluster"
+  name = "${var.project_name}-esc-cluster"
 }
 
 # ============================
@@ -189,12 +189,12 @@ resource "aws_ecs_service" "fargate" {
   network_configuration {
     subnets          = aws_subnet.public_subnets[*].id
     security_groups  = [aws_security_group.ecs_sg.id]
-    assign_public_ip = true
+    assign_public_ip = false
   }
 
   load_balancer {
     target_group_arn = aws_lb_target_group.lb_target_group.arn
-    container_name   = "${var.project_name}-lbtg-api"
+    container_name   = "${var.project_name}-api"
     container_port   = var.container_port
   }
 
