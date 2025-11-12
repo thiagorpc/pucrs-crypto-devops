@@ -2,7 +2,7 @@
 
 # Definição dos recursos S3 e DynamoDB (use os nomes de variáveis ou valores literais)
 resource "aws_s3_bucket" "state_bucket" {
-  bucket = var.terraform_state_bucket_name
+  bucket = "${var.project_name}-github-action-tfstate-unique"
   force_destroy = true 
 }
 

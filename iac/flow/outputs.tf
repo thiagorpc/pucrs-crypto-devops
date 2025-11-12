@@ -65,7 +65,7 @@ output "images_bucket_name" {
 
 output "terraform_lock_table" {
   description = "Tabela DynamoDB usada para controle de lock do Terraform"
-  value       = var.terraform_lock_dynamodb_name
+  value       = "${var.project_name}-terraform-lock"
 }
 
 # ============================

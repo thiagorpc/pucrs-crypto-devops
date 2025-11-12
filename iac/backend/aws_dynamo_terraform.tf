@@ -2,7 +2,7 @@
 
 # Recurso: DynamoDB Lock Table para o State Locking
 resource "aws_dynamodb_table" "lock_table" {
-  name           = var.terraform_lock_dynamodb_name
+  name           = "${var.project_name}-terraform-lock"
   billing_mode   = "PAY_PER_REQUEST"
   hash_key       = "LockID"
   attribute {

@@ -57,28 +57,6 @@ variable "container_TZ" {
 }
 
 # ============================
-# DynamoDB
-# ============================
-
-# Nome do bucket S3 para o front-end
-variable "terraform_lock_dynamodb_name" {
-  description = "Nome da tabela DynamoDB para controle de Lock do Terraform."
-  type        = string
-  default     = "${var.project_name}-terraform-lock"
-}
-
-# ============================
-# Bucket S3
-# ============================
-
-# Nome do bucket S3 para o front-end
-variable "react_bucket_name" {
-  description = "Nome do bucket S3 onde o front-end React será hospedado."
-  type        = string
-  default     = "${var.project_name}-ui"
-}
-
-# ============================
 # ECS
 # ============================
 
