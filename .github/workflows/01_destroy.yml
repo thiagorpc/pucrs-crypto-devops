@@ -13,6 +13,7 @@ on:
 
 env:
   S3_STATE_BUCKET: pucrs-crypto-github-action-tfstate-unique
+  DYNAMO_LOCK_TABLE: pucrs-crypto-terraform-lock
   TF_MAIN_DIR: ./iac/flow
   AWS_REGION: us-east-1
 
@@ -59,14 +60,14 @@ jobs:
       # 2️⃣ Limpa e remove o bucket S3 e DynamoDB do backend
       - name: 💣 Excluir bucket S3 e DynamoDB via AWS CLI
         run: |
-          echo "🧹 Limpando bucket S3: ${S3_STATE_BUCKET}"
-          aws s3 rm s3://${S3_STATE_BUCKET} --recursive || true
+          echo "🧹 Limpando bucket S3: ${{ env.S3_STATE_BUCKET }}"
+          aws s3 rm s3://${{ env.S3_STATE_BUCKET }} --recursive || true
 
           echo "🪣 Excluindo bucket S3..."
-          aws s3api delete-bucket --bucket ${S3_STATE_BUCKET} --region ${AWS_REGION} || true
+          aws s3api delete-bucket --bucket ${{ env.S3_STATE_BUCKET }} --region ${{env.AWS_REGION}} || true
 
           echo "🗑️ Excluindo tabela DynamoDB..."
-          aws dynamodb delete-table --table-name ${DYNAMO_LOCK_TABLE} --region ${AWS_REGION} || true
+          aws dynamodb delete-table --table-name ${{ env.DYNAMO_LOCK_TABLE }} --region ${{env.AWS_REGION}} || true
 
           echo "✅ Backend (S3 + DynamoDB) excluído com sucesso!"
 
