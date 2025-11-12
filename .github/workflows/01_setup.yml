@@ -23,33 +23,42 @@ jobs:
     defaults:
       run:
         working-directory: ${{ env.TF_WORKING_DIR }}
-    
+
+    outputs:
+      # ✅ Exporta a variável de saída apply_done
+      apply_done: ${{ steps.apply_status.outputs.apply_done }}
+
     steps:
-      - name: Checkout Code
+      - name: 📦 Checkout Code
         uses: actions/checkout@v4
 
-      - name: Configurar Credenciais AWS
+      - name: 🔐 Configurar Credenciais AWS
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Configurar Terraform
+      - name: ⚙️ Configurar Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.5.0 # Use a versão que você especificou no versions.tf
+          terraform_version: 1.5.0 # Use a mesma versão definida em versions.tf
 
-      - name: Terraform Init
+      - name: 🧱 Terraform Init
         id: init
         run: terraform init -reconfigure
 
-      - name: Terraform Plan
+      - name: 🧩 Terraform Plan
         id: plan
         if: github.event.inputs.terraform_action == 'plan'
         run: terraform plan -no-color
 
-      - name: Terraform Apply
+      - name: 🚀 Terraform Apply
         id: apply
         if: github.event.inputs.terraform_action == 'apply'
         run: terraform apply -auto-approve
+
+      - name: 🏁 Marcar Apply Concluído
+        if: ${{ github.event.inputs.terraform_action == 'apply' }}
+        id: apply_status
+        run: echo "apply_done=true" >> $GITHUB_OUTPUT

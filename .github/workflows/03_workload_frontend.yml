@@ -21,15 +21,21 @@ jobs:
     name: Build & Sync S3
     runs-on: ubuntu-latest
 
+    # ✅ Só executa se:
+    #   1️⃣ workflow_run foi concluído com sucesso E marcou apply_done=true
+    #   2️⃣ OU foi um push direto (não workflow_run)
+    if: >
+      ${{
+      (github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.outputs.apply_done == 'true') || github.event_name == 'push' }}
+
     env:
       API_URL_ALB: ""
 
     defaults:
       run:
-        working-directory: ./crypto-ui # Assume que o código React está na pasta 'crypto-ui'
-
-    # Executa apenas se workflow_run foi concluído com sucesso ou se for push
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+        working-directory: ./crypto-ui
 
     steps:
       - name: Checkout Code
