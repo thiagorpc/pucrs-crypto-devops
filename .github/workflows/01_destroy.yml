@@ -12,7 +12,8 @@ on:
           - destroy
 
 env:
-  TF_WORKING_DIR: ./iac/flow
+  TF_MAIN_DIR: ./iac/flow               # Infra principal (02_setup)
+  TF_BACKEND_DIR: ./iac/backend         # Backend (00_prepare)
   AWS_REGION: us-east-1
 
 jobs:
@@ -21,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ${{ env.TF_WORKING_DIR }}
+        working-directory: ${{ env.TF_MAIN_DIR }}
 
     steps:
         - name: Checkout Code
@@ -45,10 +46,23 @@ jobs:
           # Necessário para carregar o backend S3/DynamoDB e o estado
           run: terraform init -reconfigure
 
+        # 1️⃣ Destrói a infra principal
         - name: 💣 Executar Terraform Destroy
+          working-directory: ${{ env.TF_MAIN_DIR }}
           id: destroy
           # O -auto-approve é necessário aqui, pois não há interação na Action
-          run: terraform destroy -auto-approve
+          #run: terraform destroy -auto-approve
+          run: |
+            terraform init -reconfigure
+            terraform destroy -auto-approve
 
+        # 2️⃣ Destrói os recursos do backend (S3 + DynamoDB)
+        - name: Destroy Backend Terraform
+          working-directory: ${{ env.TF_BACKEND_DIR }}
+          run: |
+            terraform init -reconfigure
+            terraform destroy -auto-approv
+
+        # 2️⃣ Notifica usuário
         - name: Notificar Sucesso
           run: echo "🎉 Todos os recursos gerenciados pelo Terraform foram destruídos com sucesso!"
