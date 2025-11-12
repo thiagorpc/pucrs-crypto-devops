@@ -6,11 +6,19 @@ resource "aws_s3_bucket" "state_bucket" {
   force_destroy = true 
 }
 
+resource "aws_s3_bucket_ownership_controls" "state_bucket_ownership" {
+  bucket = aws_s3_bucket.state_bucket.id
+  rule {
+    object_ownership = "BucketOwnerEnforced"
+  }
+}
+
 resource "aws_s3_bucket_versioning" "state_bucket_versioning" {
   bucket = aws_s3_bucket.state_bucket.id
   versioning_configuration { status = "Enabled" }
 }
 
+# Recurso: DynamoDB Lock Table para o State Locking
 resource "aws_dynamodb_table" "lock_table" {
   name           = var.terraform_lock_dynamodb_name
   billing_mode   = "PAY_PER_REQUEST"
