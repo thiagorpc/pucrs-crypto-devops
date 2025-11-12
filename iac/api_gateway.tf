@@ -30,32 +30,20 @@ resource "aws_api_gateway_method" "proxy_method" {
 
 # 4. Integração com NLB
 resource "aws_api_gateway_integration" "nlb_integration" {
-  rest_api_id = aws_api_gateway_rest_api.crypto_gateway.id
-  resource_id = aws_api_gateway_resource.proxy.id
-  http_method = aws_api_gateway_method.proxy_method.http_method
+  depends_on = [aws_api_gateway_method.proxy_method]
 
-  # 🎯 Mude o tipo de integração para AWS_PROXY (ou AWS)
-  type = "HTTP_PROXY"
-
-  # A URI agora aponta para o NLB Listener (usando o ARN)
-  uri = "http://${aws_lb.crypto_api_nlb.dns_name}/{proxy}"
-  
-  #"arn:aws:apigateway:${var.aws_region}:elasticloadbalancing/https/${aws_lb.crypto_api_nlb.arn}/{proxy}"
-
-  # Mantenha o integration_http_method
+  rest_api_id             = aws_api_gateway_rest_api.crypto_gateway.id
+  resource_id             = aws_api_gateway_resource.proxy.id
+  http_method             = aws_api_gateway_method.proxy_method.http_method
+  type                    = "HTTP_PROXY"
   integration_http_method = "ANY"
+  connection_type         = "VPC_LINK"
+  connection_id           = aws_api_gateway_vpc_link.crypto_vpc_link.id
+  uri                     = "http://${aws_lb.crypto_api_nlb.dns_name}/{proxy}"
 
-  # VPC_LINK para rotear o tráfego internamente
-  connection_type = "VPC_LINK"
-  connection_id   = aws_api_gateway_vpc_link.crypto_vpc_link.id
-
-  # Opcional: Adicionar path mapping para o NLB
   request_parameters = {
     "integration.request.path.proxy" = "method.request.path.proxy"
   }
-
-  # ❌ REMOVA TUDO relacionado a TLS/Certificado
-  # tls_config e insecure_skip_verify não são mais necessários
 }
 
 # 5. Deployment
