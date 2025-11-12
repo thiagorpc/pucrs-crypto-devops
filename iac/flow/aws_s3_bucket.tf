@@ -69,7 +69,7 @@ resource "aws_s3_bucket_policy" "crypto_ui_policy" {
 }
 
 resource "aws_s3_bucket_public_access_block" "ui" {
-  bucket                  = aws_s3_bucket.ui.id
+  bucket                  = aws_s3_bucket.crypto_ui.id
   block_public_acls       = false
   block_public_policy     = false
   ignore_public_acls      = false
