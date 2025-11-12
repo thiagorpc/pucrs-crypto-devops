@@ -5,14 +5,24 @@
 # Recurso: S3 Bucket para o Terraform State
 resource "aws_s3_bucket" "state_bucket" {
   bucket = "aws-s3-crypto-github-action-tfstate-unique"
-  acl    = "private"
-  
+
   # CRUCIAL: Permite que o 'terraform destroy' remova o bucket
   # mesmo que ainda contenha o arquivo terraform.tfstate
   force_destroy = true 
+}
 
-  versioning {
-    enabled = true
+resource "aws_s3_bucket_ownership_controls" "state_bucket_ownership" {
+  bucket = aws_s3_bucket.state_bucket.id
+  rule {
+    object_ownership = "BucketOwnerEnforced"
+  }
+}
+
+resource "aws_s3_bucket_versioning" "state_bucket_versioning" {
+  bucket = aws_s3_bucket.state_bucket.id
+  
+  versioning_configuration {
+    status = "Enabled" # Ativa o versionamento
   }
 }
 
