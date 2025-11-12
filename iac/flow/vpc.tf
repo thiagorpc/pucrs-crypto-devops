@@ -3,7 +3,7 @@
 # ============================
 # REDE: VPC, Subnets e Internet Gateway
 # ============================
-resource "aws_vpc" "crypto_vpc" {
+resource "aws_vpc" "vpc" {
   cidr_block           = var.vpc_cidr
   enable_dns_support   = true
   enable_dns_hostnames = true
@@ -14,7 +14,7 @@ data "aws_availability_zones" "available" {}
 
 resource "aws_subnet" "public_subnets" {
   count                   = length(var.public_subnet_cidrs)
-  vpc_id                  = aws_vpc.crypto_vpc.id
+  vpc_id                  = aws_vpc.vpc.id
   cidr_block              = var.public_subnet_cidrs[count.index]
   map_public_ip_on_launch = true
   availability_zone       = data.aws_availability_zones.available.names[count.index]
@@ -22,12 +22,12 @@ resource "aws_subnet" "public_subnets" {
 }
 
 resource "aws_internet_gateway" "igw" {
-  vpc_id = aws_vpc.crypto_vpc.id
+  vpc_id = aws_vpc.vpc.id
   tags   = { Name = "${var.project_name}-igw" }
 }
 
 resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.crypto_vpc.id
+  vpc_id = aws_vpc.vpc.id
   route {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.igw.id
@@ -49,7 +49,7 @@ resource "aws_route_table_association" "public_assoc" {
 //resource "aws_security_group" "alb_sg" {
 //name        = "crypto-nlb-sg"
 //description = "Permite acesso HTTP publico (Porta 80)"
-//vpc_id      = aws_vpc.crypto_vpc.id
+//vpc_id      = aws_vpc.vpc.id
 ///ingress {
 //  description = "HTTP acesso publico"
 //  from_port   = 80
@@ -78,14 +78,14 @@ resource "aws_route_table_association" "public_assoc" {
 resource "aws_security_group" "ecs_sg" {
   name        = "${var.project_name}-ecs-sg"
   description = "Permite acesso apenas do NLB"
-  vpc_id      = aws_vpc.crypto_vpc.id
+  vpc_id      = aws_vpc.vpc.id
 
   ingress {
     description = "Acesso ao NLB"
     from_port   = var.container_port
     to_port     = var.container_port
     protocol    = "tcp"
-    cidr_blocks = [aws_vpc.crypto_vpc.cidr_block]
+    cidr_blocks = [aws_vpc.vpc.cidr_block]
   }
 
   egress {

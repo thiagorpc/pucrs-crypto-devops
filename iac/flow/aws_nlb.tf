@@ -3,7 +3,7 @@
 # ============================
 
 # NLB (Network Load Balancer)
-resource "aws_lb" "crypto_api_nlb" {
+resource "aws_lb" "api_nlb" {
   name               = "${var.project_name}-api-nlb"
   internal           = false # Deve ser externo se o API GW o acessa externamente
   load_balancer_type = "network"
@@ -14,11 +14,11 @@ resource "aws_lb" "crypto_api_nlb" {
 }
 
 # Target Group do NLB (por IP)
-resource "aws_lb_target_group" "crypto_api_tg" {
+resource "aws_lb_target_group" "lb_target_group" {
   name        = "${var.project_name}-api-tg"
   port        = var.container_port # Porta do contêiner (ex: 3000)
   protocol    = "TCP"
-  vpc_id      = aws_vpc.crypto_vpc.id
+  vpc_id      = aws_vpc.vpc.id
   target_type = "ip" # Fargate usa IP
 
   health_check {
@@ -33,8 +33,8 @@ resource "aws_lb_target_group" "crypto_api_tg" {
 }
 
 # Listener do NLB (Porta 443 ou 80)
-resource "aws_lb_listener" "crypto_nlb_listener" {
-  load_balancer_arn = aws_lb.crypto_api_nlb.arn
+resource "aws_lb_listener" "nlb_listener" {
+  load_balancer_arn = aws_lb.api_nlb.arn
   port              = 80
   protocol          = "TCP" # 🎯 Usar TLS se você quer criptografia no NLB
 
@@ -43,6 +43,6 @@ resource "aws_lb_listener" "crypto_nlb_listener" {
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.crypto_api_tg.arn
+    target_group_arn = aws_lb_target_group.lb_target_group.arn
   }
 }

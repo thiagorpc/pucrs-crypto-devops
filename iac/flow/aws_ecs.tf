@@ -5,7 +5,7 @@
 # ============================
 # ECR (repositório Docker)
 # ============================
-resource "aws_ecr_repository" "crypto_api_repo" {
+resource "aws_ecr_repository" "image_repo" {
   name                 = "${var.project_name}-api-repo"
   image_tag_mutability = "MUTABLE"
 
@@ -23,14 +23,14 @@ resource "aws_ecr_repository" "crypto_api_repo" {
 # ============================
 # ECS CLUSTER
 # ============================
-resource "aws_ecs_cluster" "crypto_cluster" {
+resource "aws_ecs_cluster" "cluster" {
   name = "${var.project_name}-cluster"
 }
 
 # ============================
 # CLOUDWATCH LOGS
 # ============================
-resource "aws_cloudwatch_log_group" "crypto_app" {
+resource "aws_cloudwatch_log_group" "log" {
   name              = "/aws/ecs/${var.project_name}-app"
   retention_in_days = 7
 }
@@ -93,7 +93,7 @@ resource "aws_iam_role_policy_attachment" "ecs_secret_access_attach" {
 
 
 # 2. IAM ROLE: Task Role (Usada pelo código da aplicação para acessar recursos AWS, como S3/DynamoDB)
-resource "aws_iam_role" "crypto_task_role" {
+resource "aws_iam_role" "task_role" {
   name               = "${var.project_name}-ecs-task-role"
   assume_role_policy = data.aws_iam_policy_document.ecs_task_assume_role.json
 }
@@ -115,8 +115,8 @@ resource "aws_iam_policy" "ecs_s3_access_policy" {
           "s3:ListBucket"
         ],
         Resource = [
-          aws_s3_bucket.crypto_images.arn,
-          "${aws_s3_bucket.crypto_images.arn}/*"
+          aws_s3_bucket.images.arn,
+          "${aws_s3_bucket.images.arn}/*"
         ]
       },
     ]
@@ -124,15 +124,15 @@ resource "aws_iam_policy" "ecs_s3_access_policy" {
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_s3_access_attach" {
-  role       = aws_iam_role.crypto_task_role.name
+  role       = aws_iam_role.task_role.name
   policy_arn = aws_iam_policy.ecs_s3_access_policy.arn
 }
 
 # ============================
 # ECS TASK DEFINITION & SERVICE
 # ============================
-resource "aws_ecs_task_definition" "crypto_task" {
-  family       = var.service_name
+resource "aws_ecs_task_definition" "task" {
+  family       = "${var.project_name}-api" #"Nome do serviço ECS que será executado no Fargate."
   cpu          = var.ecs_cpu
   memory       = var.ecs_memory
   network_mode = "awsvpc"
@@ -143,11 +143,11 @@ resource "aws_ecs_task_definition" "crypto_task" {
   # Task Execution Role (para logs, secrets, pull de imagem)
   execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
   # Task Role (para acesso S3, usada pelo runtime da aplicação)
-  task_role_arn = aws_iam_role.crypto_task_role.arn
+  task_role_arn = aws_iam_role.task_role.arn
 
   container_definitions = jsonencode([{
-    name      = var.service_name
-    image     = "${aws_ecr_repository.crypto_api_repo.repository_url}:${var.image_tag}"
+    name      = "${var.project_name}-api"
+    image     = "${aws_ecr_repository.image_repo.repository_url}:${var.image_tag}"
     essential = true
     portMappings = [
       { containerPort = 3000, protocol = "tcp" }
@@ -163,7 +163,7 @@ resource "aws_ecs_task_definition" "crypto_task" {
     logConfiguration = {
       logDriver = "awslogs"
       options = {
-        "awslogs-group"         = aws_cloudwatch_log_group.crypto_app.name
+        "awslogs-group"         = aws_cloudwatch_log_group.log.name
         "awslogs-region"        = var.aws_region
         "awslogs-stream-prefix" = "ecs"
       }
@@ -174,15 +174,15 @@ resource "aws_ecs_task_definition" "crypto_task" {
       { name = "PORT", value = "${var.container_port}" },
       { name = "HOST", value = var.container_host },
       { name = "TZ", value = var.container_TZ },
-      { name = "IMAGE_BUCKET_NAME", value = aws_s3_bucket.crypto_images.bucket }
+      { name = "IMAGE_BUCKET_NAME", value = aws_s3_bucket.images.bucket }
     ]
   }])
 }
 
-resource "aws_ecs_service" "crypto_service" {
-  name            = var.service_name
-  cluster         = aws_ecs_cluster.crypto_cluster.id
-  task_definition = aws_ecs_task_definition.crypto_task.arn
+resource "aws_ecs_service" "fargate" {
+  name            = "${var.project_name}-api"
+  cluster         = aws_ecs_cluster.cluster.id
+  task_definition = aws_ecs_task_definition.task.arn
   desired_count   = 1
   launch_type     = "FARGATE"
 
@@ -193,16 +193,10 @@ resource "aws_ecs_service" "crypto_service" {
   }
 
   load_balancer {
-    target_group_arn = aws_lb_target_group.crypto_api_tg.arn
-    container_name   = var.service_name
+    target_group_arn = aws_lb_target_group.lb_target_group.arn
+    container_name   = "${var.project_name}-lbtg-api"
     container_port   = var.container_port
   }
-
-  #load_balancer {
-  #  target_group_arn = aws_lb_target_group.crypto_api_tg.arn
-  #  container_name   = var.service_name
-  #  container_port   = var.container_port
-  #}
 
   # Dependências explícitas (garantindo que as roles estejam prontas)
   depends_on = [
@@ -217,7 +211,7 @@ resource "aws_ecs_service" "crypto_service" {
 # ECR LIFECYCLE POLICY (Limpeza de Imagens)
 # ====================================================================================
 resource "aws_ecr_lifecycle_policy" "api_cleanup" {
-  repository = aws_ecr_repository.crypto_api_repo.name
+  repository = aws_ecr_repository.image_repo.name
 
   policy = jsonencode({
     rules = [

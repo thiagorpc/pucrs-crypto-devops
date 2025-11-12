@@ -1,7 +1,7 @@
 # ============================
 # LOAD BALANCER
 # ============================
-resource "aws_lb" "crypto_alb" {
+resource "aws_lb" "alb" {
   name                       = "${var.project_name}-api-nlb"
   internal                   = false
   load_balancer_type         = "application"
@@ -11,11 +11,11 @@ resource "aws_lb" "crypto_alb" {
   tags                       = { Name = "${var.project_name}-api-nlb" }
 }
 
-resource "aws_lb_target_group" "crypto_api_tg" {
+resource "aws_lb_target_group" "lb_target_group" {
   name        = "${var.project_name}-api-tg"
   port        = var.container_port
   protocol    = "HTTP"
-  vpc_id      = aws_vpc.crypto_vpc.id
+  vpc_id      = aws_vpc.vpc.id
   target_type = "ip"
 
   health_check {
@@ -29,54 +29,54 @@ resource "aws_lb_target_group" "crypto_api_tg" {
   tags = { Name = "${var.project_name}-api-tg" }
 }
 
-resource "aws_lb_listener" "crypto_listener" {
-  load_balancer_arn = aws_lb.crypto_alb.arn
+resource "aws_lb_listener" "listener" {
+  load_balancer_arn = aws_lb.alb.arn
   port              = 80
   protocol          = "HTTP"
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.crypto_api_tg.arn
+    target_group_arn = aws_lb_target_group.lb_target_group.arn
   }
 }
 
-resource "aws_lb_listener" "crypto_https_listener" {
-  load_balancer_arn = aws_lb.crypto_alb.arn
+resource "aws_lb_listener" "https_listener" {
+  load_balancer_arn = aws_lb.alb.arn
   port              = 443
   protocol          = "HTTPS"
   
   # 🚨 PONTO CRÍTICO: SUBSTITUA PELA REFERÊNCIA VÁLIDA DO SEU CERTIFICADO
-  certificate_arn   = aws_iam_server_certificate.crypto_iam_cert.arn
+  certificate_arn   = aws_iam_server_certificate.iam_cert.arn
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.crypto_api_tg.arn
+    target_group_arn = aws_lb_target_group.lb_target_group.arn
   }
 }
 
 # Obtém o Load Balancer existente pelo nome fixo
-#data "aws_lb" "crypto_alb_data" {
+#data "aws_lb" "alb_data" {
 #  name = "crypto-api-nlb" 
 #  # Nota: Se o NLB ainda não foi criado, você precisará de uma dependência ou garantir que esta consulta só ocorra após a criação.
 #}
 
 # 1. Gerar a Chave Privada (crypto-api-key.pem)
-resource "tls_private_key" "crypto_key" {
+resource "tls_private_key" "tls_key" {
   algorithm = "RSA"
   rsa_bits  = 2048
 }
 
 # 2. Gerar o Certificado Autoassinado (Self-Signed)
-resource "tls_self_signed_cert" "crypto_cert" {
+resource "tls_self_signed_cert" "certificate" {
   # key_algorithm   = "RSA"
-  private_key_pem = tls_private_key.crypto_key.private_key_pem
+  private_key_pem = tls_private_key.tls_key.private_key_pem
   
   # O Common Name deve ser o DNS do seu NLB
-  # common_name = data.aws_lb.crypto_alb_data.dns_name 
+  # common_name = data.aws_lb.alb_data.dns_name 
 
   subject {
     common_name  = "${var.project_name}-api-nlb.poc.local"
-    #common_name  = data.aws_lb.crypto_alb_data.dns_name
+    #common_name  = data.aws_lb.alb_data.dns_name
     organization = "Crypto256"
   }
 
@@ -92,10 +92,10 @@ resource "tls_self_signed_cert" "crypto_cert" {
 }
 
 # 3. Fazer o Upload do Certificado para o IAM
-resource "aws_iam_server_certificate" "crypto_iam_cert" {
+resource "aws_iam_server_certificate" "iam_cert" {
   name_prefix      = "${var.project_name}-self-signed-"
-  certificate_body = tls_self_signed_cert.crypto_cert.cert_pem
-  private_key      = tls_private_key.crypto_key.private_key_pem
+  certificate_body = tls_self_signed_cert.certificate.cert_pem
+  private_key      = tls_private_key.tls_key.private_key_pem
 
   # 🚨 Nota de dependência: Garante que o Certificado só é criado após a Key/Cert
   lifecycle {

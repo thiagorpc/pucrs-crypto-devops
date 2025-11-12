@@ -8,7 +8,7 @@
 
 output "vpc_id" {
   description = "ID da VPC criada"
-  value       = aws_vpc.crypto_vpc.id
+  value       = aws_vpc.vpc.id
 }
 
 output "public_subnets_ids" {
@@ -18,7 +18,7 @@ output "public_subnets_ids" {
 
 output "nlb_dns_name" {
   description = "DNS público do Network Load Balancer (NLB)"
-  value       = aws_lb.crypto_api_nlb.dns_name
+  value       = aws_lb.api_nlb.dns_name
 }
 
 # ============================
@@ -32,7 +32,7 @@ output "ecs_security_group_id" {
 
 output "ecs_cluster_id" {
   description = "ID do ECS Cluster"
-  value       = aws_ecs_cluster.crypto_cluster.id
+  value       = aws_ecs_cluster.cluster.id
 }
 
 # ============================
@@ -41,7 +41,7 @@ output "ecs_cluster_id" {
 
 output "ecr_repository_url" {
   description = "URL do repositório ECR para armazenar imagens Docker"
-  value       = aws_ecr_repository.crypto_api_repo.repository_url
+  value       = aws_ecr_repository.image_repo.repository_url
 }
 
 # ============================
@@ -50,17 +50,17 @@ output "ecr_repository_url" {
 
 output "ui_bucket_name" {
   description = "Nome do bucket S3 onde o front-end React está hospedado"
-  value       = aws_s3_bucket.crypto_ui.bucket
+  value       = aws_s3_bucket.frontend.bucket
 }
 
 output "react_ui_url" {
   description = "URL pública do front-end React hospedado no S3"
-  value       = aws_s3_bucket_website_configuration.crypto_ui_website.website_endpoint
+  value       = aws_s3_bucket_website_configuration.frontend_website.website_endpoint
 }
 
 output "images_bucket_name" {
   description = "Nome do bucket S3 onde as imagens da API são armazenadas"
-  value       = aws_s3_bucket.crypto_images.bucket
+  value       = aws_s3_bucket.images.bucket
 }
 
 output "terraform_lock_table" {
@@ -75,6 +75,7 @@ output "terraform_lock_table" {
 output "api_gateway_invoke_url" {
   description = "URL pública de invocação da API via API Gateway (Stage /prod)"
   value       = aws_api_gateway_stage.prod_stage.invoke_url
+  #value       = "https://${aws_api_gateway_rest_api.project_api_gateway.id}.execute-api.${data.aws_region.current.name}.amazonaws.com/${aws_api_gateway_stage.prod_stage.stage_name}"
 }
 
 # ============================

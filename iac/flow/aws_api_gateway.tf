@@ -42,7 +42,7 @@ resource "aws_api_gateway_integration" "nlb_integration" {
   integration_http_method = "ANY"
   connection_type         = "VPC_LINK"
   connection_id           = aws_api_gateway_vpc_link.project_vpc_link.id
-  uri                     = "http://${aws_lb.crypto_api_nlb.dns_name}/{proxy}"
+  uri                     = "http://${aws_lb.api_nlb.dns_name}/{proxy}"
 
   request_parameters = {
     "integration.request.path.proxy" = "method.request.path.proxy"
@@ -127,7 +127,7 @@ resource "aws_api_gateway_stage" "prod_stage" {
 resource "aws_api_gateway_vpc_link" "project_vpc_link" {
   name        = "${var.project_name}-nlb-link"
   description = "VPC Link entre API Gateway e NLB"
-  target_arns = [aws_lb.crypto_api_nlb.arn]
+  target_arns = [aws_lb.api_nlb.arn]
 }
 
 # 1️⃣1️⃣ Configuração de Logs e Métricas (Method Settings)
@@ -145,8 +145,4 @@ resource "aws_api_gateway_method_settings" "proxy_method_settings" {
   depends_on = [aws_api_gateway_stage.prod_stage]
 }
 
-# 1️⃣2️⃣ (Opcional) Output da URL da API
-output "api_gateway_invoke_url" {
-  description = "URL base da API Gateway para acessar os endpoints do backend"
-  value       = "https://${aws_api_gateway_rest_api.project_api_gateway.id}.execute-api.${data.aws_region.current.name}.amazonaws.com/${aws_api_gateway_stage.prod_stage.stage_name}"
-}
+

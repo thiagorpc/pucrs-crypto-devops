@@ -35,13 +35,6 @@ variable "public_subnet_cidrs" {
   default     = ["10.0.1.0/24", "10.0.2.0/24"]
 }
 
-# Nome do serviço ECS
-variable "service_name" {
-  description = "Nome do serviço ECS que será executado no Fargate."
-  type        = string
-  default     = "${var.project_name}-api"
-}
-
 # Host do container
 variable "container_host" {
   description = "HOst do container onde a aplicação está escutando."
@@ -83,13 +76,6 @@ variable "react_bucket_name" {
   description = "Nome do bucket S3 onde o front-end React será hospedado."
   type        = string
   default     = "${var.project_name}-ui"
-}
-
-# Nome do Bucket S3 para armazenar as imagens (da API)
-variable "image_bucket_name" {
-  description = "Nome do bucket S3 onde as imagens da aplicação serão armazenadas"
-  type        = string
-  default     = "${var.project_name}-api-images"
 }
 
 # ============================
