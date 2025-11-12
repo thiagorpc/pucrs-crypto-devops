@@ -16,6 +16,7 @@ env:
   AWS_REGION: us-east-1
   S3_BUCKET_UI: pucrs-crypto-ui
 
+
 jobs:
   deploy_ui:
     name: Build & Sync S3
@@ -23,11 +24,7 @@ jobs:
     # ✅ Só executa se:
     #   1️⃣ workflow_run foi concluído com sucesso E marcou apply_done=true
     #   2️⃣ OU foi um push direto (não workflow_run)
-    if: >
-      ${{
-      (github.event_name == 'workflow_run' &&
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.outputs.apply_done == 'true') || github.event_name == 'push' }}
+    if: ${{ github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.outputs.apply_done == 'true') }}
 
     env:
       API_URL_ALB: ""
