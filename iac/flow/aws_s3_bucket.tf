@@ -68,6 +68,14 @@ resource "aws_s3_bucket_policy" "crypto_ui_policy" {
   ]
 }
 
+resource "aws_s3_bucket_public_access_block" "ui" {
+  bucket                  = aws_s3_bucket.ui.id
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = false
+  restrict_public_buckets = false
+}
+
 # ============================
 # NOVO: S3 para Imagens da API
 # ============================
@@ -78,3 +86,4 @@ resource "aws_s3_bucket" "crypto_images" {
     Name = "crypto-api-images-bucket"
   }
 }
+
