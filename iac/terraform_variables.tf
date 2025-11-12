@@ -66,10 +66,11 @@ variable "image_bucket_name" {
 }
 
 # Tag da imagem Docker
+# Utilizado pelo FARGATE para ele reconhecer a nova versão e colocar em produção
 variable "image_tag" {
-  description = "A tag da imagem Docker a ser usada"
+  description = "TAG imagem Docker para o projeto crypto"
   type        = string
-  default     = "latest" # Usado apenas para testes locais
+  default     = "latest" 
 }
 
 # AWS Secrets encryption key
