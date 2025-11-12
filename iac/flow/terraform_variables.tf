@@ -66,13 +66,6 @@ variable "image_bucket_name" {
   default     = "pucrs-crypto-api-images"
 }
 
-# Nome do Bucket S3 para o Terraform State
-variable "terraform_state_bucket_name" {
-  description = "Nome do bucket S3 onde o status de deploy ou update do Terraform é mantido"
-  type        = string
-  default     = "pucrs-crypto-github-action-tfstate-unique"
-}
-
 # ============================
 # ECS
 # ============================

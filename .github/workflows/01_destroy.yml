@@ -14,7 +14,7 @@ on:
 env:
   TF_WORKING_DIR: ./iac
   AWS_REGION: us-east-1
-  DYNAMO_LOCK_TABLE: pucrs-crypto-terraform-lock, # Tabela de Lock do DynamoDB
+  DYNAMO_LOCK_TABLE: pucrs-crypto-terraform-lock # Tabela de Lock do DynamoDB
   S3_STATE: pucrs-crypto-github-action-tfstate-unique
 
 jobs:
