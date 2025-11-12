@@ -1,0 +1,33 @@
+name: 🛠️ 1. Preparação Inicial do Terraform Backend (S3/DynamoDB)
+
+on:
+  workflow_dispatch:
+
+env:
+  TF_WORKING_DIR: ./iac
+  AWS_REGION: us-east-1
+  # Defina os valores literais aqui, ou use secrets/variaveis se necessário
+  DYNAMO_LOCK_TABLE: pucrs-crypto-terraform-lock
+  S3_STATE: pucrs-crypto-github-action-tfstate-unique
+
+jobs:
+  prepare:
+    name: 'Criar Recursos de Estado Remoto'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.TF_WORKING_DIR }}
+    
+    steps:
+      # ... (Checkout Code, Configurar Credenciais AWS, Configurar Terraform)
+
+      - name: Terraform Init (Estado Local)
+        id: init
+        # Não usa backend-config, usa estado local temporário
+        run: terraform init
+
+      - name: Terraform Apply (Criar S3 e DynamoDB)
+        id: apply
+        # Aplica APENAS os recursos de backend (se você isolá-los)
+        # Se você não isolar, certifique-se de que só há S3 e DynamoDB no seu código
+        run: terraform apply -auto-approve
