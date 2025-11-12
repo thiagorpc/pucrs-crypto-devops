@@ -11,7 +11,7 @@ resource "aws_lb" "crypto_alb" {
   tags                       = { Name = "crypto-api-nlb" }
 }
 
-resource "aws_lb_target_group" "crypto_tg" {
+resource "aws_lb_target_group" "crypto_api_tg" {
   name        = "crypto-api-tg"
   port        = var.container_port
   protocol    = "HTTP"
@@ -36,7 +36,7 @@ resource "aws_lb_listener" "crypto_listener" {
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.crypto_tg.arn
+    target_group_arn = aws_lb_target_group.crypto_api_tg.arn
   }
 }
 
@@ -50,7 +50,7 @@ resource "aws_lb_listener" "crypto_https_listener" {
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.crypto_tg.arn
+    target_group_arn = aws_lb_target_group.crypto_api_tg.arn
   }
 }
 

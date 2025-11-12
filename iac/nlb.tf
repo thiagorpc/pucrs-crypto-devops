@@ -14,8 +14,8 @@ resource "aws_lb" "crypto_api_nlb" {
 }
 
 # Target Group do NLB (por IP)
-resource "aws_lb_target_group" "crypto_tg" {
-  name        = "crypto-nlb-tg"
+resource "aws_lb_target_group" "crypto_api_tg" {
+  name        = "crypto-api-tg"
   port        = var.container_port # Porta do contêiner (ex: 3000)
   protocol    = "TCP"
   vpc_id      = aws_vpc.crypto_vpc.id
@@ -43,6 +43,6 @@ resource "aws_lb_listener" "crypto_nlb_listener" {
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.crypto_tg.arn
+    target_group_arn = aws_lb_target_group.crypto_api_tg.arn
   }
 }

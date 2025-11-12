@@ -149,9 +149,9 @@ resource "aws_ecs_task_definition" "crypto_task" {
     name      = var.service_name
     image     = "${aws_ecr_repository.crypto_api_repo.repository_url}:${var.image_tag}"
     essential = true
-    //portMappings = [
-    //  { containerPort = var.container_port, hostPort = var.container_port, protocol = "tcp" }
-    //]
+    portMappings = [
+      { containerPort = var.container_port, protocol = "tcp" }
+    ]
 
     secrets = [
       {
@@ -210,10 +210,16 @@ resource "aws_ecs_service" "crypto_service" {
   }
 
   load_balancer {
-    target_group_arn = aws_lb_target_group.crypto_tg.arn
+    target_group_arn = aws_lb_target_group.crypto_api_tg.arn
     container_name   = var.service_name
     container_port   = var.container_port
   }
+
+  #load_balancer {
+  #  target_group_arn = aws_lb_target_group.crypto_api_tg.arn
+  #  container_name   = var.service_name
+  #  container_port   = var.container_port
+  #}
 
   # Dependências explícitas (garantindo que as roles estejam prontas)
   depends_on = [
