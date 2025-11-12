@@ -20,7 +20,6 @@ jobs:
   deploy_ui:
     name: Build & Sync S3
     runs-on: ubuntu-latest
-
     # ✅ Só executa se:
     #   1️⃣ workflow_run foi concluído com sucesso E marcou apply_done=true
     #   2️⃣ OU foi um push direto (não workflow_run)
