@@ -12,8 +12,7 @@ on:
           - destroy
 
 env:
-  TF_MAIN_DIR: ./iac/flow               # Infra principal (02_setup)
-  TF_BACKEND_DIR: ./iac/backend         # Backend (00_prepare)
+  TF_MAIN_DIR: ./iac/flow
   AWS_REGION: us-east-1
 
 jobs:
@@ -56,12 +55,19 @@ jobs:
             terraform init -reconfigure
             terraform destroy -auto-approve
 
-        # 2️⃣ Destrói os recursos do backend (S3 + DynamoDB)
-        - name: 💣 Destroy Backend Terraform
-          working-directory: ${{ env.TF_BACKEND_DIR }}
+         # 2️⃣ Limpa e remove o bucket S3 e DynamoDB do backend
+        - name: 💣 Excluir bucket S3 e DynamoDB via AWS CLI
           run: |
-            terraform init -reconfigure
-            terraform destroy -auto-approve
+            echo "🧹 Limpando bucket S3: ${{ env.S3_STATE_BUCKET }}"
+            aws s3 rm s3://${{ env.S3_STATE_BUCKET }} --recursive || true
+
+            echo "🪣 Excluindo bucket S3..."
+            aws s3api delete-bucket --bucket ${{ env.S3_STATE_BUCKET }} --region ${{ env.AWS_REGION }} || true
+
+            echo "🗑️ Excluindo tabela DynamoDB..."
+            aws dynamodb delete-table --table-name ${{ env.DYNAMO_LOCK_TABLE }} --region ${{ env.AWS_REGION }} || true
+
+            echo "✅ Backend (S3 + DynamoDB) excluído com sucesso!"
 
         # 2️⃣ Notifica usuário
         - name: 🎉 Notificar Sucesso
