@@ -2,6 +2,12 @@
 # File: ./iac/flow/variables.tf
 # ============================
 
+# Nome do projeto
+variable "project_name" {
+  type    = string
+  default = "pucrs-crypto"
+}
+
 # Região da AWS
 variable "aws_region" {
   description = "A região da AWS onde a infraestrutura será implantada. Exemplo: us-east-1, us-west-2"
@@ -27,7 +33,7 @@ variable "public_subnet_cidrs" {
 variable "service_name" {
   description = "Nome do serviço ECS que será executado no Fargate."
   type        = string
-  default     = "crypto-api"
+  default     = "${var.project_name}-api"
 }
 
 # Porta do container
@@ -45,7 +51,7 @@ variable "container_port" {
 variable "terraform_lock_dynamodb_name" {
   description = "Nome da tabela DynamoDB para controle de Lock do Terraform."
   type        = string
-  default     = "pucrs-crypto-terraform-lock"
+  default     = "${var.project_name}-terraform-lock"
 }
 
 # ============================
@@ -56,14 +62,14 @@ variable "terraform_lock_dynamodb_name" {
 variable "react_bucket_name" {
   description = "Nome do bucket S3 onde o front-end React será hospedado."
   type        = string
-  default     = "pucrs-crypto-ui"
+  default     = "${var.project_name}-ui"
 }
 
 # Nome do Bucket S3 para armazenar as imagens (da API)
 variable "image_bucket_name" {
   description = "Nome do bucket S3 onde as imagens da aplicação serão armazenadas"
   type        = string
-  default     = "pucrs-crypto-api-images"
+  default     = "${var.project_name}-api-images"
 }
 
 # ============================

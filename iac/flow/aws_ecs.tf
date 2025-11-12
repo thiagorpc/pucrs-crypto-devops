@@ -6,7 +6,7 @@
 # ECR (repositório Docker)
 # ============================
 resource "aws_ecr_repository" "crypto_api_repo" {
-  name                 = "pucrs-crypto-api-repo"
+  name                 = "${var.project_name}-api-repo"
   image_tag_mutability = "MUTABLE"
 
   image_scanning_configuration {
@@ -24,14 +24,14 @@ resource "aws_ecr_repository" "crypto_api_repo" {
 # ECS CLUSTER
 # ============================
 resource "aws_ecs_cluster" "crypto_cluster" {
-  name = "pucrs-crypto-cluster"
+  name = "${var.project_name}-cluster"
 }
 
 # ============================
 # CLOUDWATCH LOGS
 # ============================
 resource "aws_cloudwatch_log_group" "crypto_app" {
-  name              = "/aws/ecs/crypto-app"
+  name              = "/aws/ecs/${var.project_name}-app"
   retention_in_days = 7
 }
 
@@ -56,7 +56,7 @@ data "aws_iam_policy_document" "ecs_task_assume_role" {
 
 # 1. IAM ROLE: Task Execution Role (Usada pelo agente ECS para pull de imagem, logs e secrets)
 resource "aws_iam_role" "ecs_task_execution_role" {
-  name               = "crypto-ecs-task-execution-role"
+  name               = "${var.project_name}-ecs-task-execution-role"
   assume_role_policy = data.aws_iam_policy_document.ecs_task_assume_role.json
 }
 
@@ -68,7 +68,7 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy" {
 
 # Política para permitir acesso ao Secrets Manager (Anexada à Execution Role)
 resource "aws_iam_policy" "ecs_secret_access_policy" {
-  name        = "crypto-ecs-secrets-policy"
+  name        = "${var.project_name}-ecs-secrets-policy"
   description = "Permite que a Task Execution Role acesse a chave de criptografia."
 
   policy = jsonencode({
@@ -94,13 +94,13 @@ resource "aws_iam_role_policy_attachment" "ecs_secret_access_attach" {
 
 # 2. IAM ROLE: Task Role (Usada pelo código da aplicação para acessar recursos AWS, como S3/DynamoDB)
 resource "aws_iam_role" "crypto_task_role" {
-  name               = "crypto-ecs-task-role"
+  name               = "${var.project_name}-ecs-task-role"
   assume_role_policy = data.aws_iam_policy_document.ecs_task_assume_role.json
 }
 
 # Política para permitir acesso ao S3 de imagens (Anexada à Task Role)
 resource "aws_iam_policy" "ecs_s3_access_policy" {
-  name        = "crypto-ecs-s3-access-policy"
+  name        = "${var.project_name}-ecs-s3-access-policy"
   description = "Permite que a Task Role acesse o bucket de imagens."
 
   policy = jsonencode({
@@ -216,7 +216,7 @@ resource "aws_ecs_service" "crypto_service" {
 # ====================================================================================
 # ECR LIFECYCLE POLICY (Limpeza de Imagens)
 # ====================================================================================
-resource "aws_ecr_lifecycle_policy" "crypto_api_cleanup" {
+resource "aws_ecr_lifecycle_policy" "api_cleanup" {
   repository = aws_ecr_repository.crypto_api_repo.name
 
   policy = jsonencode({

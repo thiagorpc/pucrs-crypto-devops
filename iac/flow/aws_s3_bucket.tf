@@ -7,7 +7,7 @@
 # ============================
 resource "aws_s3_bucket" "crypto_ui" {
   bucket = var.react_bucket_name # 🔄 Usando variável
-  tags   = { Name = "crypto-ui-bucket" }
+  tags   = { Name = "${var.project_name}-ui-bucket" }
 
   force_destroy = true
 }
@@ -83,7 +83,7 @@ resource "aws_s3_bucket" "crypto_images" {
   bucket = var.image_bucket_name # 🔄 Usando variável
 
   tags = {
-    Name = "crypto-api-images-bucket"
+    Name = "${var.project_name}-api-images-bucket"
   }
 }
 

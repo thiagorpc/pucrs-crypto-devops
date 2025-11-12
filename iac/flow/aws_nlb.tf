@@ -4,18 +4,18 @@
 
 # NLB (Network Load Balancer)
 resource "aws_lb" "crypto_api_nlb" {
-  name               = "crypto-api-nlb"
+  name               = "${var.project_name}-api-nlb"
   internal           = false # Deve ser externo se o API GW o acessa externamente
   load_balancer_type = "network"
   subnets            = aws_subnet.public_subnets[*].id
 
   enable_cross_zone_load_balancing = true
-  tags                             = { Name = "crypto-api-nlb" }
+  tags                             = { Name = "${var.project_name}-api-nlb" }
 }
 
 # Target Group do NLB (por IP)
 resource "aws_lb_target_group" "crypto_api_tg" {
-  name        = "crypto-api-tg"
+  name        = "${var.project_name}-api-tg"
   port        = var.container_port # Porta do contêiner (ex: 3000)
   protocol    = "TCP"
   vpc_id      = aws_vpc.crypto_vpc.id

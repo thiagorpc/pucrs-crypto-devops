@@ -26,14 +26,14 @@ output "react_ui_url" {
 
 # Nome do bucket S3 para o front-end React
 output "ui_bucket_name" {
-  description = "Nome do bucket S3 para o front-end React"
   value       = aws_s3_bucket.crypto_ui.bucket
+  description = "Nome do bucket S3 para o front-end React"
 }
 
 # Nome do bucket S3 para Imagens
 output "images_bucket_name" {
-  description = "Nome do bucket S3 para armazenar imagens da API"
   value       = aws_s3_bucket.crypto_images.bucket
+  description = "Nome do bucket S3 para armazenar imagens da API"
 }
 
 # ============================

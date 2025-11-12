@@ -2,22 +2,25 @@
 # File: ./iac/flow/api_gateway.tf
 # ============================
 
+data "aws_caller_identity" "current" {}
+data "aws_region" "current" {}
+
 # 1. API Base
-resource "aws_api_gateway_rest_api" "crypto_gateway" {
-  name        = "crypto-api-gateway"
+resource "aws_api_gateway_rest_api" "project_api_gateway" {
+  name        = "${var.project_name}-api-gateway"
   description = "Gateway para o backend ECS/NLB"
 }
 
 # 2. Recurso Root (o path "/")
 resource "aws_api_gateway_resource" "proxy" {
-  rest_api_id = aws_api_gateway_rest_api.crypto_gateway.id
-  parent_id   = aws_api_gateway_rest_api.crypto_gateway.root_resource_id
+  rest_api_id = aws_api_gateway_rest_api.project_api_gateway.id
+  parent_id   = aws_api_gateway_rest_api.project_api_gateway.root_resource_id
   path_part   = "{proxy+}" # Captura qualquer path (ex: /health, /users, etc.)
 }
 
 # 3. Método (ANY para capturar todos)
 resource "aws_api_gateway_method" "proxy_method" {
-  rest_api_id   = aws_api_gateway_rest_api.crypto_gateway.id
+  rest_api_id   = aws_api_gateway_rest_api.project_api_gateway.id
   resource_id   = aws_api_gateway_resource.proxy.id
   http_method   = "ANY"
   authorization = "NONE" # Nenhuma autorização (pode ser ajustado)
@@ -32,13 +35,13 @@ resource "aws_api_gateway_method" "proxy_method" {
 resource "aws_api_gateway_integration" "nlb_integration" {
   depends_on = [aws_api_gateway_method.proxy_method]
 
-  rest_api_id             = aws_api_gateway_rest_api.crypto_gateway.id
+  rest_api_id             = aws_api_gateway_rest_api.project_api_gateway.id
   resource_id             = aws_api_gateway_resource.proxy.id
   http_method             = aws_api_gateway_method.proxy_method.http_method
   type                    = "HTTP_PROXY"
   integration_http_method = "ANY"
   connection_type         = "VPC_LINK"
-  connection_id           = aws_api_gateway_vpc_link.crypto_vpc_link.id
+  connection_id           = aws_api_gateway_vpc_link.project_vpc_link.id
   uri                     = "http://${aws_lb.crypto_api_nlb.dns_name}/{proxy}"
 
   request_parameters = {
@@ -47,8 +50,8 @@ resource "aws_api_gateway_integration" "nlb_integration" {
 }
 
 # 5. Deployment
-resource "aws_api_gateway_deployment" "crypto_deployment" {
-  rest_api_id = aws_api_gateway_rest_api.crypto_gateway.id
+resource "aws_api_gateway_deployment" "project_deployment" {
+  rest_api_id = aws_api_gateway_rest_api.project_api_gateway.id
 
   # Gatilho para redeploy em caso de mudança na integração/método
   triggers = {
@@ -65,21 +68,27 @@ resource "aws_api_gateway_deployment" "crypto_deployment" {
   }
 }
 
+resource "aws_cloudwatch_log_group" "api_gw_logs" {
+  name = "/aws/apigateway/${aws_api_gateway_stage.prod_stage.stage_name}"
+  retention_in_days = 14
+}
+
 # 6. Stage (Ex: /prod)
 resource "aws_api_gateway_stage" "prod_stage" {
-  deployment_id = aws_api_gateway_deployment.crypto_deployment.id
-  rest_api_id   = aws_api_gateway_rest_api.crypto_gateway.id
+  deployment_id = aws_api_gateway_deployment.project_deployment.id
+  rest_api_id   = aws_api_gateway_rest_api.project_api_gateway.id
   stage_name    = "prod"
 
   # 🎯 NOVO: Dependência para garantir que a Role do CloudWatch foi configurada globalmente
   depends_on = [
-    aws_api_gateway_account.crypto_apigw_account_settings
+    aws_api_gateway_account.apigw_account_settings,
+    aws_cloudwatch_log_group.api_gw_logs
   ]
 
   # 🎯 Habilita o Logging
   access_log_settings {
     # ARN do CloudWatch Log Group de destino (você pode criar um ou usar o default)
-    destination_arn = "arn:aws:logs:us-east-1:202533542500:log-group:/aws/apigateway/crypto-api-prod"
+    destination_arn = "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:${aws_cloudwatch_log_group.api_gw_logs.name}"
 
     # Formato dos logs (Exemplo: Logs completos)
     format = "$context.requestId $context.identity.sourceIp $context.identity.caller $context.identity.user [$context.requestTime] \"$context.httpMethod $context.resourcePath $context.protocol\" $context.status $context.responseLength $context.integrationErrorMessage"
@@ -110,7 +119,7 @@ data "aws_iam_policy_document" "apigw_log_assume_role" {
 }
 
 resource "aws_iam_role" "apigw_cloudwatch_log_role" {
-  name               = "crypto-apigw-cloudwatch-role"
+  name               = "${var.project_name}-apigw-cloudwatch-role"
   assume_role_policy = data.aws_iam_policy_document.apigw_log_assume_role.json
 }
 
@@ -122,19 +131,20 @@ resource "aws_iam_role_policy_attachment" "apigw_cloudwatch_attach" {
 }
 
 
-resource "aws_api_gateway_account" "crypto_apigw_account_settings" {
+resource "aws_api_gateway_account" "apigw_account_settings" {
   # 🎯 NOVO: Define a Role para o CloudWatch Logs em nível de conta/região
   cloudwatch_role_arn = aws_iam_role.apigw_cloudwatch_log_role.arn
+
+
+  // O recurso aws_api_gateway_account é global por região.
+  // Se você destruir o Terraform sem cuidado, pode gerar conflito com outras stacks.
+   lifecycle {
+    prevent_destroy = true
+  }
 }
 
-# Crie o VPC Link que se conecta aos seus subnets do NLB
-#resource "aws_api_gateway_vpc_link" "crypto_vpc_link" {
-# name = "crypto-nlb-link"
-# target_arns = [aws_lb.crypto_alb.arn] 
-#}
-
-resource "aws_api_gateway_vpc_link" "crypto_vpc_link" {
-  name        = "crypto-nlb-link"
+resource "aws_api_gateway_vpc_link" "project_vpc_link" {
+  name        = "${var.project_name}-nlb-link"
   description = "VPC Link entre API Gateway e NLB"
   //type = "VPC_LINK"
   #target_arns = ["arn:aws:elasticloadbalancing:us-east-1:202533542500:listener/app/crypto-api-nlb/9583492550809c53/216f279877c166ec"] 
@@ -143,7 +153,7 @@ resource "aws_api_gateway_vpc_link" "crypto_vpc_link" {
 
 # 10. Configuração de Logs e Métricas de Execução (Method Settings)
 resource "aws_api_gateway_method_settings" "proxy_method_settings" {
-  rest_api_id = aws_api_gateway_rest_api.crypto_gateway.id
+  rest_api_id = aws_api_gateway_rest_api.project_api_gateway.id
   stage_name  = aws_api_gateway_stage.prod_stage.stage_name
 
   # Aplica a configuração a todos os métodos e recursos no Stage
@@ -157,5 +167,5 @@ resource "aws_api_gateway_method_settings" "proxy_method_settings" {
   }
 
   # O deployment precisa da nova Task Definition
-  depends_on = [aws_api_gateway_deployment.crypto_deployment]
+  depends_on = [aws_api_gateway_deployment.project_deployment]
 }

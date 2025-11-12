@@ -2,17 +2,17 @@
 # LOAD BALANCER
 # ============================
 resource "aws_lb" "crypto_alb" {
-  name                       = "crypto-api-nlb"
+  name                       = "${var.project_name}-api-nlb"
   internal                   = false
   load_balancer_type         = "application"
   security_groups            = [aws_security_group.alb_sg.id]
   subnets                    = aws_subnet.public_subnets[*].id
   enable_deletion_protection = false
-  tags                       = { Name = "crypto-api-nlb" }
+  tags                       = { Name = "${var.project_name}-api-nlb" }
 }
 
 resource "aws_lb_target_group" "crypto_api_tg" {
-  name        = "crypto-api-tg"
+  name        = "${var.project_name}-api-tg"
   port        = var.container_port
   protocol    = "HTTP"
   vpc_id      = aws_vpc.crypto_vpc.id
@@ -26,7 +26,7 @@ resource "aws_lb_target_group" "crypto_api_tg" {
     unhealthy_threshold = 2
     matcher             = "200"
   }
-  tags = { Name = "crypto-api-tg" }
+  tags = { Name = "${var.project_name}-api-tg" }
 }
 
 resource "aws_lb_listener" "crypto_listener" {
@@ -75,7 +75,7 @@ resource "tls_self_signed_cert" "crypto_cert" {
   # common_name = data.aws_lb.crypto_alb_data.dns_name 
 
   subject {
-    common_name  = "crypto-api-nlb.poc.local"
+    common_name  = "${var.project_name}-api-nlb.poc.local"
     #common_name  = data.aws_lb.crypto_alb_data.dns_name
     organization = "Crypto256"
   }
@@ -93,7 +93,7 @@ resource "tls_self_signed_cert" "crypto_cert" {
 
 # 3. Fazer o Upload do Certificado para o IAM
 resource "aws_iam_server_certificate" "crypto_iam_cert" {
-  name_prefix      = "crypto-self-signed-"
+  name_prefix      = "${var.project_name}-self-signed-"
   certificate_body = tls_self_signed_cert.crypto_cert.cert_pem
   private_key      = tls_private_key.crypto_key.private_key_pem
 

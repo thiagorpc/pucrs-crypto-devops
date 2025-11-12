@@ -7,7 +7,7 @@ resource "aws_vpc" "crypto_vpc" {
   cidr_block           = var.vpc_cidr
   enable_dns_support   = true
   enable_dns_hostnames = true
-  tags                 = { Name = "crypto-vpc" }
+  tags                 = { Name = "${var.project_name}-vpc" }
 }
 
 data "aws_availability_zones" "available" {}
@@ -18,12 +18,12 @@ resource "aws_subnet" "public_subnets" {
   cidr_block              = var.public_subnet_cidrs[count.index]
   map_public_ip_on_launch = true
   availability_zone       = data.aws_availability_zones.available.names[count.index]
-  tags                    = { Name = "crypto-public-${count.index}" }
+  tags                    = { Name = "${var.project_name}-public-${count.index}" }
 }
 
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.crypto_vpc.id
-  tags   = { Name = "crypto-igw" }
+  tags   = { Name = "${var.project_name}-igw" }
 }
 
 resource "aws_route_table" "public" {
@@ -32,7 +32,7 @@ resource "aws_route_table" "public" {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.igw.id
   }
-  tags = { Name = "crypto-public-rt" }
+  tags = { Name = "${var.project_name}-public-rt" }
 }
 
 resource "aws_route_table_association" "public_assoc" {
@@ -76,7 +76,7 @@ resource "aws_route_table_association" "public_assoc" {
 
 # 2. Security Group para o ECS (Privado, Porta do Contêiner)
 resource "aws_security_group" "ecs_sg" {
-  name        = "crypto-ecs-sg"
+  name        = "${var.project_name}-ecs-sg"
   description = "Permite acesso apenas do NLB"
   vpc_id      = aws_vpc.crypto_vpc.id
 
@@ -95,5 +95,5 @@ resource "aws_security_group" "ecs_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  tags = { Name = "crypto-ecs-sg" }
+  tags = { Name = "${var.project_name}-ecs-sg" }
 }
