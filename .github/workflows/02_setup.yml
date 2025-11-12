@@ -15,8 +15,6 @@ on:
 env:
   TF_WORKING_DIR: ./iac/flow
   AWS_REGION: us-east-1
-  #DYNAMO_LOCK_TABLE: pucrs-crypto-terraform-lock # Tabela de Lock do DynamoDB
-  #S3_STATE: pucrs-crypto-github-action-tfstate-unique
 
 jobs:
   terraform:
@@ -45,13 +43,6 @@ jobs:
       - name: Terraform Init
         id: init
         run: terraform init -reconfigure
-          # \
-          #  -reconfigure \
-          #  -backend-config="bucket=${{ env.S3_STATE }}" \
-          #  -backend-config="key=terraform.tfstate" \
-          #  -backend-config="region=${{ env.AWS_REGION }}" \
-          #  -backend-config="encrypt=true" \
-          #  -backend-config="dynamodb_table=${{ env.DYNAMO_LOCK_TABLE }}"
 
       - name: Terraform Plan
         id: plan
