@@ -1,5 +1,5 @@
 # ============================
-# File: ./iac/nlb.tf
+# File: ./iac/flow/nlb.tf
 # ============================
 
 # NLB (Network Load Balancer)

@@ -1,5 +1,5 @@
 # ============================
-# File: ./iac/api_gateway.tf
+# File: ./iac/flow/api_gateway.tf
 # ============================
 
 # 1. API Base

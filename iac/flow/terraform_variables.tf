@@ -1,5 +1,5 @@
 # ============================
-# File: ./iac/variables.tf
+# File: ./iac/flow/variables.tf
 # ============================
 
 # Região da AWS
