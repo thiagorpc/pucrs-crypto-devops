@@ -1,4 +1,4 @@
-name: 0. 🛠️Setup Backend AWS
+name: 0️⃣ Setup Backend AWS
 
 on:
   workflow_dispatch:
