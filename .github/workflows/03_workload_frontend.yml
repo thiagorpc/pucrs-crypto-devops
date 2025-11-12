@@ -5,28 +5,31 @@ on:
     branches:
       - main
     paths:
-      - 'crypto-ui/**' # ❗️ Trigger: Apenas quando há push na pasta do Frontend
+      - "crypto-ui/**" # Trigger apenas quando há push na pasta do Frontend
 
-  #workflow_run:
-  #  workflows: ["🚀 2. Setup Inicial da Infraestrutura (Terraform)"]
-  #  types:
-  #    - completed
+  workflow_run:
+    workflows: ["1️⃣ Setup Infra AWS"] # Nome exato do workflow
+    types:
+      - completed
 
 env:
   AWS_REGION: us-east-1
-  S3_BUCKET_UI: pucrs-crypto-ui 
+  S3_BUCKET_UI: pucrs-crypto-ui
 
 jobs:
   deploy_ui:
     name: Build & Sync S3
     runs-on: ubuntu-latest
 
-    env: 
+    env:
       API_URL_ALB: ""
 
     defaults:
       run:
-        working-directory: ./crypto-ui # Assume que o código React está na pasta 'ui'
+        working-directory: ./crypto-ui # Assume que o código React está na pasta 'crypto-ui'
+
+    # Executa apenas se workflow_run foi concluído com sucesso ou se for push
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - name: Checkout Code
@@ -39,40 +42,27 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      
       - name: 🎯 Obter DNS do NLB
         id: get_alb_dns
         run: |
-          # 1. Busca o nome DNS do NLB pelo seu nome fixo
           ALB_DNS_NAME=$(aws elbv2 describe-load-balancers \
             --names "crypto-api-nlb" \
             --region ${{ env.AWS_REGION }} \
             --query "LoadBalancers[0].DNSName" \
             --output text)
-          
-          # 2. Verifica se o nome DNS foi encontrado
           if [ -z "$ALB_DNS_NAME" ]; then
             echo "Erro: Não foi possível encontrar o DNS para o NLB 'crypto-api-nlb'."
             exit 1
           fi
-          
-          # 3. Define a variável de ambiente para ser usada nos próximos passos
-          # Usamos o comando set-output (deprecated, mas funciona) ou salvamos em um arquivo
           echo "API_URL_ALB=https://$ALB_DNS_NAME" >> $GITHUB_ENV
           echo "DNS do NLB obtido: https://$ALB_DNS_NAME"
 
-      # 1. Instalação de Dependências e Build do Frontend
       - name: Instalar Dependências
         run: npm install
 
       - name: Build do Projeto React/UI
         run: VITE_API_URL=${{ env.API_URL_ALB }} npm run build
 
-      # 2. Sincronização com S3
       - name: Sync Build com S3 Bucket
         run: |
           aws s3 sync dist s3://${{ env.S3_BUCKET_UI }} --delete --cache-control max-age=300
-        # --acl public-read - Removi porque optei por definir object_ownership = "BucketOwnerEnforced"
-        # --delete remove arquivos que não existem mais no build local
-        # --acl public-read garante que os usuários possam acessar
-        # --cache-control max-age=300
