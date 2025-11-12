@@ -1,4 +1,4 @@
-name: 2️⃣ Setup Infra AWS
+name: 1️⃣ Setup Infra AWS
 
 on:
   workflow_dispatch:
