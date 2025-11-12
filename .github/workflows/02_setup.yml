@@ -1,4 +1,4 @@
-name: 2. 🚀Setup Inicial da Infraestrutura (Terraform)
+name: 2. 🚀Setup Infraestrutura
 
 on:
   workflow_dispatch:

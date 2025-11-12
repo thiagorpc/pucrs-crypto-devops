@@ -1,4 +1,4 @@
-name: 0. 🛠️Preparação Inicial do Terraform Backend (S3/DynamoDB)
+name: 0. 🛠️Setup Terraform Backend
 
 on:
   workflow_dispatch:

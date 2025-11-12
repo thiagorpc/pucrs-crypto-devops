@@ -1,4 +1,4 @@
-name: 3. 🔁Update API (ECS Fargate)
+name: 3. 🔁Workflow Backend
 
 on:
   push:
