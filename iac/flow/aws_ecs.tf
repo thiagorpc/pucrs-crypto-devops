@@ -31,7 +31,7 @@ resource "aws_ecs_cluster" "crypto_cluster" {
 # CLOUDWATCH LOGS
 # ============================
 resource "aws_cloudwatch_log_group" "crypto_app" {
-  name              = "/ecs/crypto-app"
+  name              = "/aws/ecs/crypto-app"
   retention_in_days = 7
 }
 
