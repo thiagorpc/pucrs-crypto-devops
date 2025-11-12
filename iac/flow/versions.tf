@@ -11,11 +11,5 @@ terraform {
       version = "~> 5.0"
     }
   }
-
-  # 🔸 O backend foi removido daqui para ser carregado dinamicamente via:
-  #     terraform init -backend-config=backend.hcl
 }
 
-provider "aws" {
-  region = var.aws_region
-}
