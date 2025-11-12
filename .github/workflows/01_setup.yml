@@ -58,11 +58,11 @@ jobs:
         if: github.event.inputs.terraform_action == 'apply'
         run: terraform apply -auto-approve
 
-      - name: 💡 Exibir URL da API Gateway
-        run: |
-          API_URL=$(terraform output -raw api_gateway_invoke_url)
-          echo "🚀 URL da API Gateway: $API_URL"
-          echo "API_URL=$API_URL" >> $GITHUB_ENV
+      #- name: 💡 Exibir URL da API Gateway
+      #  run: |
+      #    API_URL=$(terraform output -raw api_gateway_invoke_url)
+      #    echo "🚀 URL da API Gateway: $API_URL"
+      #    echo "API_URL=$API_URL" >> $GITHUB_ENV
           
       - name: 🏁 Marcar Apply Concluído
         if: ${{ github.event.inputs.terraform_action == 'apply' }}
