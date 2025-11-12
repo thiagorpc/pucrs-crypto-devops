@@ -5,22 +5,25 @@ on:
     branches:
       - main
     paths:
-      - 'crypto-api/**' # ❗️ Trigger: Apenas quando há push na pasta da API
+      - 'crypto-api/**' # Trigger apenas quando há push na pasta da API
 
-  #workflow_run:
-  #  workflows: ["🚀 2. Setup Inicial da Infraestrutura (Terraform)"]
-  #  types:
-  #    - completed
-      
+  workflow_run:
+    workflows: ["1️⃣ Setup Infra AWS"] # Nome exato do workflow
+    types:
+      - completed
+
 env:
   AWS_REGION: us-east-1
-  ECR_REPOSITORY: pucrs-crypto-api-repo # ECR Repo Name
+  ECR_REPOSITORY: pucrs-crypto-api-repo
   TF_WORKING_DIR: ./iac/flow
 
 jobs:
   deploy_api:
     name: Build, Push & Deploy ECS Task
     runs-on: ubuntu-latest
+
+    # Executa apenas se workflow_run foi concluído com sucesso ou se for push
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - name: Checkout Code
@@ -33,7 +36,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # 1. Login no ECR e Definição da Tag
+      # 1️⃣ Login no ECR e Definição da Tag
       - name: Login no Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
@@ -41,42 +44,29 @@ jobs:
       - name: Definir Variáveis de Imagem
         id: vars
         run: |
-          # Usa o SHA do commit como tag, limitando aos primeiros 7 caracteres
           IMAGE_TAG=$(echo ${{ github.sha }} | cut -c1-7)
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
-          
           ECR_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}
           echo "ECR_URI=$ECR_URI" >> $GITHUB_OUTPUT
 
-      # 2. Build da Imagem e Push para ECR
+      # 2️⃣ Build da Imagem e Push para ECR
       - name: Build, Tag e Push da Imagem
         run: |
-          # 1. Build da Imagem com a tag SHA (local)
-          docker build -t ${{ steps.vars.outputs.ECR_URI }}:${{ steps.vars.outputs.IMAGE_TAG }} ./crypto-api 
-          
-          # 2. Tag: Marca a mesma imagem com a tag :latest para que o Fargate reconheça e aplique a nova imagem em produção
+          docker build -t ${{ steps.vars.outputs.ECR_URI }}:${{ steps.vars.outputs.IMAGE_TAG }} ./crypto-api
           docker tag ${{ steps.vars.outputs.ECR_URI }}:${{ steps.vars.outputs.IMAGE_TAG }} ${{ steps.vars.outputs.ECR_URI }}:latest
-          
-          # 3. Push: Envia a tag SHA
           docker push ${{ steps.vars.outputs.ECR_URI }}:${{ steps.vars.outputs.IMAGE_TAG }}
-          
-          # 4. Push: Envia a tag :latest (CRUCIAL para o Fargate iniciar imediatamente)
           docker push ${{ steps.vars.outputs.ECR_URI }}:latest
 
-       
-          
-      # 3. Deploy com Terraform
+      # 3️⃣ Deploy com Terraform
       - name: Configurar Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.5.0 
+          terraform_version: 1.5.0
 
       - name: Terraform Init
         run: terraform init
         working-directory: ${{ env.TF_WORKING_DIR }}
 
       - name: Terraform Apply (Deploy)
-        run: |
-          # ❗️ Passa o SHA do commit (IMAGE_TAG) para a variável do Terraform
-          terraform apply -auto-approve -var="image_tag=${{ steps.vars.outputs.IMAGE_TAG }}"
+        run: terraform apply -auto-approve -var="image_tag=${{ steps.vars.outputs.IMAGE_TAG }}"
         working-directory: ${{ env.TF_WORKING_DIR }}
