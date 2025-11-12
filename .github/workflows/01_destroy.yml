@@ -4,71 +4,72 @@ on:
   workflow_dispatch:
     inputs:
       terraform_action:
-        description: 'Ação do Terraform (destroy)'
+        description: "Ação do Terraform (destroy)"
         required: true
-        default: 'destroy'
+        default: "destroy"
         type: choice
         options:
           - destroy
 
 env:
+  S3_STATE_BUCKET: pucrs-crypto-github-action-tfstate-unique
   TF_MAIN_DIR: ./iac/flow
   AWS_REGION: us-east-1
 
 jobs:
   terraform:
-    name: 'Terraform ${{ github.event.inputs.terraform_action }}'
+    name: "Terraform ${{ github.event.inputs.terraform_action }}"
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ${{ env.TF_MAIN_DIR }}
 
     steps:
-        - name: Checkout Code
-          uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-        - name: Configurar Credenciais AWS
-          uses: aws-actions/configure-aws-credentials@v4
-          with:
-            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            aws-region: ${{ env.AWS_REGION }}
+      - name: Configurar Credenciais AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
-        - name: Configurar Terraform
-          uses: hashicorp/setup-terraform@v3
-          with:
-            # Use a mesma versão que está no seu setup.yml
-            terraform_version: 1.5.0 
+      - name: Configurar Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          # Use a mesma versão que está no seu setup.yml
+          terraform_version: 1.5.0
 
-        - name: Terraform Init
-          id: init
-          # Necessário para carregar o backend S3/DynamoDB e o estado
-          run: terraform init -reconfigure
+      - name: Terraform Init
+        id: init
+        # Necessário para carregar o backend S3/DynamoDB e o estado
+        run: terraform init -reconfigure
 
-        # 1️⃣ Destrói a infra principal
-        - name: 💣 Executar Terraform Destroy
-          working-directory: ${{ env.TF_MAIN_DIR }}
-          id: destroy
-          # O -auto-approve é necessário aqui, pois não há interação na Action
-          #run: terraform destroy -auto-approve
-          run: |
-            terraform init -reconfigure
-            terraform destroy -auto-approve
+      # 1️⃣ Destrói a infra principal
+      - name: 💣 Executar Terraform Destroy
+        working-directory: ${{ env.TF_MAIN_DIR }}
+        id: destroy
+        # O -auto-approve é necessário aqui, pois não há interação na Action
+        #run: terraform destroy -auto-approve
+        run: |
+          terraform init -reconfigure
+          terraform destroy -auto-approve
 
-         # 2️⃣ Limpa e remove o bucket S3 e DynamoDB do backend
-        - name: 💣 Excluir bucket S3 e DynamoDB via AWS CLI
-          run: |
-            echo "🧹 Limpando bucket S3: ${{ env.S3_STATE_BUCKET }}"
-            aws s3 rm s3://${{ env.S3_STATE_BUCKET }} --recursive || true
+      # 2️⃣ Limpa e remove o bucket S3 e DynamoDB do backend
+      - name: 💣 Excluir bucket S3 e DynamoDB via AWS CLI
+        run: |
+          echo "🧹 Limpando bucket S3: ${S3_STATE_BUCKET}"
+          aws s3 rm s3://${S3_STATE_BUCKET} --recursive || true
 
-            echo "🪣 Excluindo bucket S3..."
-            aws s3api delete-bucket --bucket ${{ env.S3_STATE_BUCKET }} --region ${{ env.AWS_REGION }} || true
+          echo "🪣 Excluindo bucket S3..."
+          aws s3api delete-bucket --bucket ${S3_STATE_BUCKET} --region ${AWS_REGION} || true
 
-            echo "🗑️ Excluindo tabela DynamoDB..."
-            aws dynamodb delete-table --table-name ${{ env.DYNAMO_LOCK_TABLE }} --region ${{ env.AWS_REGION }} || true
+          echo "🗑️ Excluindo tabela DynamoDB..."
+          aws dynamodb delete-table --table-name ${DYNAMO_LOCK_TABLE} --region ${AWS_REGION} || true
 
-            echo "✅ Backend (S3 + DynamoDB) excluído com sucesso!"
+          echo "✅ Backend (S3 + DynamoDB) excluído com sucesso!"
 
-        # 2️⃣ Notifica usuário
-        - name: 🎉 Notificar Sucesso
-          run: echo "🎉 Todos os recursos gerenciados pelo Terraform foram destruídos com sucesso!"
+      # 2️⃣ Notifica usuário
+      - name: 🎉 Notificar Sucesso
+        run: echo "🎉 Todos os recursos gerenciados pelo Terraform foram destruídos com sucesso!"
