@@ -45,7 +45,8 @@ jobs:
       - name: Terraform Init
         id: init
         run: |
-          terraform init -migrate-state \
+          terraform init \
+            -reconfigure \
             -backend-config="bucket=${{ env.S3_STATE }}" \
             -backend-config="key=terraform.tfstate" \
             -backend-config="region=${{ env.AWS_REGION }}" \
