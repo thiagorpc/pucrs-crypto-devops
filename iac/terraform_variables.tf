@@ -37,12 +37,45 @@ variable "container_port" {
   default     = 3000
 }
 
+# ============================
+# DynamoDB
+# ============================
+
+# Nome do bucket S3 para o front-end
+variable "terraform_lock_dynamodb_name" {
+  description = "Nome da tabela DynamoDB para controle de Lock do Terraform."
+  type        = string
+  default     = "pucrs-crypto-terraform-lock"
+}
+
+# ============================
+# Bucket S3
+# ============================
+
 # Nome do bucket S3 para o front-end
 variable "react_bucket_name" {
   description = "Nome do bucket S3 onde o front-end React será hospedado."
   type        = string
   default     = "pucrs-crypto-ui"
 }
+
+# Nome do Bucket S3 para armazenar as imagens (da API)
+variable "image_bucket_name" {
+  description = "Nome do bucket S3 onde as imagens da aplicação serão armazenadas"
+  type        = string
+  default     = "pucrs-crypto-api-images"
+}
+
+# Nome do Bucket S3 para o Terraform State
+variable "terraform_state_bucket_name" {
+  description = "Nome do bucket S3 onde o status de deploy ou update do Terraform é mantido"
+  type        = string
+  default     = "pucrs-crypto-github-action-tfstate-unique"
+}
+
+# ============================
+# ECS
+# ============================
 
 # Tamanho da instância ECS Fargate (CPU)
 variable "ecs_cpu" {
@@ -58,12 +91,7 @@ variable "ecs_memory" {
   default     = "512"
 }
 
-# Nome do Bucket S3 para armazenar as imagens (da API)
-variable "image_bucket_name" {
-  description = "Nome do bucket S3 onde as imagens da aplicação serão armazenadas"
-  type        = string
-  default     = "crypto-api-images"
-}
+
 
 # Tag da imagem Docker
 # Utilizado pelo FARGATE para ele reconhecer a nova versão e colocar em produção
