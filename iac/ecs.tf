@@ -150,7 +150,7 @@ resource "aws_ecs_task_definition" "crypto_task" {
     image     = "${aws_ecr_repository.crypto_api_repo.repository_url}:${var.image_tag}"
     essential = true
     portMappings = [
-      { containerPort = var.container_port, protocol = "tcp" }
+      { containerPort = "3000", protocol = "tcp" }
     ]
 
     secrets = [
