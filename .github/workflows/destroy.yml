@@ -44,7 +44,13 @@ jobs:
         - name: Terraform Init
           id: init
           # Necessário para carregar o backend S3/DynamoDB e o estado
-          run: terraform init
+          run: |
+            terraform init \
+              -backend-config="bucket=aws-s3-crypto-github-action-tfstate-unique" \
+              -backend-config="key=terraform.tfstate" \
+              -backend-config="region=${{ env.AWS_REGION }}" \
+              -backend-config="encrypt=true" \
+              -backend-config="dynamodb_table=${{ env.DYNAMO_LOCK_TABLE }}"
 
         - name: 💣 Executar Terraform Destroy
           id: destroy
