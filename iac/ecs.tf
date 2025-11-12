@@ -171,7 +171,7 @@ resource "aws_ecs_task_definition" "crypto_task" {
 
     environment = [
       { name = "NODE_ENV", value = "production" },
-      { name = "PORT", value = 3000 },
+      { name = "PORT", value = "3000" },
       { name = "HOST", value = "0.0.0.0" },
       { name = "TZ", value = "America/Sao_Paulo" },
       { name = "IMAGE_BUCKET_NAME", value = aws_s3_bucket.crypto_images.bucket }
