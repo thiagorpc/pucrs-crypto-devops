@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 env:
-  TF_WORKING_DIR: ./iac
+  TF_WORKING_DIR: ./iac/prepare
   AWS_REGION: us-east-1
   # Defina os valores literais aqui, ou use secrets/variaveis se necessário
   DYNAMO_LOCK_TABLE: pucrs-crypto-terraform-lock

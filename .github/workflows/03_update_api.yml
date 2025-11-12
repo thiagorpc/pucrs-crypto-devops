@@ -15,7 +15,7 @@ on:
 env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: pucrs-crypto-api-repo # ECR Repo Name
-  TF_WORKING_DIR: ./iac
+  TF_WORKING_DIR: ./iac/flow
 
 jobs:
   deploy_api:
