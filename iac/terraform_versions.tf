@@ -1,5 +1,5 @@
 # ============================
-# File: ./iac/versions.tf
+# File: ./iac/versions.tf (Simplificado)
 # ============================
 terraform {
   required_providers {
@@ -9,16 +9,8 @@ terraform {
     }
   }
 
-  # ==================================
-  # BACKEND (State Locking)
-  # ==================================
-  backend "s3" {
-    bucket         = "aws-s3-crypto-github-action-tfstate-unique"
-    key            = "terraform.tfstate"
-    region         = "us-east-1"
-    encrypt        = true
-    dynamodb_table = "terraform-lock-table-crypto" # ❗️ Requer criação manual
-  }
+  # REMOVIDO: O bloco 'backend' foi movido para a linha de comando (init)
+  #          para que possamos gerenciar o S3/DynamoDB como recursos.
 }
 
 provider "aws" {
