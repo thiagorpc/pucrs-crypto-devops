@@ -66,6 +66,23 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+# Adiciona permissão de Decrypt na KMS Key (substitua o ARN da chave real)
+resource "aws_iam_policy" "ecs_kms_decrypt_policy" {
+  name        = "${var.project_name}-ecs-kms-decrypt-policy"
+  description = "Permite que a Task Execution Role use a KMS Key para descriptografar secrets."
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = ["kms:Decrypt"],
+        // ⚠️ Substitua "arn:aws:kms:..." pela ARN da sua chave KMS
+        Resource = "arn:aws:kms:${var.aws_region}:${data.aws_caller_identity.current.account_id}:key/SEU_KMS_KEY_ID_AQUI" 
+      },
+    ]
+  })
+}
+
 # Política para permitir acesso ao Secrets Manager (Anexada à Execution Role)
 resource "aws_iam_policy" "ecs_secret_access_policy" {
   name        = "${var.project_name}-ecs-secrets-policy"
@@ -165,6 +182,7 @@ resource "aws_ecs_task_definition" "task" {
 
   # Task Execution Role (para logs, secrets, pull de imagem)
   execution_role_arn = aws_iam_role.task_execution_role.arn
+  # execution_role_arn = aws_iam_role.ecs_execution_role.arn
   # Task Role (para acesso S3, usada pelo runtime da aplicação)
   task_role_arn = aws_iam_role.task_role.arn
 
@@ -210,7 +228,7 @@ resource "aws_ecs_service" "fargate" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets          = aws_subnet.public_subnets[*].id
+    subnets          = aws_subnet.private_subnets[*].id
     security_groups  = [aws_security_group.ecs_sg.id]
     assign_public_ip = false
   }
