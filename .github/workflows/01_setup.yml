@@ -70,10 +70,10 @@ jobs:
             STATUS="success"
           fi
           echo "{\"name\": \"setup_aws\", \"apply\": \"${STATUS}\", \"date\": \"$(date '+%Y-%m-%d %H:%M:%S')\"}" > apply_status.txt
-          cat name:setup_aws
-          cat action:${{ github.event.inputs.terraform_action }}
-          cat status:${{ job.status }}
-          cat apply:${STATUS}
+          echo name:setup_aws
+          echo action:${{ github.event.inputs.terraform_action }}
+          echo status:${{ job.status }}
+          echo apply:${STATUS}
           cat apply_status.txt
 
 
