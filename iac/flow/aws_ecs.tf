@@ -179,7 +179,7 @@ resource "aws_ecs_task_definition" "task" {
     secrets = [
       {
         name      = "ENCRYPTION_KEY",
-        valueFrom = locals.encryption_secret_arn,
+        valueFrom = data.aws_secretsmanager_secret.encryption_key.arn,
       }
     ]
 
