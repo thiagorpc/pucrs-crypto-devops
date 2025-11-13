@@ -31,10 +31,6 @@ jobs:
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
 
-    defaults:
-      run:
-        working-directory: ./crypto-ui
-
     steps:
       - name: 📦 Checkout Code
         uses: actions/checkout@v4
@@ -46,8 +42,8 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-    # -------------------------------------------------------------------
-    # 🧩 Somente roda se o evento for "workflow_run"
+      # -------------------------------------------------------------------
+      # 🧩 Somente roda se o evento for "workflow_run"
       # -------------------------------------------------------------------
       - name: ⬇️ Baixar o Artefato da Última Execução do Setup.yml
         if: github.event_name == 'workflow_run'
@@ -96,7 +92,10 @@ jobs:
           echo "❌ O último Terraform Apply não foi concluído com sucesso."
           exit 1
       # -------------------------------------------------------------------
-      # 🌍 Obter DNS do NLB
+      
+        
+      
+        # 🌍 Obter DNS do NLB
       - name: 🎯 Obter DNS do NLB
         id: get_alb_dns
         run: |
@@ -114,12 +113,15 @@ jobs:
 
       # ⚙️ Instalar dependências e buildar
       - name: 📦 Instalar Dependências
+        working-directory: ./crypto-ui
         run: npm install
 
       - name: 🧱 Build do Projeto React/UI
+        working-directory: ./crypto-ui   
         run: VITE_API_URL=${{ env.API_URL_ALB }} npm run build
 
       # ☁️ Enviar build para o S3
       - name: ☁️ Sync Build com S3 Bucket
+        working-directory: ./crypto-ui
         run: |
           aws s3 sync dist s3://${{ env.S3_BUCKET_UI }} --delete --cache-control max-age=300
