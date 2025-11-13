@@ -69,16 +69,19 @@ jobs:
           if [ "${{ github.event.inputs.terraform_action }}" == "apply" ] && [ "${{ job.status }}" == "success" ]; then
             STATUS="success"
           fi
-          echo "{\"name\": \"setup_aws\", \"apply\": \"${STATUS}\", \"date\": \"$(date '+%Y-%m-%d %H:%M:%S')\"}" > apply_status.txt
+          echo "{\"name\": \"setup_aws\", \"apply\": \"${STATUS}\", \"date\": \"$(date '+%Y-%m-%d %H:%M:%S')\"}" > $GITHUB_WORKSPACE/apply_status.txt
           echo name:setup_aws
           echo action:${{ github.event.inputs.terraform_action }}
           echo status:${{ job.status }}
           echo apply:${STATUS}
-          cat apply_status.txt
+          echo "-------------------------------------------------------"
+          echo "📄 Conteúdo de apply_status.txt:"
+          cat $GITHUB_WORKSPACE/apply_status.txt
+          echo "-------------------------------------------------------"
 
       - name: 📤 Upload do artifact
         if: ${{ hashFiles('apply_status.txt') != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: terraform-apply-status
-          path: apply_status.txt
+          path: ${{ github.workspace }}/apply_status.txt
