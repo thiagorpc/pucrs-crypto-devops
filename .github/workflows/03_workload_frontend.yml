@@ -1,49 +1,102 @@
 name: 3. Workflow Frontend
 
 on:
+  # 🔹 Dispara automaticamente quando houver push na pasta crypto-ui
   push:
     branches:
       - main
     paths:
-      - "crypto-ui/**" # Trigger apenas quando há push na pasta do Frontend
+      - "crypto-ui/**"
 
+  # 🔹 Dispara automaticamente quando o workflow Setup AWS for concluído
   workflow_run:
-    workflows: ["1. Setup Infra AWS"] # Nome exato do workflow
+    workflows: ["1. Setup Infra AWS"]
     types:
       - completed
+
+  # 🔹 Permite execução manual via GitHub UI
+  workflow_dispatch:
 
 env:
   AWS_REGION: us-east-1
   S3_BUCKET_UI: pucrs-crypto-ui
 
-
 jobs:
   deploy_ui:
-    name: Build & Sync S3
+    name: 🌐 Build & Deploy Frontend
     runs-on: ubuntu-latest
-    # ✅ Só executa se:
-    #   1️⃣ workflow_run foi concluído com sucesso E marcou apply_done=true
-    #   2️⃣ OU foi um push direto (não workflow_run)
-    if: ${{ github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.outputs.apply_done == 'true') }}
-
-    env:
-      API_URL_ALB: ""
+    if: >
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
 
     defaults:
       run:
         working-directory: ./crypto-ui
 
     steps:
-      - name: Checkout Code
+      - name: 📦 Checkout Code
         uses: actions/checkout@v4
 
-      - name: Configurar Credenciais AWS
+      - name: 🔐 Configurar Credenciais AWS
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      # -------------------------------------------------------------------
+      # 🧩 Somente roda se o evento for "workflow_run"
+      # -------------------------------------------------------------------
+      - name: ⬇️ Baixar o Artefato da Última Execução do Setup.yml
+        if: github.event_name == 'workflow_run'
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          workflow: 01_setup.yml
+          name: terraform-apply-status
+          path: .
+          check_artifacts: true
+
+      - name: 🧩 Verificar existência do arquivo de status
+        if: github.event_name == 'workflow_run'
+        id: check_file
+        run: |
+          if [ ! -f "./apply_status.txt" ]; then
+            echo "file_exists=false" >> $GITHUB_OUTPUT
+            echo "⚠️ Arquivo de status não encontrado."
+          else
+            echo "file_exists=true" >> $GITHUB_OUTPUT
+            echo "✅ Arquivo de status encontrado."
+          fi
+
+      - name: 🛑 Parar se não há status válido
+        if: github.event_name == 'workflow_run' && steps.check_file.outputs.file_exists == 'false'
+        run: |
+          echo "❌ Arquivo de status não encontrado. Provavelmente o Terraform Apply não foi executado."
+          exit 1
+
+      - name: 🧰 Garantir jq instalado
+        if: github.event_name == 'workflow_run'
+        run: sudo apt-get install -y jq
+
+      - name: 📖 Ler status JSON do Setup AWS
+        if: github.event_name == 'workflow_run' && steps.check_file.outputs.file_exists == 'true'
+        id: read_status
+        run: |
+          echo "📄 Conteúdo do arquivo de status:"
+          cat ./apply_status.txt
+          APPLY_STATUS=$(jq -r '.apply' ./apply_status.txt)
+          echo "apply_status=$APPLY_STATUS" >> $GITHUB_OUTPUT
+          echo "🔍 apply_status = $APPLY_STATUS"
+
+      - name: 🛑 Parar se o Apply não foi sucesso
+        if: github.event_name == 'workflow_run' && steps.read_status.outputs.apply_status != 'success'
+        run: |
+          echo "❌ O último Terraform Apply não foi concluído com sucesso."
+          exit 1
+      # -------------------------------------------------------------------
+
+      # 🌍 Obter DNS do NLB
       - name: 🎯 Obter DNS do NLB
         id: get_alb_dns
         run: |
@@ -57,14 +110,16 @@ jobs:
             exit 1
           fi
           echo "API_URL_ALB=https://$ALB_DNS_NAME" >> $GITHUB_ENV
-          echo "DNS do NLB obtido: https://$ALB_DNS_NAME"
+          echo "✅ DNS do NLB obtido: https://$ALB_DNS_NAME"
 
-      - name: Instalar Dependências
+      # ⚙️ Instalar dependências e buildar
+      - name: 📦 Instalar Dependências
         run: npm install
 
-      - name: Build do Projeto React/UI
+      - name: 🧱 Build do Projeto React/UI
         run: VITE_API_URL=${{ env.API_URL_ALB }} npm run build
 
-      - name: Sync Build com S3 Bucket
+      # ☁️ Enviar build para o S3
+      - name: ☁️ Sync Build com S3 Bucket
         run: |
           aws s3 sync dist s3://${{ env.S3_BUCKET_UI }} --delete --cache-control max-age=300
