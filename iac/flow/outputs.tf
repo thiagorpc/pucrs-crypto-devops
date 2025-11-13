@@ -2,47 +2,8 @@
 # File: ./iac/flow/outputs.tf
 # ============================
 
-# ============================
-# 🌐 REDE / LOAD BALANCER / VPC
-# ============================
 
-output "vpc_id" {
-  description = "ID da VPC criada"
-  value       = aws_vpc.vpc.id
-}
 
-output "public_subnets_ids" {
-  description = "Lista de IDs das subnets públicas"
-  value       = aws_subnet.public_subnets[*].id
-}
-
-output "nlb_dns_name" {
-  description = "DNS público do Network Load Balancer (NLB)"
-  value       = aws_lb.api_nlb.dns_name
-}
-
-# ============================
-# ⚙️ ECS / SEGURANÇA
-# ============================
-
-output "ecs_security_group_id" {
-  description = "ID do Security Group utilizado pelas Tasks ECS (recebe tráfego da VPC/NLB)"
-  value       = aws_security_group.ecs_sg.id
-}
-
-output "ecs_cluster_id" {
-  description = "ID do ECS Cluster"
-  value       = aws_ecs_cluster.cluster.id
-}
-
-# ============================
-# 🧱 ECR / CONTAINERS
-# ============================
-
-output "ecr_repository_url" {
-  description = "URL do repositório ECR para armazenar imagens Docker"
-  value       = aws_ecr_repository.image_repo.repository_url
-}
 
 # ============================
 # 🪣 ARMAZENAMENTO (S3 / DYNAMODB)
@@ -72,11 +33,7 @@ output "terraform_lock_table" {
 # 🚀 API GATEWAY
 # ============================
 
-output "api_gateway_invoke_url" {
-  description = "URL pública de invocação da API via API Gateway (Stage /prod)"
-  value       = aws_api_gateway_stage.prod_stage.invoke_url
-  #value       = "https://${aws_api_gateway_rest_api.project_api_gateway.id}.execute-api.${data.aws_region.current.name}.amazonaws.com/${aws_api_gateway_stage.prod_stage.stage_name}"
-}
+
 
 # ============================
 # 🧭 META
