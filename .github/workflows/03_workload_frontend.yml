@@ -131,7 +131,7 @@ jobs:
 
           APIGW_STAGE="prod"
           APIGW_DNS_NAME="${APIGW_ID}.execute-api.${{ env.AWS_REGION }}.amazonaws.com/${APIGW_STAGE}"
-          echo "API_URL=https://$APIGW_DNS_NAME" >> $GITHUB_ENV
+          echo "APIGW_URL=https://$APIGW_DNS_NAME" >> $GITHUB_ENV
           echo "✅ API Gateway DNS: https://$APIGW_DNS_NAME"
 
       # ===============================================================
@@ -144,7 +144,7 @@ jobs:
 
       - name: 🧱 Build do Projeto (React/Vite)
         working-directory: ./crypto-ui
-        run: VITE_API_URL=${{ env.API_URL_NLB }} npm run build
+        run: VITE_API_URL=${{ env.APIGW_URL }} npm run build
 
       # ===============================================================
       # ☁️ Deploy no S3
