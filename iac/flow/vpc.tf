@@ -140,6 +140,13 @@ resource "aws_security_group" "endpoint_sg" {
     security_groups = [aws_security_group.ecs_sg.id]
   }
 
+    ingress {
+    from_port       = 3000
+    to_port         = 3000
+    protocol        = "tcp"
+    security_groups = [aws_security_group.ecs_sg.id]
+  }
+
   # Egress: Permite todo o tr afego de saída
   egress {
     from_port   = 0
@@ -174,4 +181,33 @@ resource "aws_vpc_endpoint" "logs" {
   subnet_ids          = aws_subnet.private_subnets[*].id
   private_dns_enabled = true
   tags                = { Name = "${var.project_name}-logs-endpoint" }
+}
+
+# ====================================================================================
+# ECR ENDPOINTS (Interface Endpoints)
+# Essenciais para pull de imagem em subnets privadas.
+# ====================================================================================
+
+# 3. Endpoint para ECR API (Autenticação e Controle)
+resource "aws_vpc_endpoint" "ecr_api" {
+  vpc_id              = aws_vpc.vpc.id
+  service_name        = "com.amazonaws.${var.aws_region}.ecr.api"
+  vpc_endpoint_type   = "Interface"
+  security_group_ids  = [aws_security_group.endpoint_sg.id]
+  # Usa as subnets privadas para que o tráfego fique na VPC
+  subnet_ids          = aws_subnet.private_subnets[*].id
+  private_dns_enabled = true
+  tags                = { Name = "${var.project_name}-ecr-api-endpoint" }
+}
+
+# 4. Endpoint para ECR DKR (Data Plane / Docker Pull)
+resource "aws_vpc_endpoint" "ecr_dkr" {
+  vpc_id              = aws_vpc.vpc.id
+  service_name        = "com.amazonaws.${var.aws_region}.ecr.dkr"
+  vpc_endpoint_type   = "Interface"
+  security_group_ids  = [aws_security_group.endpoint_sg.id]
+  # Usa as subnets privadas para que o tráfego fique na VPC
+  subnet_ids          = aws_subnet.private_subnets[*].id
+  private_dns_enabled = true
+  tags                = { Name = "${var.project_name}-ecr-dkr-endpoint" }
 }
