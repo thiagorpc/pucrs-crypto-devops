@@ -90,8 +90,7 @@ jobs:
       if: github.event_name == 'workflow_run' && steps.read_status.outputs.apply_status != 'success'
       run: |
         echo "✅ Setup anterior não foi um Apply 'success' (Status: ${{ steps.read_status.outputs.apply_status }}). Ignorando o deploy."
-        exit 1
-    # -------------------------------------------------------------------
+
 
     # 🔑 Login no Amazon ECR
     - name: 🔑 Login no Amazon ECR
