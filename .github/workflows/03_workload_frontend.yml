@@ -19,7 +19,7 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  S3_BUCKET_UI: pucrs-crypto-ui
+  S3_BUCKET_UI: pucrs-crypto-frontend
   NLB_NAME: pucrs-crypto-api-nlb
 
 jobs:
