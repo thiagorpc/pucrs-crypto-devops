@@ -49,13 +49,13 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: terraform-apply-status
-        path: $GITHUB_WORKSPACE
+        path: ./
 
     # ✅ Verifica se o arquivo foi baixado com sucesso
     - name: 🧩 Verificar existência do arquivo de status
       id: check_file
       run: |
-        if [ ! -f "./$GITHUB_WORKSPACE/apply_status.txt" ]; then
+        if [ ! -f "./apply_status.txt" ]; then
           echo "file_exists=false" >> $GITHUB_OUTPUT
           echo "⚠️ Arquivo de status não encontrado."
         else
@@ -76,10 +76,10 @@ jobs:
       if: steps.check_file.outputs.file_exists == 'true'
       run: |
         echo "📄 Conteúdo do arquivo de status:"
-        cat ./$GITHUB_WORKSPACE/apply_status.txt
+        cat ./apply_status.txt
 
         # Extrai o valor do campo "apply" do JSON
-        APPLY_STATUS=$(jq -r '.apply' ./$GITHUB_WORKSPACE/apply_status.txt)
+        APPLY_STATUS=$(jq -r '.apply' ./apply_status.txt)
 
         echo "apply_status=$APPLY_STATUS" >> $GITHUB_OUTPUT
         echo "🔍 apply_status = $APPLY_STATUS"
