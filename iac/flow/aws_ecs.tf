@@ -80,7 +80,7 @@ resource "aws_iam_policy" "ecs_secret_access_policy" {
           "secretsmanager:GetSecretValue"
         ],
         # ⚠️ Ajuste o ARN abaixo. O '*' cobre versões do secret.
-        Resource = var.secrets_encryption_key,
+        Resource = local.encryption_secret_arn,
       },
     ]
   })
@@ -156,7 +156,7 @@ resource "aws_ecs_task_definition" "task" {
     secrets = [
       {
         name      = "ENCRYPTION_KEY",
-        valueFrom = var.secrets_encryption_key,
+        valueFrom = local.encryption_secret_arn,
       }
     ]
 
@@ -236,7 +236,7 @@ resource "aws_ecr_lifecycle_policy" "api_cleanup" {
 # Endpoint para comunicação com o AWS SECREET MANAGER
 # ====================================================================================
 resource "aws_vpc_endpoint" "secrets_manager" {
-  vpc_id             = aws_vpc.crypto_vpc.id
+  vpc_id             = aws_vpc.vpc.id
   service_name       = "com.amazonaws.${var.aws_region}.secretsmanager"
   vpc_endpoint_type  = "Interface"
   subnet_ids         = aws_subnet.private_subnets[*].id

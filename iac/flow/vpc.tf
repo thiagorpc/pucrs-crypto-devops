@@ -97,3 +97,21 @@ resource "aws_security_group" "ecs_sg" {
   }
   tags = { Name = "${var.project_name}-ecs-sg" }
 }
+
+resource "aws_vpc_endpoint" "secrets_manager" {
+  vpc_id             = aws_vpc.vpc.id
+  service_name       = "com.amazonaws.${var.aws_region}.secretsmanager"
+  vpc_endpoint_type  = "Interface"
+
+  # Usa as subnets públicas mesmo
+  subnet_ids         = aws_subnet.public_subnets[*].id
+
+  # Reutiliza o mesmo SG do ECS ou cria um dedicado
+  security_group_ids = [aws_security_group.ecs_sg.id]
+
+  private_dns_enabled = true
+
+  tags = {
+    Name = "${var.project_name}-secretsmanager-endpoint"
+  }
+}
