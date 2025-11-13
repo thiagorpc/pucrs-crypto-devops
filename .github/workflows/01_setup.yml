@@ -85,3 +85,9 @@ jobs:
         with:
           name: terraform-apply-status
           path: ${{ github.workspace }}/apply_status.txt
+
+         # ✅ Verifica se o arquivo foi baixado com sucesso
+      - name: 🧩 Verificar existência do arquivo de status
+        id: check_echo
+        run: |
+          echo "FFFF:" >> ${{ github.event.workflow_run.id }}
