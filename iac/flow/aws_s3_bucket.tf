@@ -19,7 +19,7 @@ resource "aws_s3_bucket_ownership_controls" "ui_ownership" {
   }
 }
 
-# 🎯 CORREÇÃO: Desativar 'BlockPublicPolicy' para permitir a política de acesso público
+# 🎯 Desativar 'BlockPublicPolicy' para permitir a política de acesso público
 resource "aws_s3_bucket_public_access_block" "frontend_public_access_block" {
   bucket = aws_s3_bucket.frontend.id
 

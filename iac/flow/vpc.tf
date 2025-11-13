@@ -91,9 +91,6 @@ resource "aws_route_table_association" "private_assoc" {
 # SECURITY GROUPS (SEPARADOS POR CAMADA)
 # ============================
 
-# 1. Security Group para o NLB (Público, Porta 80)
-// Removido para concisão.
-
 # 2. Security Group para o ECS (Privado, Porta do Contêiner)
 resource "aws_security_group" "ecs_sg" {
   name        = "${var.project_name}-ecs-sg"
