@@ -228,6 +228,7 @@ resource "aws_ecs_service" "fargate" {
   name            = "${var.project_name}-api"
   cluster         = aws_ecs_cluster.cluster.id
   task_definition = aws_ecs_task_definition.task.arn
+  dddddd
   desired_count   = 1
   launch_type     = "FARGATE"
 
