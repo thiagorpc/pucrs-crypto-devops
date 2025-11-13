@@ -20,6 +20,7 @@ on:
 env:
   AWS_REGION: us-east-1
   S3_BUCKET_UI: pucrs-crypto-ui
+  NLB_NAME: pucrs-crypto-api-nlb
 
 jobs:
   deploy_ui:
@@ -99,17 +100,17 @@ jobs:
       - name: 🎯 Obter DNS do NLB
         id: get_alb_dns
         run: |
-          ALB_DNS_NAME=$(aws elbv2 describe-load-balancers \
-            --names "crypto-api-nlb" \
+          NLB_DNS_NAME=$(aws elbv2 describe-load-balancers \
+            --names ${{ env.NLB_NAME }} \
             --region ${{ env.AWS_REGION }} \
             --query "LoadBalancers[0].DNSName" \
             --output text)
-          if [ -z "$ALB_DNS_NAME" ]; then
-            echo "Erro: Não foi possível encontrar o DNS para o NLB 'crypto-api-nlb'."
+          if [ -z "$NLB_DNS_NAME" ]; then
+            echo "Erro: Não foi possível encontrar o DNS para o NLB ${{ env.NLB_NAME }}."
             exit 1
           fi
-          echo "API_URL_ALB=https://$ALB_DNS_NAME" >> $GITHUB_ENV
-          echo "✅ DNS do NLB obtido: https://$ALB_DNS_NAME"
+          echo "API_URL_ALB=https://$NLB_DNS_NAME" >> $GITHUB_ENV
+          echo "✅ DNS do NLB obtido: https://$NLB_DNS_NAME"
 
       # ⚙️ Instalar dependências e buildar
       - name: 📦 Instalar Dependências
