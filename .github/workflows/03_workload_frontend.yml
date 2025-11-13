@@ -21,6 +21,7 @@ env:
   AWS_REGION: us-east-1
   S3_BUCKET_UI: pucrs-crypto-frontend
   NLB_NAME: pucrs-crypto-api-nlb
+  APIGW_NAME: pucrs-crypto-api-gateway
 
 jobs:
   deploy_ui:
@@ -97,7 +98,7 @@ jobs:
       
         # 🌍 Obter DNS do NLB
       - name: 🎯 Obter DNS do NLB
-        id: get_alb_dns
+        id: get_nlb_dns
         run: |
           NLB_DNS_NAME=$(aws elbv2 describe-load-balancers \
             --names ${{ env.NLB_NAME }} \
@@ -108,8 +109,33 @@ jobs:
             echo "Erro: Não foi possível encontrar o DNS para o NLB ${{ env.NLB_NAME }}."
             exit 1
           fi
-          echo "API_URL_ALB=https://$NLB_DNS_NAME" >> $GITHUB_ENV
+          echo "API_URL_NLB=https://$NLB_DNS_NAME" >> $GITHUB_ENV
           echo "✅ DNS do NLB obtido: https://$NLB_DNS_NAME"
+
+      - name: 🎯 Obter DNS do API Gateway
+        id: get_api_gateway_dns
+        run: |
+          # 1. Obter o ID do API Gateway (necessário, pois o nome não é um parâmetro direto)
+          APIGW_ID=$(aws apigateway get-rest-apis \
+            --region ${{ env.AWS_REGION }} \
+            --query "items[?name=='${{ env.APIGW_NAME }}'].id" \
+            --output text)
+        
+          if [ -z "$APIGW_ID" ]; then
+            echo "Erro: Não foi possível encontrar o ID para o API Gateway ${{ env.APIGW_NAME }}."
+            exit 1
+          fi
+          
+          # 2. Construir o DNS base (formato padrão do API Gateway)
+          # A URL do API Gateway é: https://<id>.execute-api.<região>.amazonaws.com/<stage>
+          APIGW_STAGE="prod"
+          
+          APIGW_DNS_NAME="${APIGW_ID}.execute-api.${{ env.AWS_REGION }}.amazonaws.com/${APIGW_STAGE}"
+          
+          # 3. Exportar a variável
+          echo "API_URL=https://$APIGW_DNS_NAME" >> $GITHUB_ENV
+          echo "✅ DNS do API Gateway obtido: https://$APIGW_DNS_NAME"
+          
 
       # ⚙️ Instalar dependências e buildar
       - name: 📦 Instalar Dependências
@@ -118,7 +144,7 @@ jobs:
 
       - name: 🧱 Build do Projeto React/UI
         working-directory: ./crypto-ui   
-        run: VITE_API_URL=${{ env.API_URL_ALB }} npm run build
+        run: VITE_API_URL=${{ env.API_URL_NLB }} npm run build
 
       # ☁️ Enviar build para o S3
       - name: ☁️ Sync Build com S3 Bucket
