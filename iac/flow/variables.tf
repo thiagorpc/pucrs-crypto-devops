@@ -35,6 +35,13 @@ variable "public_subnet_cidrs" {
   default     = ["10.0.1.0/24", "10.0.2.0/24"]
 }
 
+# Subnets privadas (A SER ADICIONADO)
+variable "private_subnet_cidrs" {
+  description = "Lista de CIDRs das subnets privadas para o projeto."
+  type        = list(string)
+  default     = ["10.0.3.0/24", "10.0.4.0/24"] // Exemplo de CIDRs
+}
+
 # Host do container
 variable "container_host" {
   description = "HOst do container onde a aplicação está escutando."
