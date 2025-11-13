@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       terraform_action:
-        description: 'Ação do Terraform (plan/apply)'
+        description: 'Escolha a ação do Terraform (plan/apply)'
         required: true
         default: 'plan'
         type: choice
@@ -50,13 +50,14 @@ jobs:
 
       - name: 🧩 Terraform Plan
         id: plan
-        if: github.event.inputs.terraform_action == 'plan'
-        run: terraform plan -no-color
+        if: always()
+        run: terraform plan -out=tfplan
+
 
       - name: 🚀 Terraform Apply
         id: apply
         if: github.event.inputs.terraform_action == 'apply'
-        run: terraform apply -auto-approve
+        run: terraform apply -auto-approve tfplan
 
       
         # ✅ Passo único e seguro para criar o arquivo apply_status.txt
