@@ -23,130 +23,113 @@ env:
   TF_WORKING_DIR: ./iac/flow
 
 jobs:
-  deploy_api:
-    name: 🚀 Build, Push & Deploy Backend Task
+  # --------------------------------------------------------------------
+  # 🧩 JOB 1: Pré-verificação (baixar status e definir se o deploy é permitido)
+  # --------------------------------------------------------------------
+  precheck:
+    name: 🧩 Verificar Condições de Deploy
     runs-on: ubuntu-latest
-    if: >
-      github.event_name == 'push' ||
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    outputs:
+      deploy_allowed: ${{ steps.deploy_check.outputs.deploy_allowed }}
+    steps:
+      - name: 📦 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Instalar jq (para leitura do status)
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      # 🔹 Apenas se o evento for workflow_run
+      - name: ⬇️ Baixar Artefato do Setup AWS
+        if: github.event_name == 'workflow_run'
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          workflow: 01_setup.yml
+          name: terraform-apply-status
+          path: .
+          check_artifacts: true
+
+      - name: 🧩 Checar arquivo de status e definir variável
+        id: deploy_check
+        run: |
+          # Por padrão, permite deploy em push e manual
+          if [[ "${GITHUB_EVENT_NAME}" != "workflow_run" ]]; then
+            echo "deploy_allowed=true" >> $GITHUB_OUTPUT
+            echo "🟢 Evento não é workflow_run. Deploy permitido."
+            exit 0
+          fi
+
+          # Se for workflow_run, validar artefato
+          if [ ! -f "./apply_status.txt" ]; then
+            echo "deploy_allowed=false" >> $GITHUB_OUTPUT
+            echo "❌ Arquivo de status não encontrado."
+            exit 0
+          fi
+
+          APPLY_STATUS=$(jq -r '.apply' ./apply_status.txt)
+          echo "🔍 apply_status = $APPLY_STATUS"
+
+          if [[ "$APPLY_STATUS" == "success" ]]; then
+            echo "deploy_allowed=true" >> $GITHUB_OUTPUT
+            echo "✅ Setup anterior bem-sucedido. Deploy permitido."
+          else
+            echo "deploy_allowed=false" >> $GITHUB_OUTPUT
+            echo "⚠️ Setup anterior falhou. Deploy não será executado."
+          fi
+
+  # --------------------------------------------------------------------
+  # 🚀 JOB 2: Build, Push e Deploy da API
+  # --------------------------------------------------------------------
+  deploy_api:
+    name: 🚀 Build, Push & Deploy Backend
+    runs-on: ubuntu-latest
+    needs: precheck
+    if: needs.precheck.outputs.deploy_allowed == 'true'
 
     steps:
-    - name: 📦 Checkout Code
-      uses: actions/checkout@v4
+      - name: 📦 Checkout Code
+        uses: actions/checkout@v4
 
-    - name: 🔐 Configurar Credenciais AWS
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ env.AWS_REGION }}
+      - name: 🔐 Configurar Credenciais AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
-    # -------------------------------------------------------------------
-    # 🧩 Somente roda se o evento for "workflow_run"
-    # -------------------------------------------------------------------
-    - name: ⬇️ Baixar o Artefato da Última Execução do Setup.yml
-      if: github.event_name == 'workflow_run'
-      uses: dawidd6/action-download-artifact@v3
-      with:
-        workflow: 01_setup.yml
-        name: terraform-apply-status
-        path: .
-        check_artifacts: true
+      # 🔑 Login no Amazon ECR
+      - name: 🔑 Login no Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
-    - name: 🧩 Verificar existência do arquivo de status
-      if: github.event_name == 'workflow_run'
-      id: check_file
-      run: |
-        if [ ! -f "./apply_status.txt" ]; then
-          echo "file_exists=false" >> $GITHUB_OUTPUT
-          echo "⚠️ Arquivo de status não encontrado."
-        else
-          echo "file_exists=true" >> $GITHUB_OUTPUT
-          echo "✅ Arquivo de status encontrado."
-        fi
+      # 🏷️ Definir variáveis de imagem
+      - name: 🏷️ Definir Variáveis de Imagem
+        id: vars
+        run: |
+          IMAGE_TAG=$(date +'%Y%m%d')-${GITHUB_RUN_NUMBER}-${GITHUB_SHA::7}
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
+          ECR_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}
+          echo "ECR_URI=$ECR_URI" >> $GITHUB_OUTPUT
+          echo "🔖 Tag: $IMAGE_TAG"
+          echo "🏗️  ECR URI: $ECR_URI"
 
-    - name: 🛑 Parar se não há status válido
-      if: github.event_name == 'workflow_run' && steps.check_file.outputs.file_exists == 'false'
-      run: |
-        echo "❌ Arquivo de status não encontrado. Provavelmente o Terraform Apply não foi executado."
-        exit 1
+      # 🐳 Build e Push
+      - name: 🐳 Build, Tag e Push da Imagem
+        run: |
+          docker build -t ${{ steps.vars.outputs.ECR_URI }}:${{ steps.vars.outputs.IMAGE_TAG }} ./crypto-api
+          docker tag ${{ steps.vars.outputs.ECR_URI }}:${{ steps.vars.outputs.IMAGE_TAG }} ${{ steps.vars.outputs.ECR_URI }}:latest
+          docker push ${{ steps.vars.outputs.ECR_URI }}:${{ steps.vars.outputs.IMAGE_TAG }}
+          docker push ${{ steps.vars.outputs.ECR_URI }}:latest
 
-    - name: 🧰 Garantir jq instalado
-      if: github.event_name == 'workflow_run'
-      run: sudo apt-get install -y jq
+      # ⚙️ Terraform Init & Apply
+      - name: ⚙️ Configurar Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.0
 
-    - name: 📖 Ler status JSON do Setup AWS
-      if: github.event_name == 'workflow_run' && steps.check_file.outputs.file_exists == 'true'
-      id: read_status
-      run: |
-        echo "📄 Conteúdo do arquivo de status:"
-        cat ./apply_status.txt
-        APPLY_STATUS=$(jq -r '.apply' ./apply_status.txt)
-        echo "apply_status=$APPLY_STATUS" >> $GITHUB_OUTPUT
-        echo "🔍 apply_status = $APPLY_STATUS"
+      - name: 🧱 Terraform Init
+        run: terraform init
+        working-directory: ${{ env.TF_WORKING_DIR }}
 
-    - name: 🛑 Parar se o Apply não foi sucesso
-      if: github.event_name == 'workflow_run' && steps.read_status.outputs.apply_status != 'success'
-      run: |
-        echo "✅ Setup anterior não foi um Apply 'success' (Status: ${{ steps.read_status.outputs.apply_status }}). Ignorando o deploy."
-
-
-    # 🔑 Login no Amazon ECR
-    - name: 🔑 Login no Amazon ECR
-      if: >
-        github.event_name != 'workflow_run' ||
-        (github.event_name == 'workflow_run' && steps.read_status.outputs.apply_status == 'success')
-
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v2
-
-    # 🏷️ Definir variáveis da imagem
-    - name: 🏷️ Definir Variáveis de Imagem
-      if: >
-        github.event_name != 'workflow_run' ||
-        (github.event_name == 'workflow_run' && steps.read_status.outputs.apply_status == 'success')
-
-      id: vars
-      run: |
-        IMAGE_TAG=$(echo ${{ github.sha }} | cut -c1-7)
-        echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
-        ECR_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}
-        echo "ECR_URI=$ECR_URI" >> $GITHUB_OUTPUT
-        echo "Tag definida: $IMAGE_TAG"
-        echo "ECR URI: $ECR_URI"
-
-    # 🐳 Build & Push
-    - name: 🐳 Build, Tag e Push da Imagem
-      if: >
-        github.event_name != 'workflow_run' ||
-        (github.event_name == 'workflow_run' && steps.read_status.outputs.apply_status == 'success')
-      run: |
-        docker build -t ${{ steps.vars.outputs.ECR_URI }}:${{ steps.vars.outputs.IMAGE_TAG }} ./crypto-api
-        docker tag ${{ steps.vars.outputs.ECR_URI }}:${{ steps.vars.outputs.IMAGE_TAG }} ${{ steps.vars.outputs.ECR_URI }}:latest
-        docker push ${{ steps.vars.outputs.ECR_URI }}:${{ steps.vars.outputs.IMAGE_TAG }}
-        docker push ${{ steps.vars.outputs.ECR_URI }}:latest
-
-    # ⚙️ Terraform Init & Apply
-    - name: ⚙️ Configurar Terraform
-      if: >
-        github.event_name != 'workflow_run' ||
-        (github.event_name == 'workflow_run' && steps.read_status.outputs.apply_status == 'success')
-
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: 1.5.0
-
-    - name: 🧱 Terraform Init
-      if: >
-        github.event_name != 'workflow_run' ||
-        (github.event_name == 'workflow_run' && steps.read_status.outputs.apply_status == 'success')
-      run: terraform init
-      working-directory: ${{ env.TF_WORKING_DIR }}
-
-    - name: 🚀 Terraform Apply (Deploy)
-      if: >
-        github.event_name != 'workflow_run' ||
-        (github.event_name == 'workflow_run' && steps.read_status.outputs.apply_status == 'success')
-      run: terraform apply -auto-approve -var="image_tag=${{ steps.vars.outputs.IMAGE_TAG }}"
-      working-directory: ${{ env.TF_WORKING_DIR }}
+      - name: 🚀 Terraform Apply (Deploy)
+        run: terraform apply -auto-approve -var="image_tag=${{ steps.vars.outputs.IMAGE_TAG }}"
+        working-directory: ${{ env.TF_WORKING_DIR }}
