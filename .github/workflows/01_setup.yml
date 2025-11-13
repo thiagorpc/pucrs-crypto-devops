@@ -68,3 +68,13 @@ jobs:
         if: ${{ github.event.inputs.terraform_action == 'apply' }}
         id: apply_status
         run: echo "apply_done=true" >> $GITHUB_OUTPUT
+
+      - name: 🧾 Gerar sinalizador de apply concluído
+        if: ${{ success() }}
+        run: echo "apply_done=true" > apply_status.txt
+
+      - name: 📤 Upload do artifact de estado
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-apply-status
+          path: apply_status.txt

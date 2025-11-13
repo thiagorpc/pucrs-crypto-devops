@@ -24,9 +24,29 @@ jobs:
     # 🚦 Só executa se:
     # - Foi um push normal (github.event_name != workflow_run)
     # - OU o setup.yml terminou com sucesso E apply_done == true
-    if: ${{ github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.outputs.apply_done == 'true') }}
+   
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
+      - name: 📥 Download do artifact do setup
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-apply-status
+          path: ./status
+
+      - name: 🔍 Verificar se apply foi concluído
+        id: check
+        run: |
+          if grep -q "apply_done=true" ./status/apply_status.txt; then
+            echo "apply_done=true" >> $GITHUB_ENV
+          else
+            echo "apply_done=false" >> $GITHUB_ENV
+          fi
+
+      - name: 🛑 Parar se apply não foi concluído
+        if: env.apply_done != 'true'
+        run: echo "Terraform apply não concluído, abortando pipeline." && exit 1
+        
       - name: 📦 Checkout Code
         uses: actions/checkout@v4
 
