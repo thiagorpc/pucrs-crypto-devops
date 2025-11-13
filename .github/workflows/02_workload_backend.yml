@@ -1,20 +1,17 @@
 name: 2. Workflow Backend
 
 on:
-  # 🔹 Dispara automaticamente quando houver push na pasta crypto-api
   push:
     branches:
       - main
     paths:
       - "crypto-api/**"
 
-  # 🔹 Dispara automaticamente quando o workflow Setup AWS for concluído
   workflow_run:
     workflows: ["1. Setup Infra AWS"]
     types:
       - completed
 
-  # 🔹 Permite execução manual via GitHub UI
   workflow_dispatch:
 
 env:
@@ -26,7 +23,6 @@ jobs:
   deploy_api:
     name: 🚀 Build, Push & Deploy Backend Task
     runs-on: ubuntu-latest
-    # ✅ Executa somente se for push, execução manual ou se o Setup AWS finalizou com sucesso
     if: >
       github.event_name == 'push' ||
       github.event_name == 'workflow_dispatch' ||
@@ -43,29 +39,54 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
 
-    # 📥 (opcional) Tenta baixar o status do setup se disponível
+    # 📥 Tenta baixar o status do Setup AWS (se existir)
     - name: 📥 Baixar status do Setup AWS (se existir)
+      id: download_status
       continue-on-error: true
       uses: actions/download-artifact@v4
       with:
         name: terraform-apply-status
         path: ./status
 
+    # ✅ Verifica se o arquivo foi baixado com sucesso
+    - name: 🧩 Verificar existência do arquivo de status
+      id: check_file
+      run: |
+        if [ ! -f "./status/apply_status.txt" ]; then
+          echo "file_exists=false" >> $GITHUB_OUTPUT
+        else
+          echo "file_exists=true" >> $GITHUB_OUTPUT
+        fi
+
+    # 🚫 Interrompe se o workflow depende do Setup AWS e o arquivo não existe
+    - name: 🛑 Parar se não há status válido
+      if: github.event_name == 'workflow_run' && steps.check_file.outputs.file_exists == 'false'
+      run: |
+        echo "❌ Arquivo de status não encontrado. Provavelmente o Terraform não foi aplicado com sucesso."
+        echo "Abortando execução."
+        exit 1
+
+    # 📖 Ler conteúdo do arquivo se ele existir
     - name: 📖 Ler status JSON
       id: read_status
-      if: hashFiles('./status/apply_status.txt') != ''
+      if: steps.check_file.outputs.file_exists == 'true'
       run: |
         content=$(cat ./status/apply_status.txt)
         echo "apply_status=$content" >> $GITHUB_OUTPUT
 
-    - name: 🛑 Parar se apply não foi concluído
-      if: steps.read_status.outputs.apply_status != '' && !contains(steps.read_status.outputs.apply_status, '"success"')
-      run: echo "Terraform apply não concluído com sucesso. Abortando pipeline." && exit 1
+    # 🛑 Parar se apply não foi concluído com sucesso
+    - name: 🛑 Parar se o apply não foi sucesso
+      if: github.event_name == 'workflow_run' && (steps.read_status.outputs.apply_status != '' && !contains(steps.read_status.outputs.apply_status, '"success"'))
+      run: |
+        echo "❌ Terraform apply não foi concluído com sucesso. Abortando pipeline."
+        exit 1
 
+    # 🔑 Login no Amazon ECR
     - name: 🔑 Login no Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
 
+    # 🏷️ Definir variáveis da imagem
     - name: 🏷️ Definir Variáveis de Imagem
       id: vars
       run: |
@@ -73,9 +94,8 @@ jobs:
         echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
         ECR_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}
         echo "ECR_URI=$ECR_URI" >> $GITHUB_OUTPUT
-        echo "Tag e URI definidos:"
-        echo "  IMAGE_TAG=$IMAGE_TAG"
-        echo "  ECR_URI=$ECR_URI"
+
+    # 🐳 Build & Push
     - name: 🐳 Build, Tag e Push da Imagem
       run: |
         docker build -t ${{ steps.vars.outputs.ECR_URI }}:${{ steps.vars.outputs.IMAGE_TAG }} ./crypto-api
@@ -83,6 +103,7 @@ jobs:
         docker push ${{ steps.vars.outputs.ECR_URI }}:${{ steps.vars.outputs.IMAGE_TAG }}
         docker push ${{ steps.vars.outputs.ECR_URI }}:latest
 
+    # ⚙️ Terraform Init & Apply
     - name: ⚙️ Configurar Terraform
       uses: hashicorp/setup-terraform@v3
       with:
