@@ -23,14 +23,66 @@ env:
   NLB_NAME: pucrs-crypto-api-nlb
   APIGW_NAME: pucrs-crypto-api-gateway
 
+# ===================================================================
+# 🧩 JOB 1: Pré-verificação de Deploy
+# ===================================================================
 jobs:
+  precheck:
+    name: 🧩 Verificar Condições de Deploy
+    runs-on: ubuntu-latest
+    outputs:
+      deploy_allowed: ${{ steps.deploy_check.outputs.deploy_allowed }}
+    steps:
+      - name: 📦 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Instalar jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      # 🔹 Apenas se o evento for workflow_run
+      - name: ⬇️ Baixar Artefato do Setup AWS
+        if: github.event_name == 'workflow_run'
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          workflow: 01_setup.yml
+          name: terraform-apply-status
+          path: .
+          check_artifacts: true
+
+      - name: 🧩 Validar status e definir variável
+        id: deploy_check
+        run: |
+          if [[ "${GITHUB_EVENT_NAME}" != "workflow_run" ]]; then
+            echo "deploy_allowed=true" >> $GITHUB_OUTPUT
+            echo "🟢 Evento direto (push/manual). Deploy permitido."
+            exit 0
+          fi
+
+          if [ ! -f "./apply_status.txt" ]; then
+            echo "deploy_allowed=false" >> $GITHUB_OUTPUT
+            echo "❌ Arquivo de status não encontrado. Ignorando deploy."
+            exit 0
+          fi
+
+          APPLY_STATUS=$(jq -r '.apply' ./apply_status.txt)
+          echo "🔍 apply_status = $APPLY_STATUS"
+
+          if [[ "$APPLY_STATUS" == "success" ]]; then
+            echo "deploy_allowed=true" >> $GITHUB_OUTPUT
+            echo "✅ Setup anterior bem-sucedido. Deploy permitido."
+          else
+            echo "deploy_allowed=false" >> $GITHUB_OUTPUT
+            echo "⚠️ Setup anterior falhou. Deploy cancelado."
+          fi
+
+# ===================================================================
+# 🚀 JOB 2: Build e Deploy do Frontend
+# ===================================================================
   deploy_ui:
     name: 🌐 Build & Deploy Frontend
     runs-on: ubuntu-latest
-    if: >
-      github.event_name == 'push' ||
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    needs: precheck
+    if: needs.precheck.outputs.deploy_allowed == 'true'
 
     steps:
       - name: 📦 Checkout Code
@@ -43,60 +95,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # -------------------------------------------------------------------
-      # 🧩 Somente roda se o evento for "workflow_run"
-      # -------------------------------------------------------------------
-      - name: ⬇️ Baixar o Artefato da Última Execução do Setup.yml
-        if: github.event_name == 'workflow_run'
-        uses: dawidd6/action-download-artifact@v3
-        with:
-          workflow: 01_setup.yml
-          name: terraform-apply-status
-          path: .
-          check_artifacts: true
-        
-      - name: 🧩 Verificar existência do arquivo de status
-        if: github.event_name == 'workflow_run'
-        id: check_file
-        run: |
-          if [ ! -f "./apply_status.txt" ]; then
-            echo "file_exists=false" >> $GITHUB_OUTPUT
-            echo "⚠️ Arquivo de status não encontrado."
-          else
-            echo "file_exists=true" >> $GITHUB_OUTPUT
-            echo "✅ Arquivo de status encontrado."
-          fi
+      # ===============================================================
+      # 🌍 Obter Endpoints da Infra (NLB e API Gateway)
+      # ===============================================================
 
-      - name: 🛑 Parar se não há status válido
-        if: github.event_name == 'workflow_run' && steps.check_file.outputs.file_exists == 'false'
-        run: |
-          echo "❌ Arquivo de status não encontrado. Provavelmente o Terraform Apply não foi executado."
-          exit 1
-
-      - name: 🧰 Garantir jq instalado
-        if: github.event_name == 'workflow_run'
-        run: sudo apt-get install -y jq
-
-      - name: 📖 Ler status JSON do Setup AWS
-        if: github.event_name == 'workflow_run' && steps.check_file.outputs.file_exists == 'true'
-        id: read_status
-        run: |
-          echo "📄 Conteúdo do arquivo de status:"
-          cat ./apply_status.txt
-          APPLY_STATUS=$(jq -r '.apply' ./apply_status.txt)
-          echo "apply_status=$APPLY_STATUS" >> $GITHUB_OUTPUT
-          echo "🔍 apply_status = $APPLY_STATUS"
-
-      - name: 🛑 Parar se o Apply não foi sucesso
-        if: github.event_name == 'workflow_run' && steps.read_status.outputs.apply_status != 'success'
-        run: |
-          echo "❌ O último Terraform Apply não foi concluído com sucesso."
-          exit 1
-      # -------------------------------------------------------------------
-      
-        
-      
-        # 🌍 Obter DNS do NLB
       - name: 🎯 Obter DNS do NLB
         id: get_nlb_dns
         run: |
@@ -105,72 +107,67 @@ jobs:
             --region ${{ env.AWS_REGION }} \
             --query "LoadBalancers[0].DNSName" \
             --output text)
+
           if [ -z "$NLB_DNS_NAME" ]; then
             echo "Erro: Não foi possível encontrar o DNS para o NLB ${{ env.NLB_NAME }}."
             exit 1
           fi
+
           echo "API_URL_NLB=https://$NLB_DNS_NAME" >> $GITHUB_ENV
-          echo "✅ DNS do NLB obtido: https://$NLB_DNS_NAME"
+          echo "✅ NLB DNS: https://$NLB_DNS_NAME"
 
       - name: 🎯 Obter DNS do API Gateway
         id: get_api_gateway_dns
         run: |
-          # 1. Obter o ID do API Gateway (necessário, pois o nome não é um parâmetro direto)
           APIGW_ID=$(aws apigateway get-rest-apis \
             --region ${{ env.AWS_REGION }} \
             --query "items[?name=='${{ env.APIGW_NAME }}'].id" \
             --output text)
-        
+
           if [ -z "$APIGW_ID" ]; then
             echo "Erro: Não foi possível encontrar o ID para o API Gateway ${{ env.APIGW_NAME }}."
             exit 1
           fi
-          
-          # 2. Construir o DNS base (formato padrão do API Gateway)
-          # A URL do API Gateway é: https://<id>.execute-api.<região>.amazonaws.com/<stage>
-          APIGW_STAGE="prod"
-          
-          APIGW_DNS_NAME="${APIGW_ID}.execute-api.${{ env.AWS_REGION }}.amazonaws.com/${APIGW_STAGE}"
-          
-          # 3. Exportar a variável
-          echo "API_URL=https://$APIGW_DNS_NAME" >> $GITHUB_ENV
-          echo "✅ DNS do API Gateway obtido: https://$APIGW_DNS_NAME"
-          
 
-      # ⚙️ Instalar dependências e buildar
+          APIGW_STAGE="prod"
+          APIGW_DNS_NAME="${APIGW_ID}.execute-api.${{ env.AWS_REGION }}.amazonaws.com/${APIGW_STAGE}"
+          echo "API_URL=https://$APIGW_DNS_NAME" >> $GITHUB_ENV
+          echo "✅ API Gateway DNS: https://$APIGW_DNS_NAME"
+
+      # ===============================================================
+      # ⚙️ Build do Frontend
+      # ===============================================================
+
       - name: 📦 Instalar Dependências
         working-directory: ./crypto-ui
-        run: npm install
+        run: npm ci
 
-      - name: 🧱 Build do Projeto React/UI
-        working-directory: ./crypto-ui   
+      - name: 🧱 Build do Projeto (React/Vite)
+        working-directory: ./crypto-ui
         run: VITE_API_URL=${{ env.API_URL_NLB }} npm run build
 
-      # ☁️ Enviar build para o S3
-      - name: ☁️ Sync Build com S3 Bucket
+      # ===============================================================
+      # ☁️ Deploy no S3
+      # ===============================================================
+
+      - name: ☁️ Upload Build para o S3
         working-directory: ./crypto-ui
         run: |
           aws s3 sync dist s3://${{ env.S3_BUCKET_UI }} --delete --cache-control max-age=300
+          echo "✅ Build sincronizado com o bucket: ${{ env.S3_BUCKET_UI }}"
 
-      - name: 🌐 Exibir URL do Site Estático no S3
+      - name: 🌐 Exibir URL do Site Estático
         run: |
-          echo "🔍 Verificando configuração de site estático para o bucket: ${{ env.S3_BUCKET_UI }}"
-
-          # Obtém a configuração de hospedagem de site do bucket
           HOSTING_CONFIG=$(aws s3api get-bucket-website --bucket ${{ env.S3_BUCKET_UI }} 2>/dev/null || true)
 
           if [ -n "$HOSTING_CONFIG" ]; then
-            # URL pública do modo website
             WEBSITE_URL="http://${{ env.S3_BUCKET_UI }}.s3-website-${{ env.AWS_REGION }}.amazonaws.com"
             echo "✅ Site estático habilitado!"
-            echo "🌎 Acesse em: $WEBSITE_URL"
+            echo "🌎 URL: $WEBSITE_URL"
             echo "URL=$WEBSITE_URL" >> $GITHUB_OUTPUT
           else
-            # Caso o bucket NÃO tenha website hosting habilitado
             OBJECT_URL="https://${{ env.S3_BUCKET_UI }}.s3.${{ env.AWS_REGION }}.amazonaws.com/index.html"
-            echo "⚠️ O bucket não está configurado como site estático."
-            echo "Você ainda pode acessar o arquivo diretamente:"
-            echo "🔗 $OBJECT_URL"
+            echo "⚠️ O bucket não possui website hosting habilitado."
+            echo "🔗 Acesse: $OBJECT_URL"
             echo "URL=$OBJECT_URL" >> $GITHUB_OUTPUT
           fi
-
