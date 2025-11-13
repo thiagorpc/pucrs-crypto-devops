@@ -42,42 +42,20 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
 
+    # -------------------------------------------------------------------
+    # 🧩 Somente roda se o evento for "workflow_run"
+    # -------------------------------------------------------------------
     - name: ⬇️ Baixar o Artefato da Última Execução do Setup.yml
+      if: github.event_name == 'workflow_run'
       uses: dawidd6/action-download-artifact@v3
       with:
-        # O nome do workflow que gerou o artefato (sem o caminho .github/workflows/)
         workflow: 01_setup.yml
-        # O nome do artefato definido no setup.yml
         name: terraform-apply-status
-        # O arquivo será baixado para ./dados-do-setup/versao.txt
         path: .
-        # Baixar da execução mais recente e bem-sucedida
         check_artifacts: true
 
-    - name: 🧐 Usar o Conteúdo do Arquivo
-      run: |
-        VERSION=$(cat ${{ github.workspace }}/apply_status.txt)
-        echo "A versão lida do setup.yml é: $VERSION"
-        # O resto do seu código de atualização
-
-    # ✅ Verifica se o arquivo foi baixado com sucesso
     - name: 🧩 Verificar existência do arquivo de status
-      id: check_echo
-      run: |
-          echo "FFFF:" ${{ github.event.workflow_run.id }}
-
-    # 📥 Tenta baixar o status do Setup AWS (se existir)
-    - name: 📥 Baixar status do Setup AWS (se existir)
-      id: download_status
-      continue-on-error: true
-      uses: actions/download-artifact@v4
-      with:
-        name: terraform-apply-status
-        run-id: ${{ github.event.workflow_run.id }}
-        path: ./
-
-    # ✅ Verifica se o arquivo foi baixado com sucesso
-    - name: 🧩 Verificar existência do arquivo de status
+      if: github.event_name == 'workflow_run'
       id: check_file
       run: |
         if [ ! -f "./apply_status.txt" ]; then
@@ -88,33 +66,32 @@ jobs:
           echo "✅ Arquivo de status encontrado."
         fi
 
-    # 🚫 Interrompe se o workflow depende do Setup AWS e o arquivo não existe
     - name: 🛑 Parar se não há status válido
       if: github.event_name == 'workflow_run' && steps.check_file.outputs.file_exists == 'false'
       run: |
         echo "❌ Arquivo de status não encontrado. Provavelmente o Terraform Apply não foi executado."
         exit 1
 
-    # 📖 Ler conteúdo JSON e validar o campo "apply"
+    - name: 🧰 Garantir jq instalado
+      if: github.event_name == 'workflow_run'
+      run: sudo apt-get install -y jq
+
     - name: 📖 Ler status JSON do Setup AWS
+      if: github.event_name == 'workflow_run' && steps.check_file.outputs.file_exists == 'true'
       id: read_status
-      if: steps.check_file.outputs.file_exists == 'true'
       run: |
         echo "📄 Conteúdo do arquivo de status:"
         cat ./apply_status.txt
-
-        # Extrai o valor do campo "apply" do JSON
         APPLY_STATUS=$(jq -r '.apply' ./apply_status.txt)
-
         echo "apply_status=$APPLY_STATUS" >> $GITHUB_OUTPUT
         echo "🔍 apply_status = $APPLY_STATUS"
 
-    # 🛑 Parar se o Apply não foi sucesso
     - name: 🛑 Parar se o Apply não foi sucesso
       if: github.event_name == 'workflow_run' && steps.read_status.outputs.apply_status != 'success'
       run: |
         echo "❌ O último Terraform Apply não foi concluído com sucesso."
         exit 1
+    # -------------------------------------------------------------------
 
     # 🔑 Login no Amazon ECR
     - name: 🔑 Login no Amazon ECR
