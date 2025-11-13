@@ -65,7 +65,7 @@ jobs:
         id: apply_status
         if: ${{ always() }}
         run: |
-          STATUS="failure"
+          STATUS="no"
           if [ "${{ github.event.inputs.terraform_action }}" == "apply" ] && [ "${{ job.status }}" == "success" ]; then
             STATUS="success"
           fi
@@ -76,8 +76,8 @@ jobs:
           echo apply:${STATUS}
           cat apply_status.txt
 
-
       - name: 📤 Upload do artifact
+        if: ${{ hashFiles('apply_status.txt') != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: terraform-apply-status
