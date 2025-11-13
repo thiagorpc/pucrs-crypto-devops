@@ -88,7 +88,7 @@ variable "image_tag" {
 //variable "secrets_encryption_key" {
 //  description = "Variavel Encription KEY na AWS."
 //  type        = string
-//  default     = "arn:aws:secretsmanager:us-east-1:202533542500:secret:crypto-api/encryption-key-kGeYT2*"
+//  default     = "arn:aws:secretsmanager:us-east-1:202533542500:secret:pucrs-crypto-api/encryption-key-X6j4JI"
 //}
 
 variable "secrets_encryption_key" {

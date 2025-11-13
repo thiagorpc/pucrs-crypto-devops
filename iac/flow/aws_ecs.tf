@@ -95,15 +95,15 @@ resource "aws_iam_policy" "terraform_secrets_read" {
   name        = "TerraformSecretsReadPolicy"
   description = "Permite ao Terraform ler o secret da crypto-api"
   policy = jsonencode({
-    Version = "2012-10-17"
+    Version = "2012-10-17",
     Statement = [
       {
-        Effect = "Allow"
+        Effect = "Allow",
         Action = [
           "secretsmanager:DescribeSecret",
           "secretsmanager:GetSecretValue"
-        ]
-        Resource = "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:pucrs-crypto-api/encryption-key*"
+        ],
+        Resource = "arn:aws:secretsmanager:us-east-1:202533542500:secret:pucrs-crypto-api/encryption-key-X6j4JI"
       }
     ]
   })
