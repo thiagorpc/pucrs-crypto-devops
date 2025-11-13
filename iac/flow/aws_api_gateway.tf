@@ -6,6 +6,11 @@
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
+//locals {
+//  # O endpoint do S3-Website omite o protocolo. Incluímos 'http://' aqui.
+//  frontend_origin_url = "http://${aws_s3_bucket_website_configuration.frontend_website.website_endpoint}"
+//}
+
 # 1️⃣ API Base
 resource "aws_api_gateway_rest_api" "project_api_gateway" {
   name        = "${var.project_name}-api-gateway"
@@ -147,26 +152,28 @@ resource "aws_api_gateway_method_settings" "proxy_method_settings" {
 
 
 # 1. Criação do Método OPTIONS (Pré-voo CORS)
-resource "aws_api_gateway_method" "options_health" {
-  rest_api_id   = aws_api_gateway_rest_api.main.id # Substitua pela sua referência de API
-  resource_id   = aws_api_gateway_resource.health.id # Sua referência do recurso /health
+resource "aws_api_gateway_method" "options_proxy" { # 💡 Renomeado para 'proxy'
+  # CORREÇÃO: Usando a referência correta da sua API
+  rest_api_id   = aws_api_gateway_rest_api.project_api_gateway.id 
+  # CORREÇÃO: Usando o recurso proxy, que captura todas as rotas
+  resource_id   = aws_api_gateway_resource.proxy.id 
   http_method   = "OPTIONS"
   authorization = "NONE"
 }
 
 # 2. Resposta da Integração (Mock)
-resource "aws_api_gateway_integration" "options_health_integration" {
-  rest_api_id = aws_api_gateway_rest_api.main.id
-  resource_id = aws_api_gateway_resource.health.id
-  http_method = aws_api_gateway_method.options_health.http_method
-  type        = "MOCK" # MOCK é padrão para OPTIONS
+resource "aws_api_gateway_integration" "options_proxy_integration" { # 💡 Renomeado
+  rest_api_id = aws_api_gateway_rest_api.project_api_gateway.id
+  resource_id = aws_api_gateway_resource.proxy.id
+  http_method = aws_api_gateway_method.options_proxy.http_method
+  type        = "MOCK"
 }
 
 # 3. Resposta do Método (Define os cabeçalhos CORS)
-resource "aws_api_gateway_method_response" "options_health_response" {
-  rest_api_id = aws_api_gateway_rest_api.main.id
-  resource_id = aws_api_gateway_resource.health.id
-  http_method = aws_api_gateway_method.options_health.http_method
+resource "aws_api_gateway_method_response" "options_proxy_response" { # 💡 Renomeado
+  rest_api_id = aws_api_gateway_rest_api.project_api_gateway.id
+  resource_id = aws_api_gateway_resource.proxy.id
+  http_method = aws_api_gateway_method.options_proxy.http_method
   status_code = "200"
 
   response_models = {
@@ -181,23 +188,26 @@ resource "aws_api_gateway_method_response" "options_health_response" {
 }
 
 # 4. Resposta da Integração (Mapeamento dos valores dos cabeçalhos)
-resource "aws_api_gateway_integration_response" "options_health_integration_response" {
-  rest_api_id = aws_api_gateway_rest_api.main.id
-  resource_id = aws_api_gateway_resource.health.id
-  http_method = aws_api_gateway_method.options_health.http_method
-  status_code = aws_api_gateway_method_response.options_health_response.status_code
+resource "aws_api_gateway_integration_response" "options_proxy_integration_response" { # 💡 Renomeado
+  rest_api_id = aws_api_gateway_rest_api.project_api_gateway.id
+  resource_id = aws_api_gateway_resource.proxy.id
+  http_method = aws_api_gateway_method.options_proxy.http_method
+  status_code = aws_api_gateway_method_response.options_proxy_response.status_code
 
   response_templates = {
     "application/json" = ""
   }
 
   response_parameters = {
-    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,OPTIONS'", # Métodos que você permite
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,OPTIONS,ANY'", 
     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    # A origem exata do seu frontend (DEVE ser string literal entre aspas simples)
-    "method.response.header.Access-Control-Allow-Origin"  = aws_s3_bucket_website_configuration.frontend_website.website_endpoint
+    
+    # 🟢 CORREÇÃO DA SINTAXE E REFERÊNCIA DINÂMICA
+    # O valor final deve ser uma string literal ('...') que contém a URL do frontend.
+    "method.response.header.Access-Control-Allow-Origin"  = "'${aws_s3_bucket_website_configuration.frontend_website.website_endpoint}'"
+    
+    //"'${local.frontend_origin_url}'" 
   }
 
-  depends_on = [aws_api_gateway_method_response.options_health_response]
+  depends_on = [aws_api_gateway_method_response.options_proxy_response]
 }
-
