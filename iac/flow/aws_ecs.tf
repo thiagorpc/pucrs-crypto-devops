@@ -231,19 +231,3 @@ resource "aws_ecr_lifecycle_policy" "api_cleanup" {
     ]
   })
 }
-
-# ====================================================================================
-# Endpoint para comunicação com o AWS SECREET MANAGER
-# ====================================================================================
-resource "aws_vpc_endpoint" "secrets_manager" {
-  vpc_id             = aws_vpc.vpc.id
-  service_name       = "com.amazonaws.${var.aws_region}.secretsmanager"
-  vpc_endpoint_type  = "Interface"
-  subnet_ids         = aws_subnet.private_subnets[*].id
-  security_group_ids = [aws_security_group.vpc_endpoints.id]
-
-  private_dns_enabled = true
-  tags = {
-    Name = "${var.project_name}-secretsmanager-endpoint"
-  }
-}
