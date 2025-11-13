@@ -111,6 +111,7 @@ jobs:
           echo "ECR_URI=$ECR_URI" >> $GITHUB_OUTPUT
           echo "🔖 Tag: $IMAGE_TAG"
           echo "🏗️  ECR URI: $ECR_URI"
+      
 
       # 🐳 Build e Push
       - name: 🐳 Build, Tag e Push da Imagem

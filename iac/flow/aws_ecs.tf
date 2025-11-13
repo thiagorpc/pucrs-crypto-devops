@@ -215,7 +215,9 @@ resource "aws_ecs_task_definition" "task" {
       { name = "PORT", value = "${var.container_port}" },
       { name = "HOST", value = var.container_host },
       { name = "TZ", value = var.container_TZ },
-      { name = "IMAGE_BUCKET_NAME", value = aws_s3_bucket.images.bucket }
+      { name = "IMAGE_BUCKET_NAME", value = aws_s3_bucket.images.bucket },
+      { name = "CORS_ORIGIN", value = aws_api_gateway }
+
     ]
   }])
 }

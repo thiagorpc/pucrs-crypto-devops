@@ -10,17 +10,11 @@ async function bootstrap() {
   const port = configService.get<number>('PORT', 3000);
   const host = configService.get<string>('HOST', 'localhost');
 
-  const corsOriginsString = [
-    'http://localhost:5173',
-    'https://crypto-api-nlb-1701207900.us-east-1.elb.amazonaws.com/health',
-    'http://crypto-api-nlb-1701207900.us-east-1.elb.amazonaws.com/health',
-    'https://pucrs-crypto-ui.s3.us-east-1.amazonaws.com/',
-    'http://pucrs-crypto-ui.s3.us-east-1.amazonaws.com/',
-  ];
+  const allowedOrigins = configService.get<string>('CORS_ORIGIN', 'http://localhost:5173').split(",") || [];
 
   // Habilita CORS
   app.enableCors({
-    origin: [corsOriginsString],
+    origin: [allowedOrigins],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
