@@ -23,48 +23,16 @@ env:
   TF_WORKING_DIR: ./iac/flow
 
 jobs:
-  debug_context:
-    name: 🪵 Debug Variables
-    runs-on: ubuntu-latest
-    steps:
-      - name: 📋 Dump Contexts
-        run: |
-          echo "=== EVENT NAME ==="
-          echo "${{ github.event_name }}"
-          echo ""
-          echo "=== WORKFLOW RUN CONTEXT ==="
-          echo "workflow_run: ${{ toJson(github.event.workflow_run) }}"
-          echo ""
-          echo "=== WORKFLOW CONCLUSION ==="
-          echo "${{ github.event.workflow_run.conclusion || 'N/A' }}"
-          echo ""
-          echo "=== WORKFLOW NAME ==="
-          echo "${{ github.event.workflow_run.name || 'N/A' }}"
-          echo ""
-          echo "=== REPOSITORY ==="
-          echo "${{ github.repository }}"
-          echo ""
-          echo "=== REF ==="
-          echo "${{ github.ref }}"
-          echo ""
-          echo "=== HEAD COMMIT ==="
-          echo "${{ github.event.head_commit.id || 'N/A' }}"
-          echo ""
-          echo "=== FULL EVENT ==="
-          echo '${{ toJson(github.event) }}'
-
   deploy_api:
-    name: 🚀 Build, Push & Deploy ECS Task
+    name: 🚀 Build, Push & Deploy Backend Task
     runs-on: ubuntu-latest
     needs: debug_context
-
-    # ✅ Executa somente se for push, execução manual ou se o Setup AWS finalizou com sucesso
+   # ✅ Executa somente se for push, execução manual ou se o Setup AWS finalizou com sucesso
     if: >
       github.event_name == 'push' ||
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
-
-    steps:
+   steps:
       - name: 📦 Checkout Code
         uses: actions/checkout@v4
 
@@ -74,7 +42,8 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
-
+     
+      
       # 📥 (opcional) Tenta baixar o status do setup se disponível
       - name: 📥 Baixar status do Setup AWS (se existir)
         continue-on-error: true
@@ -82,7 +51,7 @@ jobs:
         with:
           name: terraform-apply-status
           path: ./status
-      
+        
       - name: 📖 Ler status JSON
         id: read_status
         if: hashFiles('./status/apply_status.txt') != ''
@@ -93,7 +62,7 @@ jobs:
       - name: 🛑 Parar se apply não foi concluído
         if: steps.read_status.outputs.apply_status != '' && !contains(steps.read_status.outputs.apply_status, '"success"')
         run: echo "Terraform apply não concluído com sucesso. Abortando pipeline." && exit 1
-
+      
       - name: 🔑 Login no Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
@@ -101,25 +70,24 @@ jobs:
       - name: 🏷️ Definir Variáveis de Imagem
         id: vars
         run: |
-          IMAGE_TAG=$(echo ${{ github.sha }} | cut -c1-7)
-          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
-          ECR_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}
-          echo "ECR_URI=$ECR_URI" >> $GITHUB_OUTPUT
-          echo "Tag e URI definidos:"
-          echo "  IMAGE_TAG=$IMAGE_TAG"
-          echo "  ECR_URI=$ECR_URI"
-
+           IMAGE_TAG=$(echo ${{ github.sha }} | cut -c1-7)
+           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
+           ECR_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}
+           echo "ECR_URI=$ECR_URI" >> $GITHUB_OUTPUT
+           echo "Tag e URI definidos:"
+           echo "  IMAGE_TAG=$IMAGE_TAG"
+           echo "  ECR_URI=$ECR_URI"
       - name: 🐳 Build, Tag e Push da Imagem
         run: |
-          docker build -t ${{ steps.vars.outputs.ECR_URI }}:${{ steps.vars.outputs.IMAGE_TAG }} ./crypto-api
-          docker tag ${{ steps.vars.outputs.ECR_URI }}:${{ steps.vars.outputs.IMAGE_TAG }} ${{ steps.vars.outputs.ECR_URI }}:latest
-          docker push ${{ steps.vars.outputs.ECR_URI }}:${{ steps.vars.outputs.IMAGE_TAG }}
-          docker push ${{ steps.vars.outputs.ECR_URI }}:latest
-
+           docker build -t ${{ steps.vars.outputs.ECR_URI }}:${{ steps.vars.outputs.IMAGE_TAG }} ./crypto-api
+           docker tag ${{ steps.vars.outputs.ECR_URI }}:${{ steps.vars.outputs.IMAGE_TAG }} ${{ steps.vars.outputs.ECR_URI }}:latest
+           docker push ${{ steps.vars.outputs.ECR_URI }}:${{ steps.vars.outputs.IMAGE_TAG }}
+           docker push ${{ steps.vars.outputs.ECR_URI }}:latest
+           
       - name: ⚙️ Configurar Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.5.0
+           terraform_version: 1.5.0
 
       - name: 🧱 Terraform Init
         run: terraform init
