@@ -216,7 +216,7 @@ resource "aws_ecs_task_definition" "task" {
       { name = "HOST", value = var.container_host },
       { name = "TZ", value = var.container_TZ },
       { name = "IMAGE_BUCKET_NAME", value = aws_s3_bucket.images.bucket },
-      { name = "CORS_ORIGIN", value = "'http://pucrs-crypto-frontend.s3-website-us-east-1.amazonaws.com'" }
+      { name = "CORS_ORIGIN", value = "http://pucrs-crypto-frontend.s3-website-us-east-1.amazonaws.com" }
       #aws_api_gateway_stage.prod_stage.invoke_url
 
     ]
