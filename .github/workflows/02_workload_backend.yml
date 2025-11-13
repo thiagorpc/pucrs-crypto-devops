@@ -8,7 +8,7 @@ on:
       - "crypto-api/**" # Trigger apenas quando há push na pasta da API
 
   workflow_run:
-    workflows: [" 1️⃣ Setup Infra AWS"] # Nome exato do workflow de setup
+    workflows: ["1️⃣ Setup Infra AWS"] # Corrigido nome (sem espaço extra)
     types:
       - completed
 
@@ -18,14 +18,45 @@ env:
   TF_WORKING_DIR: ./iac/flow
 
 jobs:
+  debug_context:
+    name: 🪵 Debug Variables
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📋 Dump Contexts
+        run: |
+          echo "=== EVENT NAME ==="
+          echo "${{ github.event_name }}"
+          echo ""
+          echo "=== WORKFLOW RUN CONTEXT ==="
+          echo "workflow_run: ${{ toJson(github.event.workflow_run) }}"
+          echo ""
+          echo "=== WORKFLOW CONCLUSION ==="
+          echo "${{ github.event.workflow_run.conclusion || 'N/A' }}"
+          echo ""
+          echo "=== WORKFLOW NAME ==="
+          echo "${{ github.event.workflow_run.name || 'N/A' }}"
+          echo ""
+          echo "=== REPOSITORY ==="
+          echo "${{ github.repository }}"
+          echo ""
+          echo "=== REF ==="
+          echo "${{ github.ref }}"
+          echo ""
+          echo "=== HEAD COMMIT ==="
+          echo "${{ github.event.head_commit.id || 'N/A' }}"
+          echo ""
+          echo "=== FULL EVENT ==="
+          echo '${{ toJson(github.event) }}'
+
   deploy_api:
     name: Build, Push & Deploy ECS Task
     runs-on: ubuntu-latest
-    # 🚦 Só executa se:
-    # - Foi um push normal (github.event_name != workflow_run)
-    # - OU o setup.yml terminou com sucesso E apply_done == true
-   
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    needs: debug_context
+
+    # ✅ Só executa se for push OU o workflow anterior concluiu com sucesso
+    if: >
+      github.event_name == 'push' ||
+      (github.event.workflow_run.conclusion == 'success')
 
     steps:
       - name: 📥 Download do artifact do setup
@@ -42,6 +73,7 @@ jobs:
           else
             echo "apply_done=false" >> $GITHUB_ENV
           fi
+          echo "Valor lido de apply_done: $apply_done"
 
       - name: 🛑 Parar se apply não foi concluído
         if: env.apply_done != 'true'
@@ -57,7 +89,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # 1️⃣ Login no ECR e Definição da Tag
       - name: 🔑 Login no Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
@@ -65,15 +96,14 @@ jobs:
       - name: 🏷️ Definir Variáveis de Imagem
         id: vars
         run: |
-          # SHA curto do commit
           IMAGE_TAG=$(echo ${{ github.sha }} | cut -c1-7)
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
-          
-          # URI completo do ECR
           ECR_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}
           echo "ECR_URI=$ECR_URI" >> $GITHUB_OUTPUT
+          echo "Tag e URI definidos:"
+          echo "  IMAGE_TAG=$IMAGE_TAG"
+          echo "  ECR_URI=$ECR_URI"
 
-      # 2️⃣ Build da Imagem e Push para ECR
       - name: 🐳 Build, Tag e Push da Imagem
         run: |
           docker build -t ${{ steps.vars.outputs.ECR_URI }}:${{ steps.vars.outputs.IMAGE_TAG }} ./crypto-api
@@ -81,7 +111,6 @@ jobs:
           docker push ${{ steps.vars.outputs.ECR_URI }}:${{ steps.vars.outputs.IMAGE_TAG }}
           docker push ${{ steps.vars.outputs.ECR_URI }}:latest
 
-      # 3️⃣ Deploy com Terraform
       - name: ⚙️ Configurar Terraform
         uses: hashicorp/setup-terraform@v3
         with:
