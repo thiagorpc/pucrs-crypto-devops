@@ -46,7 +46,7 @@ jobs:
       uses: dawidd6/action-download-artifact@v3
       with:
         # O nome do workflow que gerou o artefato (sem o caminho .github/workflows/)
-        workflow: setup.yml 
+        workflow: 1. Setup Infra AWS
         # O nome do artefato definido no setup.yml
         name: terraform-apply-status
         # O arquivo será baixado para ./dados-do-setup/versao.txt
