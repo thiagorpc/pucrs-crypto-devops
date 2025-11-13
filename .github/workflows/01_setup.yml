@@ -60,7 +60,7 @@ jobs:
         run: terraform apply -auto-approve tfplan
 
       
-        # ✅ Passo único e seguro para criar o arquivo apply_status.txt
+      # ✅ Passo único e seguro para criar o arquivo apply_status.txt
       - name: 🧾 Gerar sinalizador de Apply
         id: apply_status
         if: ${{ always() }}
@@ -85,9 +85,4 @@ jobs:
         with:
           name: terraform-apply-status
           path: ${{ github.workspace }}/apply_status.txt
-
-         # ✅ Verifica se o arquivo foi baixado com sucesso
-      - name: 🧩 Verificar existência do arquivo de status
-        id: check_echo
-        run: |
-          echo "FFFF:" >> ${{ github.event.workflow_run.id }}
+          retention-days: 1

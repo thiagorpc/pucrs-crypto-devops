@@ -42,11 +42,29 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
 
+    - name: ⬇️ Baixar o Artefato da Última Execução do Setup.yml
+      uses: dawidd6/action-download-artifact@v3
+      with:
+        # O nome do workflow que gerou o artefato (sem o caminho .github/workflows/)
+        workflow: setup.yml 
+        # O nome do artefato definido no setup.yml
+        name: terraform-apply-status
+        # O arquivo será baixado para ./dados-do-setup/versao.txt
+        path: .
+        # Baixar da execução mais recente e bem-sucedida
+        check_artifacts: true
+
+    - name: 🧐 Usar o Conteúdo do Arquivo
+      run: |
+        VERSION=$(cat ${{ github.workspace }}/apply_status.txt)
+        echo "A versão lida do setup.yml é: $VERSION"
+        # O resto do seu código de atualização
+
     # ✅ Verifica se o arquivo foi baixado com sucesso
     - name: 🧩 Verificar existência do arquivo de status
       id: check_echo
       run: |
-          echo "FFFF:" >> ${{ github.event.workflow_run.id }}
+          echo "FFFF:" ${{ github.event.workflow_run.id }}
 
     # 📥 Tenta baixar o status do Setup AWS (se existir)
     - name: 📥 Baixar status do Setup AWS (se existir)
