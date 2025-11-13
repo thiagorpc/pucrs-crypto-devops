@@ -49,6 +49,7 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: terraform-apply-status
+        run-id: ${{ github.event.workflow_run.id }}
         path: ./
 
     # ✅ Verifica se o arquivo foi baixado com sucesso
