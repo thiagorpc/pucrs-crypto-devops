@@ -55,14 +55,14 @@ data "aws_iam_policy_document" "ecs_task_assume_role" {
 }
 
 # 1. IAM ROLE: Task Execution Role (Usada pelo agente ECS para pull de imagem, logs e secrets)
-resource "aws_iam_role" "ecs_task_execution_role" {
-  name               = "${var.project_name}-ecs-task-execution-role"
+resource "aws_iam_role" "task_execution_role" {
+  name               = "${var.project_name}-task-execution-role"
   assume_role_policy = data.aws_iam_policy_document.ecs_task_assume_role.json
 }
 
 # Anexa a política gerenciada padrão para Execution Role
 resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy" {
-  role       = aws_iam_role.ecs_task_execution_role.name
+  role       = aws_iam_role.task_execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
@@ -87,7 +87,7 @@ resource "aws_iam_policy" "ecs_secret_access_policy" {
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_secret_access_attach" {
-  role       = aws_iam_role.ecs_task_execution_role.name
+  role       = aws_iam_role.task_execution_role.name
   policy_arn = aws_iam_policy.ecs_secret_access_policy.arn
 }
 
@@ -164,7 +164,7 @@ resource "aws_ecs_task_definition" "task" {
   ]
 
   # Task Execution Role (para logs, secrets, pull de imagem)
-  execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
+  execution_role_arn = aws_iam_role.task_execution_role.arn
   # Task Role (para acesso S3, usada pelo runtime da aplicação)
   task_role_arn = aws_iam_role.task_role.arn
 
