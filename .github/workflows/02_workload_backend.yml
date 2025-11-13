@@ -1,4 +1,4 @@
-name: 2️⃣ Workflow Backend
+name: 2. Workflow Backend
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
       - "crypto-api/**" # Trigger apenas quando há push na pasta da API
 
   workflow_run:
-    workflows: ["1️⃣ Setup Infra AWS"] # Corrigido nome (sem espaço extra)
+    workflows: ["1. Setup Infra AWS"] # Corrigido nome (sem espaço extra)
     types:
       - completed
 

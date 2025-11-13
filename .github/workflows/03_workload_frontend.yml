@@ -1,4 +1,4 @@
-name: 3️⃣ Workflow Frontend
+name: 3. Workflow Frontend
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
       - "crypto-ui/**" # Trigger apenas quando há push na pasta do Frontend
 
   workflow_run:
-    workflows: ["1️⃣ Setup Infra AWS"] # Nome exato do workflow
+    workflows: ["1. Setup Infra AWS"] # Nome exato do workflow
     types:
       - completed
 
