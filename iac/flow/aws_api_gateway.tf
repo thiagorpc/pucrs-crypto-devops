@@ -146,3 +146,58 @@ resource "aws_api_gateway_method_settings" "proxy_method_settings" {
 }
 
 
+# 1. Criação do Método OPTIONS (Pré-voo CORS)
+resource "aws_api_gateway_method" "options_health" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id # Substitua pela sua referência de API
+  resource_id   = aws_api_gateway_resource.health.id # Sua referência do recurso /health
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+# 2. Resposta da Integração (Mock)
+resource "aws_api_gateway_integration" "options_health_integration" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.health.id
+  http_method = aws_api_gateway_method.options_health.http_method
+  type        = "MOCK" # MOCK é padrão para OPTIONS
+}
+
+# 3. Resposta do Método (Define os cabeçalhos CORS)
+resource "aws_api_gateway_method_response" "options_health_response" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.health.id
+  http_method = aws_api_gateway_method.options_health.http_method
+  status_code = "200"
+
+  response_models = {
+    "application/json" = "Empty"
+  }
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true,
+    "method.response.header.Access-Control-Allow-Methods" = true,
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+# 4. Resposta da Integração (Mapeamento dos valores dos cabeçalhos)
+resource "aws_api_gateway_integration_response" "options_health_integration_response" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.health.id
+  http_method = aws_api_gateway_method.options_health.http_method
+  status_code = aws_api_gateway_method_response.options_health_response.status_code
+
+  response_templates = {
+    "application/json" = ""
+  }
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,OPTIONS'", # Métodos que você permite
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    # A origem exata do seu frontend (DEVE ser string literal entre aspas simples)
+    "method.response.header.Access-Control-Allow-Origin"  = aws_s3_bucket_website_configuration.frontend_website.website_endpoint
+  }
+
+  depends_on = [aws_api_gateway_method_response.options_health_response]
+}
+
