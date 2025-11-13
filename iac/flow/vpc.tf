@@ -54,7 +54,7 @@ resource "aws_route_table_association" "public_assoc" {
 # INFRAESTRUTURA DE REDE PRIVADA (NAT Gateway e Rotas)
 # ============================
 
-# 1. Endereço IP Elástico (EIP) para o NAT Gateway
+# 1. Endereço IP El astico (EIP) para o NAT Gateway
 resource "aws_eip" "nat_gateway" {
   count      = 1
   # vpc = true
@@ -62,7 +62,7 @@ resource "aws_eip" "nat_gateway" {
   tags       = { Name = "${var.project_name}-nat-eip" }
 }
 
-# 2. Criação do NAT Gateway na Subnet Pública (necessário para acesso à internet)
+# 2. Criação do NAT Gateway na Subnet Pública (necess ario para acesso à internet)
 resource "aws_nat_gateway" "nat" {
   count         = 1
   allocation_id = aws_eip.nat_gateway[count.index].id
@@ -105,7 +105,7 @@ resource "aws_security_group" "ecs_sg" {
     from_port   = var.container_port
     to_port     = var.container_port
     protocol    = "tcp"
-    # Regra de tráfego de entrada mais segura: Permite apenas o NLB (assumindo que ele está na VPC)
+    # Regra de tr afego de entrada mais segura: Permite apenas o NLB (assumindo que ele est a na VPC)
     cidr_blocks = [aws_vpc.vpc.cidr_block]
   }
 
@@ -122,10 +122,10 @@ resource "aws_security_group" "ecs_sg" {
 # 3. Security Group para os VPC Endpoints
 resource "aws_security_group" "endpoint_sg" {
   name        = "${var.project_name}-endpoint-sg"
-  description = "Permite tráfego de entrada do ECS SG para os VPC Endpoints"
+  description = "Permite tr afego de entrada do ECS SG para os VPC Endpoints"
   vpc_id      = aws_vpc.vpc.id
 
-  # Ingress: Permite tráfego de entrada do SG do ECS (onde a Task roda)
+  # Ingress: Permite tr afego de entrada do SG do ECS (onde a Task roda)
   ingress {
     from_port       = 443
     to_port         = 443
@@ -133,7 +133,7 @@ resource "aws_security_group" "endpoint_sg" {
     security_groups = [aws_security_group.ecs_sg.id]
   }
 
-  # Egress: Permite todo o tráfego de saída
+  # Egress: Permite todo o tr afego de saída
   egress {
     from_port   = 0
     to_port     = 0
