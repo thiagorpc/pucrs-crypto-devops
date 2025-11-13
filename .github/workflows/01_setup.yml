@@ -65,13 +65,13 @@ jobs:
         id: apply_status
         if: ${{ always() }}
         run: |
+          STATUS="failure"
           if [ "${{ github.event.inputs.terraform_action }}" == "apply" ] && [ "${{ job.status }}" == "success" ]; then
-            echo "apply_done=true" > apply_status.txt
-            echo "apply_done=true" >> $GITHUB_OUTPUT
-          else
-            echo "apply_done=false" > apply_status.txt
-            echo "apply_done=false" >> $GITHUB_OUTPUT
+            STATUS="success"
           fi
+          echo "{\"name\": \"setup_aws\", \"apply\": \"${STATUS}\", \"date\": \"$(date '+%Y-%m-%d %H:%M:%S')\"}" > apply_status.txt
+          cat apply_status.txt
+
 
       - name: 📤 Upload do artifact
         uses: actions/upload-artifact@v4
