@@ -57,7 +57,7 @@ resource "aws_route_table_association" "public_assoc" {
 # 1. Endereço IP Elástico (EIP) para o NAT Gateway
 resource "aws_eip" "nat_gateway" {
   count      = 1
-  vpc        = true
+  # vpc = true
   depends_on = [aws_internet_gateway.igw]
   tags       = { Name = "${var.project_name}-nat-eip" }
 }
