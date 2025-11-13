@@ -91,6 +91,29 @@ resource "aws_iam_role_policy_attachment" "ecs_secret_access_attach" {
   policy_arn = aws_iam_policy.ecs_secret_access_policy.arn
 }
 
+resource "aws_iam_policy" "terraform_secrets_read" {
+  name        = "TerraformSecretsReadPolicy"
+  description = "Permite ao Terraform ler o secret da crypto-api"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:DescribeSecret",
+          "secretsmanager:GetSecretValue"
+        ]
+        Resource = "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:pucrs-crypto-api/encryption-key*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_user_policy_attachment" "bot_secrets_read_attach" {
+  user       = "mitel-message-hub-terraform-github-bot"
+  policy_arn = aws_iam_policy.terraform_secrets_read.arn
+}
+
 
 # 2. IAM ROLE: Task Role (Usada pelo código da aplicação para acessar recursos AWS, como S3/DynamoDB)
 resource "aws_iam_role" "task_role" {
