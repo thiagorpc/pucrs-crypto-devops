@@ -58,22 +58,21 @@ jobs:
         if: github.event.inputs.terraform_action == 'apply'
         run: terraform apply -auto-approve
 
-      #- name: 💡 Exibir URL da API Gateway
-      #  run: |
-      #    API_URL=$(terraform output -raw api_gateway_invoke_url)
-      #    echo "🚀 URL da API Gateway: $API_URL"
-      #    echo "API_URL=$API_URL" >> $GITHUB_ENV
-          
-      - name: 🏁 Marcar Apply Concluído
-        if: ${{ github.event.inputs.terraform_action == 'apply' }}
+      
+        # ✅ Passo único e seguro para criar o arquivo apply_status.txt
+      - name: 🧾 Gerar sinalizador de Apply
         id: apply_status
-        run: echo "apply_done=true" >> $GITHUB_OUTPUT
+        if: ${{ always() }}
+        run: |
+          if [ "${{ github.event.inputs.terraform_action }}" == "apply" ] && [ "${{ job.status }}" == "success" ]; then
+            echo "apply_done=true" > apply_status.txt
+            echo "apply_done=true" >> $GITHUB_OUTPUT
+          else
+            echo "apply_done=false" > apply_status.txt
+            echo "apply_done=false" >> $GITHUB_OUTPUT
+          fi
 
-      - name: 🧾 Gerar sinalizador de apply concluído
-        if: ${{ success() }}
-        run: echo "apply_done=true" > apply_status.txt
-
-      - name: 📤 Upload do artifact de estado
+      - name: 📤 Upload do artifact
         uses: actions/upload-artifact@v4
         with:
           name: terraform-apply-status
