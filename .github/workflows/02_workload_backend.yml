@@ -8,7 +8,7 @@ on:
       - "crypto-api/**" # Trigger apenas quando há push na pasta da API
 
   workflow_run:
-    workflows: ["1️⃣ Setup Infra AWS"] # Nome exato do workflow de setup
+    workflows: [" 1️⃣ Setup Infra AWS"] # Nome exato do workflow de setup
     types:
       - completed
 
