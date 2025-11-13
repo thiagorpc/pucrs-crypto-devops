@@ -32,6 +32,10 @@ jobs:
       - name: 📦 Checkout Code
         uses: actions/checkout@v4
 
+        # 🟢 Limpar artefato anterior
+      - name: 🗑️ Limpar Arquivo de Status Anterior
+        run: rm -f $GITHUB_WORKSPACE/apply_status.txt
+
       - name: 🔐 Configurar Credenciais AWS
         uses: aws-actions/configure-aws-credentials@v4
         with:
