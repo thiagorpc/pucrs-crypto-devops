@@ -10,9 +10,11 @@ async function bootstrap() {
   const port = configService.get<number>('PORT', 3000);
   const host = configService.get<string>('HOST', 'localhost');
 
-  const originsString = configService.get<string>('CORS_ORIGIN', 'http://localhost:5173');
-  const allowedOrigins = originsString.split(',').map(s => s.trim()); 
-  
+  const allowedOrigins = configService.get<string>(
+    'CORS_ORIGIN',
+    'http://localhost:5173',
+  );
+
   app.enableCors({
     origin: allowedOrigins,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
@@ -24,7 +26,7 @@ async function bootstrap() {
   const logger = new Logger('Bootstrap');
 
   logger.log(`🚀 API. rodando em http://${host}:${port}`);
-  logger.log(`🚀 Permitido CORS: ${allowedOrigins}`);
+  logger.log(`🚀 Permitido CORS: ${allowedOrigins.toString()}`);
 }
 
 void bootstrap();
