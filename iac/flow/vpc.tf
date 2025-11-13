@@ -98,6 +98,9 @@ resource "aws_security_group" "ecs_sg" {
   tags = { Name = "${var.project_name}-ecs-sg" }
 }
 
+# ====================================================================================
+# Endpoint para comunicação com o AWS SECREET MANAGER
+# ====================================================================================
 resource "aws_vpc_endpoint" "secrets_manager" {
   vpc_id             = aws_vpc.vpc.id
   service_name       = "com.amazonaws.${var.aws_region}.secretsmanager"
@@ -116,9 +119,6 @@ resource "aws_vpc_endpoint" "secrets_manager" {
   }
 }
 
-# ====================================================================================
-# Endpoint para comunicação com o AWS SECREET MANAGER
-# ====================================================================================
 #resource "aws_vpc_endpoint" "secrets_manager" {
 #  vpc_id             = aws_vpc.vpc.id
 #  service_name       = "com.amazonaws.${var.aws_region}.secretsmanager"
