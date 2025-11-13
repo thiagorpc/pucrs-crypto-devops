@@ -125,3 +125,26 @@ jobs:
         working-directory: ./crypto-ui
         run: |
           aws s3 sync dist s3://${{ env.S3_BUCKET_UI }} --delete --cache-control max-age=300
+
+      - name: 🌐 Exibir URL do Site Estático no S3
+        run: |
+          echo "🔍 Verificando configuração de site estático para o bucket: ${{ env.S3_BUCKET_UI }}"
+
+          # Obtém a configuração de hospedagem de site do bucket
+          HOSTING_CONFIG=$(aws s3api get-bucket-website --bucket ${{ env.S3_BUCKET_UI }} 2>/dev/null || true)
+
+          if [ -n "$HOSTING_CONFIG" ]; then
+            # URL pública do modo website
+            WEBSITE_URL="http://${{ env.S3_BUCKET_UI }}.s3-website-${{ env.AWS_REGION }}.amazonaws.com"
+            echo "✅ Site estático habilitado!"
+            echo "🌎 Acesse em: $WEBSITE_URL"
+            echo "URL=$WEBSITE_URL" >> $GITHUB_OUTPUT
+          else
+            # Caso o bucket NÃO tenha website hosting habilitado
+            OBJECT_URL="https://${{ env.S3_BUCKET_UI }}.s3.${{ env.AWS_REGION }}.amazonaws.com/index.html"
+            echo "⚠️ O bucket não está configurado como site estático."
+            echo "Você ainda pode acessar o arquivo diretamente:"
+            echo "🔗 $OBJECT_URL"
+            echo "URL=$OBJECT_URL" >> $GITHUB_OUTPUT
+          fi
+
