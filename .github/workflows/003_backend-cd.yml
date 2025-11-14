@@ -56,9 +56,12 @@ jobs:
       - name: Download image_tag artifact (from CI)
         uses: dawidd6/action-download-artifact@v3
         with:
-          workflow: 002. Backend CI - Build and Push Image
+          workflow: 002_backend-ci.yml
           name: backend-image-tag
           path: .
+          check_artifacts: true
+          #search_artifacts: true
+          workflow_conclusion: ""
 
       - name: Read IMAGE_TAG
         id: readtag
