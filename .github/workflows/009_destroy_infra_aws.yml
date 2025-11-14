@@ -1,0 +1,76 @@
+name: 09. Destroy Infra AWS
+
+on:
+  # 🔹 Execução manual via GitHub Actions
+  workflow_dispatch:
+
+  ## 🔹 Opcional: dispara quando o workflow de deploy for concluído
+  #workflow_run:
+  #  workflows: ["03. Deploy Infra AWS"]
+  #  types:
+  #    - completed
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  terraform-destroy:
+    name: Destroy Infrastructure
+    runs-on: ubuntu-latest
+
+    env:
+      TF_VAR_env: ${{ secrets.TF_ENV }}
+      AWS_REGION: "us-east-1"
+
+    steps:
+      # -----------------------
+      # 🔹 Checkout do repositório
+      # -----------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # -----------------------
+      # 🔹 Setup Terraform
+      # -----------------------
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.5
+
+      # -----------------------
+      # 🔹 Configurar AWS (OIDC)
+      # -----------------------
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_GITHUB_TERRAFORM }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # -----------------------
+      # 🔹 Inicializar Terraform
+      # -----------------------
+      - name: Terraform Init
+        working-directory: ./iac/flow
+        run: terraform init -input=false
+
+      # -----------------------
+      # 🔹 Validar Terraform
+      # -----------------------
+      - name: Terraform Validate
+        working-directory: ./iac/flow
+        run: terraform validate
+
+      # -----------------------
+      # 🔹 Plano de destruição
+      # -----------------------
+      - name: Terraform Destroy Plan
+        working-directory: ./iac/flow
+        run: terraform plan -destroy -out=tfplan.destroy
+
+      # -----------------------
+      # 🔹 Aplicar destruição
+      # -----------------------
+      - name: Terraform Destroy Apply
+        working-directory: ./iac/flow
+        run: terraform apply -auto-approve tfplan.destroy
