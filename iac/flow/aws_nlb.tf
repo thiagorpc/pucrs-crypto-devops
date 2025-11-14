@@ -11,6 +11,13 @@ resource "aws_lb" "api_nlb" {
 
   enable_cross_zone_load_balancing = true
   tags                             = { Name = "${var.project_name}-api-nlb" }
+
+
+
+  ssss
+
+
+  
 }
 
 # Target Group do NLB (por IP)
