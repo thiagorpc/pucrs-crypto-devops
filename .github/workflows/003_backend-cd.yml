@@ -1,0 +1,87 @@
+name: 003. Backend CD — Deploy
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ['Backend CI — Build and Push Image']
+    types:
+      - completed
+
+env:
+  AWS_REGION: us-east-1
+  TF_WORKING_DIR: ./iac/flow
+
+jobs:
+  precheck:
+    runs-on: ubuntu-latest
+    outputs:
+      deploy_allowed: ${{ steps.deploy_check.outputs.deploy_allowed }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Download apply_status artifact (from Setup Infra)
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          workflow: 01_setup_infra_aws.yml
+          name: terraform-apply-status
+          path: .
+
+      - name: Check apply_status
+        id: deploy_check
+        run: |
+          if [ ! -f ./apply_status.txt ]; then
+            echo "deploy_allowed=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          APPLY_STATUS=$(jq -r '.apply' ./apply_status.txt)
+          if [[ "$APPLY_STATUS" == "success" ]]; then
+            echo "deploy_allowed=true" >> $GITHUB_OUTPUT
+          else
+            echo "deploy_allowed=false" >> $GITHUB_OUTPUT
+          fi
+
+  deploy:
+    needs: precheck
+    runs-on: ubuntu-latest
+    if: needs.precheck.outputs.deploy_allowed == 'true'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download image_tag artifact (from CI)
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          workflow: Backend CI — Build and Push Image
+          name: backend-image-tag
+          path: .
+
+      - name: Read IMAGE_TAG
+        id: readtag
+        run: |
+          IMAGE_TAG=$(cat image_tag.txt)
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.0
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+      - name: Terraform Apply (Deploy)
+        run: terraform apply -auto-approve -var="image_tag=${{ steps.readtag.outputs.IMAGE_TAG }}"
+        working-directory: ${{ env.TF_WORKING_DIR }}
