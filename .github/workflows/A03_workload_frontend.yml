@@ -1,4 +1,4 @@
-name: 3. Workflow Frontend
+name: A3. Workflow Frontend
 
 on:
   # 🔹 Dispara automaticamente quando houver push na pasta crypto-ui
@@ -10,7 +10,7 @@ on:
 
   # 🔹 Dispara automaticamente quando o workflow Setup AWS for concluído
   workflow_run:
-    workflows: ["1. Setup Infra AWS"]
+    workflows: ["A1. Setup Infra AWS"]
     types:
       - completed
 

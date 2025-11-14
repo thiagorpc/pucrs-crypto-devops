@@ -1,4 +1,4 @@
-name: 9. Destroy Infra AWS 💣
+name: A9. Destroy Infra AWS 💣
 
 on:
   workflow_dispatch:
