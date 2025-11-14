@@ -32,16 +32,28 @@ jobs:
       - name: 📦 Checkout Code
         uses: actions/checkout@v4
 
-        # 🟢 Limpar artefato anterior
-      - name: 🗑️ Limpar Arquivo de Status Anterior
-        run: rm -f $GITHUB_WORKSPACE/apply_status.txt
-
       - name: 🔐 Configurar Credenciais AWS
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
+
+      # ✅ Gera um artefado co status apply:no (É uma proteção)
+      - name: 🧾 Gerar sinalizador de Apply
+        id: apply_status
+        if: ${{ always() }}
+        run: |
+          echo "{\"name\": \"setup_aws\", \"apply\": \"no\", \"date\": \"$(date '+%Y-%m-%d %H:%M:%S')\"}" > $GITHUB_WORKSPACE/apply_status.txt
+
+      - name: 📤 Upload do artifact
+        if: ${{ hashFiles('apply_status.txt') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-apply-status
+          path: ${{ github.workspace }}/apply_status.txt
+          retention-days: 1
+
 
       - name: ⚙️ Configurar Terraform
         uses: hashicorp/setup-terraform@v3
