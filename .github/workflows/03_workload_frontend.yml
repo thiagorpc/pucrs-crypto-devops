@@ -48,6 +48,8 @@ jobs:
           name: terraform-apply-status
           path: .
           check_artifacts: true
+          #search_artifacts: true
+          workflow_conclusion: ""
 
       - name: 🧩 Validar status e definir variável
         id: deploy_check
