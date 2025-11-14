@@ -13,11 +13,6 @@ resource "aws_lb" "api_nlb" {
   tags                             = { Name = "${var.project_name}-api-nlb" }
 
 
-
-  ssss
-
-
-  
 }
 
 # Target Group do NLB (por IP)
