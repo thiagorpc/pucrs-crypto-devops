@@ -42,7 +42,6 @@ jobs:
       # ✅ Gera um artefado co status apply:no (É uma proteção)
       - name: 🧾 Gerar sinalizador de Apply
         id: apply_status
-        if: ${{ always() }}
         run: |
           echo "{\"name\": \"setup_aws\", \"apply\": \"no\", \"date\": \"$(date '+%Y-%m-%d %H:%M:%S')\"}" > $GITHUB_WORKSPACE/apply_status.txt
 
