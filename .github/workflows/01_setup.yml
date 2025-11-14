@@ -54,14 +54,6 @@ jobs:
         run: |
           echo "{\"name\": \"setup_aws\", \"apply\": \"no\", \"date\": \"$(date '+%Y-%m-%d %H:%M:%S')\"}" > $GITHUB_WORKSPACE/apply_status.txt
 
-      - name: 📤 Upload do artifact
-        if: ${{ hashFiles('apply_status.txt') != '' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: terraform-apply-status
-          path: ${{ github.workspace }}/apply_status.txt
-          retention-days: 1
-
       - name: 🧩 Terraform Plan
         id: plan
         if: always()
