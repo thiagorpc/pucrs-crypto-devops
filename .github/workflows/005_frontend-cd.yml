@@ -3,7 +3,7 @@ name: 005. Frontend CD - Deploy UI
 on:
   workflow_dispatch:
   workflow_run:
-    workflows: ['Frontend CI — Build UI']
+    workflows: ['004. Frontend CI - Build UI']
     types:
       - completed
 
@@ -11,7 +11,7 @@ env:
   AWS_REGION: us-east-1
   S3_FRONTEND_BUCKET: pucrs-crypto-frontend
   CLOUDFRONT_DISTRIBUTION_ID: YOUR_DISTRIBUTION_ID
-  TF_INFRA_WORKFLOW: 01_setup_infra_aws.yml
+  TF_INFRA_WORKFLOW: 001_setup_infra_aws.yml
 
 jobs:
   precheck:

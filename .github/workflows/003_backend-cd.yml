@@ -3,7 +3,7 @@ name: 003. Backend CD - Deploy
 on:
   workflow_dispatch:
   workflow_run:
-    workflows: ['Backend CI — Build and Push Image']
+    workflows: ['002. Backend CI - Build and Push Image']
     types:
       - completed
 
@@ -26,7 +26,7 @@ jobs:
       - name: Download apply_status artifact (from Setup Infra)
         uses: dawidd6/action-download-artifact@v3
         with:
-          workflow: 01_setup_infra_aws.yml
+          workflow: 001_setup_infra_aws.yml
           name: terraform-apply-status
           path: .
 
