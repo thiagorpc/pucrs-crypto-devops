@@ -1,3 +1,7 @@
+# ============================
+# File: ./iac/flow/aws_cloudfront.tf
+# ============================
+
 # Distribuição CloudFront (CDN/HTTPS com Certificado Padrão)
 resource "aws_cloudfront_distribution" "frontend_cdn" {
   origin {

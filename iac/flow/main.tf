@@ -1,3 +1,7 @@
+# ============================
+# File: ./iac/flow/main.tf
+# ============================
+
 terraform {
   backend "s3" {
     bucket         = "pucrs-crypto-github-action-tfstate-unique"  # Onde o estado (terraform.tfstate) será salvo no S3
