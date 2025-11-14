@@ -92,6 +92,9 @@ jobs:
     needs: precheck
     if: needs.precheck.outputs.deploy_allowed == 'true'
 
+    outputs:
+      cdn_domain: ${{ steps.output_step.outputs.cloudfront_url_domain }}
+
     steps:
       - name: 📦 Checkout Code
         uses: actions/checkout@v4
@@ -179,3 +182,15 @@ jobs:
             echo "🔗 Acesse: $OBJECT_URL"
             echo "URL=$OBJECT_URL" >> $GITHUB_OUTPUT
           fi
+
+
+      # ... (Passo para capturar os outputs do Terraform)
+      - name: Capture Terraform Outputs
+        id: output_step
+        run: |
+          # Exemplo de como capturar a saída, dependendo do seu setup
+          echo "cloudfront_url_domain=$(terraform output -raw cloudfront_url_domain)" >> $GITHUB_OUTPUT
+
+      # Job subsequente que usa a informação:
+      - name: 💬 Notificar Novo Domain Name
+        run: echo "O novo Frontend HTTPS está em https://${{ needs.terraform.outputs.cdn_domain }}"

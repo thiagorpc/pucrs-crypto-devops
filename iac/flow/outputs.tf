@@ -86,3 +86,12 @@ output "aws_region" {
   description = "Região AWS onde os recursos estão sendo criados"
   value       = var.aws_region
 }
+
+# ============================
+# 🧭 CloudFront
+# ============================
+
+output "cloudfront_url_domain" {
+  description = "Domain name da distribuição CloudFront para acesso HTTPS."
+  value       = aws_cloudfront_distribution.frontend_cdn.domain_name 
+}
