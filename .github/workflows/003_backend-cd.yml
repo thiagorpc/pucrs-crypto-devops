@@ -1,4 +1,4 @@
-name: 003. Backend CD — Deploy
+name: 003. Backend CD - Deploy
 
 on:
   workflow_dispatch:

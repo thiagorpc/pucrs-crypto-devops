@@ -1,4 +1,4 @@
-name: 005. Frontend CD — Deploy UI
+name: 005. Frontend CD - Deploy UI
 
 on:
   workflow_dispatch:
