@@ -104,7 +104,7 @@ resource "aws_api_gateway_account" "apigw_account_settings" {
   cloudwatch_role_arn = aws_iam_role.apigw_cloudwatch_log_role.arn
 
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false
   }
 }
 
