@@ -46,7 +46,7 @@ jobs:
           workflow: 01_setup.yml
           name: terraform-apply-status
           path: .
-          check_artifacts: true
+          check_artifacts: false
 
       - name: 🧩 Checar arquivo de status e definir variável
         id: deploy_check
