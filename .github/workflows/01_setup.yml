@@ -77,8 +77,9 @@ jobs:
           cat $GITHUB_WORKSPACE/apply_status.txt
           echo "-------------------------------------------------------"
 
+      # always() && hashFiles('apply_status.txt') != ''
       - name: 📤 Upload do artifact
-        if: always() && hashFiles('apply_status.txt') != ''
+        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: terraform-apply-status
