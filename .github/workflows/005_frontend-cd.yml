@@ -1,0 +1,92 @@
+name: 005. Frontend CD — Deploy UI
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ['Frontend CI — Build UI']
+    types:
+      - completed
+
+env:
+  AWS_REGION: us-east-1
+  S3_FRONTEND_BUCKET: pucrs-crypto-frontend
+  CLOUDFRONT_DISTRIBUTION_ID: YOUR_DISTRIBUTION_ID
+  TF_INFRA_WORKFLOW: 01_setup_infra_aws.yml
+
+jobs:
+  precheck:
+    runs-on: ubuntu-latest
+    outputs:
+      deploy_allowed: ${{ steps.check.outputs.deploy_allowed }}
+
+    steps:
+      - name: 📦 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🛠 Instalar jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: 📥 Baixar apply_status do Setup Infra
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          workflow: ${{ env.TF_INFRA_WORKFLOW }}
+          name: terraform-apply-status
+          path: .
+
+      - name: 🔍 Validar apply_status
+        id: check
+        run: |
+          if [ ! -f apply_status.txt ]; then
+            echo "deploy_allowed=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          STATUS=$(jq -r '.apply' apply_status.txt)
+          if [[ "$STATUS" == "success" ]]; then
+            echo "deploy_allowed=true" >> $GITHUB_OUTPUT
+          else
+            echo "deploy_allowed=false" >> $GITHUB_OUTPUT
+          fi
+
+  deploy:
+    needs: precheck
+    if: needs.precheck.outputs.deploy_allowed == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📦 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📥 Baixar artifact do build (frontend-build.zip)
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          workflow: Frontend CI — Build UI
+          name: frontend-build
+          path: .
+
+      - name: 📦 Descompactar build
+        run: unzip frontend-build.zip -d dist
+
+      - name: 🔐 Configurar Credenciais AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: 🧹 Limpar bucket S3 antes do upload
+        run: |
+          aws s3 rm s3://${{ env.S3_FRONTEND_BUCKET }} --recursive
+
+      - name: 🚀 Fazer upload da nova build para o S3
+        run: |
+          aws s3 sync dist s3://${{ env.S3_FRONTEND_BUCKET }} --delete
+
+      - name: 🌎 Invalidate CloudFront Cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --paths "/*"
+
+      - name: 🎉 Deploy Finalizado
+        run: echo "Frontend deploy finalizado com sucesso!"

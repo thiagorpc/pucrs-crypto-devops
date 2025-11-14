@@ -1,0 +1,47 @@
+name: 004. Frontend CI — Build UI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'crypto-ui/**'
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-1
+
+jobs:
+  build-frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📦 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 📥 Instalar dependências
+        run: |
+          cd crypto-ui
+          npm install
+
+      - name: 🏗️ Build do Frontend
+        run: |
+          cd crypto-ui
+          npm run build
+
+      - name: 📦 Preparar artifact (frontend-build.zip)
+        run: |
+          cd crypto-ui
+          zip -r ../frontend-build.zip ./dist || zip -r ../frontend-build.zip ./build
+
+      - name: 📤 Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend-build.zip
+          retention-days: 3
