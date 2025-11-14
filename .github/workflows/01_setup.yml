@@ -39,9 +39,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-
-
-
       - name: ⚙️ Configurar Terraform
         uses: hashicorp/setup-terraform@v3
         with:
@@ -50,6 +47,20 @@ jobs:
       - name: 🧱 Terraform Init
         id: init
         run: terraform init -reconfigure
+
+      # ✅ Gera um artefado co status apply:no (É uma proteção)
+      - name: 🧾 Gerar sinalizador de Apply
+        id: apply_status
+        run: |
+          echo "{\"name\": \"setup_aws\", \"apply\": \"no\", \"date\": \"$(date '+%Y-%m-%d %H:%M:%S')\"}" > $GITHUB_WORKSPACE/apply_status.txt
+
+      - name: 📤 Upload do artifact
+        if: ${{ hashFiles('apply_status.txt') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-apply-status
+          path: ${{ github.workspace }}/apply_status.txt
+          retention-days: 1
 
       - name: 🧩 Terraform Plan
         id: plan
