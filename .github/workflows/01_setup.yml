@@ -78,7 +78,7 @@ jobs:
           echo "-------------------------------------------------------"
 
       - name: 📤 Upload do artifact
-        if: ${{ always() && hashFiles('apply_status.txt') != '' }}
+        if: always() && hashFiles('apply_status.txt') != ''
         uses: actions/upload-artifact@v4
         with:
           name: terraform-apply-status
