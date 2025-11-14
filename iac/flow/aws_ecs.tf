@@ -179,7 +179,7 @@ resource "aws_ecs_task_definition" "task" {
   requires_compatibilities = [
     "FARGATE"
   ]
-
+sdfgsfgsfdg
   # Task Execution Role (para logs, secrets, pull de imagem)
   execution_role_arn = aws_iam_role.task_execution_role.arn
   # execution_role_arn = aws_iam_role.ecs_execution_role.arn
