@@ -1,0 +1,77 @@
+name: 001. Setup Infra AWS
+
+on:
+  workflow_dispatch:
+    inputs:
+      terraform_action:
+        description: 'Escolha a ação do Terraform (plan/apply)'
+        required: true
+        default: 'plan'
+        type: choice
+        options:
+          - plan
+          - apply
+
+env:
+  TF_WORKING_DIR: ./iac/flow
+  AWS_REGION: us-east-1
+
+jobs:
+  terraform:
+    name: 'Terraform ${{ github.event.inputs.terraform_action }}'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+    outputs:
+      apply_done: ${{ steps.apply_status.outputs.apply_done }}
+
+    steps:
+      - name: 📦 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🔐 Configurar Credenciais AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: ⚙️ Configurar Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.0
+
+      - name: 🧱 Terraform Init
+        id: init
+        run: terraform init -reconfigure
+
+      - name: 🧩 Terraform Plan
+        id: plan
+        if: always()
+        run: terraform plan -out=tfplan
+
+      - name: 🚀 Terraform Apply
+        id: apply
+        if: github.event.inputs.terraform_action == 'apply'
+        run: terraform apply -auto-approve tfplan
+
+      - name: 🧾 Gerar sinalizador de Apply
+        id: apply_status
+        if: always()
+        run: |
+          STATUS="no"
+          if [ "${{ github.event.inputs.terraform_action }}" == "apply" ] && [ "${{ job.status }}" == "success" ]; then
+            STATUS="success"
+          fi
+          echo "{\"name\": \"setup_aws\", \"apply\": \"${STATUS}\", \"date\": \"$(date '+%Y-%m-%d %H:%M:%S')\"}" > $GITHUB_WORKSPACE/apply_status.txt
+          echo "apply_done=${STATUS}" >> $GITHUB_OUTPUT
+
+      - name: 📤 Upload do artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-apply-status
+          path: ${{ github.workspace }}/apply_status.txt
+          retention-days: 1
