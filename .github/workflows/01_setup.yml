@@ -53,12 +53,7 @@ jobs:
         if: always()
         run: terraform plan -out=tfplan
 
-      - name: 🚀 Terraform Apply
-        id: apply
-        if: github.event.inputs.terraform_action == 'apply'
-        run: terraform apply -auto-approve tfplan
-      
-      # ✅ Passo único e seguro para criar o arquivo apply_status.txt
+              # ✅ Passo único e seguro para criar o arquivo apply_status.txt
       - name: 🧾 Gerar sinalizador de Apply
         id: apply_status
         if: ${{ always() }}
@@ -79,9 +74,17 @@ jobs:
 
       # always() && hashFiles('apply_status.txt') != ''
       - name: 📤 Upload do artifact
+        
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: terraform-apply-status
           path: ${{ github.workspace }}/apply_status.txt
           retention-days: 1
+          
+      - name: 🚀 Terraform Apply
+        id: apply
+        if: github.event.inputs.terraform_action == 'apply'
+        run: terraform apply -auto-approve tfplan
+      
+
