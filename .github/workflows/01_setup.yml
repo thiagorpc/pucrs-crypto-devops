@@ -48,35 +48,15 @@ jobs:
         id: init
         run: terraform init -reconfigure
 
-      # ✅ Gera um artefado co status apply:no (É uma proteção)
-      - name: 🧾 Gerar sinalizador de Apply
-        id: apply_status_null
-        run: |
-          echo "{\"name\": \"setup_aws\", \"apply\": \"no\", \"date\": \"$(date '+%Y-%m-%d %H:%M:%S')\"}" > $GITHUB_WORKSPACE/apply_status.txt
-          echo "-------------------------------------------------------"
-          echo "📄 Conteúdo de apply_status.txt:"
-          cat $GITHUB_WORKSPACE/apply_status.txt
-          echo "-------------------------------------------------------"
-
-      - name: 📤 Upload do artifact
-        if: ${{ hashFiles('apply_status.txt') != '' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: terraform-apply-status
-          path: ${{ github.workspace }}/apply_status.txt
-          retention-days: 1
-
       - name: 🧩 Terraform Plan
         id: plan
         if: always()
         run: terraform plan -out=tfplan
 
-
       - name: 🚀 Terraform Apply
         id: apply
         if: github.event.inputs.terraform_action == 'apply'
         run: terraform apply -auto-approve tfplan
-
       
       # ✅ Passo único e seguro para criar o arquivo apply_status.txt
       - name: 🧾 Gerar sinalizador de Apply
@@ -98,7 +78,7 @@ jobs:
           echo "-------------------------------------------------------"
 
       - name: 📤 Upload do artifact
-        if: ${{ hashFiles('apply_status.txt') != '' }}
+        if: ${{ always() && hashFiles('apply_status.txt') != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: terraform-apply-status
