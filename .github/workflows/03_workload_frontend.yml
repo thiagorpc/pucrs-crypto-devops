@@ -64,8 +64,14 @@ jobs:
             exit 0
           fi
 
+          NAME_STATUS=$(jq -r '.name' ./apply_status.txt)
+          echo "🔍 name = $NAME_STATUS"
+
           APPLY_STATUS=$(jq -r '.apply' ./apply_status.txt)
           echo "🔍 apply_status = $APPLY_STATUS"
+
+          DATE_STATUS=$(jq -r '.date' ./apply_status.txt)
+          echo "🔍 date = $DATE_STATUS"
 
           if [[ "$APPLY_STATUS" == "success" ]]; then
             echo "deploy_allowed=true" >> $GITHUB_OUTPUT
