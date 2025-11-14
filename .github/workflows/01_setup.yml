@@ -53,7 +53,7 @@ jobs:
         if: always()
         run: terraform plan -out=tfplan
 
-              # ✅ Passo único e seguro para criar o arquivo apply_status.txt
+      # ✅ Passo único e seguro para criar o arquivo apply_status.txt
       - name: 🧾 Gerar sinalizador de Apply
         id: apply_status
         if: ${{ always() }}
