@@ -80,7 +80,7 @@ jobs:
 
             echo "📊 Resumo do Terraform Plan:"
             echo "   ➕ $ADD para adicionar"
-            echo "   ♻️  $CHANGE para alterar"
+            echo "   ♻️ $CHANGE para alterar"
             echo "   ❌ $DESTROY para destruir"
           else
             echo "⚠️ Nenhum resumo de plano encontrado."
