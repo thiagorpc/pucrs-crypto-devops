@@ -70,14 +70,7 @@ jobs:
       - name: 🔥 Aplicar Destruição (Auto-Aprovar)
         run: terraform apply -auto-approve tfplan.destroy
 
-
-      # -----------------------
-      # 🔹 7. Aplicar Destruição
-      # -----------------------
-      - name: 🔥 Aplicar Destruição (Auto-Aprovar)
-        run: terraform apply -auto-approve tfplan.destroy
-
-
+        
       # -----------------------
       # 🔹 7. Criar Plano de Destruição (Segurança Operacional)
       # -----------------------
