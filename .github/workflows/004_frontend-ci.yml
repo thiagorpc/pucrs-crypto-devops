@@ -8,6 +8,12 @@ on:
       - 'crypto-ui/**'
   workflow_dispatch:
 
+  # 🔹 Dispara automaticamente quando o workflow Setup AWS for concluído
+  workflow_run:
+    workflows: ["001. Setup Infra AWS"]
+    types:
+      - completed
+
 env:
   AWS_REGION: us-east-1
 
