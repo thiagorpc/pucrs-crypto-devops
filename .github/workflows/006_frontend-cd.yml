@@ -54,6 +54,7 @@ jobs:
         run: |
           aws s3 sync dist/ s3://${{ env.S3_FRONTEND_BUCKET }} --delete
 
+
       - name: ⚙️ Configurar Terraform
         uses: hashicorp/setup-terraform@v3
         with:
