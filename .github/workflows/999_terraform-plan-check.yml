@@ -15,8 +15,14 @@ env:
 jobs:
   plan_check:
     runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
     outputs:
       infra_is_ready: ${{ steps.plan.outputs.infra_is_ready }}
+
     steps:
       - name: 📦 Checkout Code
         uses: actions/checkout@v4
