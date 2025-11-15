@@ -9,6 +9,12 @@ on:
 
   workflow_dispatch:
 
+  # 🔹 Dispara automaticamente quando o workflow Setup AWS for concluído
+  workflow_run:
+    workflows: ["002 Check Infra AWS"]
+    types: 
+      - completed
+      
 env:
   TF_WORKING_DIR: ./iac/flow
   AWS_REGION: us-east-1
