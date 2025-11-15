@@ -1,0 +1,92 @@
+name: 002. Backend CI - Build and Push Image
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'crypto-api/**'
+
+  # 🔹 Dispara automaticamente quando o workflow Setup AWS for concluído
+  workflow_dispatch:
+
+  # 🔹 Dispara automaticamente quando o workflow Setup AWS for concluído
+  workflow_run:
+    workflows: ["002 Check Infra AWS"]
+    types: [completed]
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: pucrs-crypto-api-repo
+  
+jobs:
+  # 🧩 Checagem da infraestrutura via Terraform Plan
+  infra-check:
+    name: 🧩 Verificar Terraform Plan
+    uses: ./.github/actions/terraform-plan-checks
+    #outputs:
+    #  infra_is_ready: ${{ outputs.infra_is_ready }}
+
+
+  build-and-push:
+    name: ⭐ Build and Push Backend Docker Image
+    runs-on: ubuntu-latest
+    # 🎯 Dependência no novo job de checagem de infraestrutura
+    needs: infra-check
+
+    # ✅ Verifica o output do job anterior (não de um step!)
+    if: needs.infra-check.outputs.infra_is_ready == 'true'
+    
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🔐 Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: 🛠️ Set up QEMU and Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: 🏷️ Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: 🧩 Determine Image Tag
+        id: tag
+        run: |
+          IMAGE_TAG=$(date +'%Y%m%d')-${GITHUB_RUN_NUMBER}-${GITHUB_SHA::7}
+          echo "$IMAGE_TAG" > image_tag.txt
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: 📦 Install Backend Dependencies
+        run: |
+          cd ./crypto-api
+          npm ci
+
+      - name: 🔍 Run ESLint (Code Quality)
+        run: |
+          cd ./crypto-api
+          npm run lint
+
+      - name: 🧪 Run Backend Tests (Jest)
+        run: |
+          cd ./crypto-api
+          npm run test
+
+      - name: ⭐ Build and Push Docker Image
+        run: |
+          ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
+          IMAGE=${ECR_REGISTRY}/${{ env.ECR_REPOSITORY }}:${{ steps.tag.outputs.IMAGE_TAG }}
+          docker build -t $IMAGE ./crypto-api
+          docker push $IMAGE
+
+      - name: 📤 Upload Image Tag Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-image-tag
+          path: image_tag.txt
+          retention-days: 3

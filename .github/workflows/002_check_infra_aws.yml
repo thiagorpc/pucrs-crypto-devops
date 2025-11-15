@@ -1,4 +1,5 @@
-name: "999 Terraform Plan Check"
+name: "002 Check Infra AWS"
+
 on:
   workflow_call:
     outputs:
