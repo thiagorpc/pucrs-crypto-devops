@@ -32,7 +32,7 @@ jobs:
     steps:
       - name: 🖨 Print Infra Output
         run: |
-          echo "📢 infra_is_ready do workflow reutilizável: ${{ needs.infra-check.outputs.infra_is_ready }}"
+          echo "📢 Infra AWS já está pronta?: ${{ needs.infra-check.outputs.infra_is_ready }}"
 
   # ==========================================================
   # 🚀 JOB 2: Build, Test e Push da Imagem no ECR

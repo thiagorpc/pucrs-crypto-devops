@@ -18,41 +18,28 @@ env:
   AWS_REGION: us-east-1
 
 jobs:
-  precheck:
+  # ==========================================================
+  # 🧩 JOB 1: Verifica se a infraestrutura AWS está OK
+  # ==========================================================
+  infra-check:
+    uses: ./.github/workflows/002_check_infra_aws.yml
+    secrets: inherit
+
+
+  print-infra-output:
+    needs: infra-check
     runs-on: ubuntu-latest
-    outputs:
-      deploy_allowed: ${{ steps.check.outputs.deploy_allowed }}
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
-
-      - name: Download apply_status artifact (from Setup Infra)
-        uses: dawidd6/action-download-artifact@v3
-        with:
-          workflow: 001_setup_infra_aws.yml
-          name: terraform-apply-status
-          path: .
-
-      - name: Check apply_status
-        id: deploy_check
+      - name: 🖨 Print Infra Output
         run: |
-          if [ ! -f ./apply_status.txt ]; then
-            echo "deploy_allowed=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-          APPLY_STATUS=$(jq -r '.apply' ./apply_status.txt)
-          if [[ "$APPLY_STATUS" == "success" ]]; then
-            echo "deploy_allowed=true" >> $GITHUB_OUTPUT
-          else
-            echo "deploy_allowed=false" >> $GITHUB_OUTPUT
-          fi
+          echo "📢 Infra AWS já está pronta?: ${{ needs.infra-check.outputs.infra_is_ready }}"
+
+  # ==========================================================
+  # 🚀 JOB 2: Build, Test e Push da Front-End
+  # ==========================================================
 
   build-frontend:
-    needs: precheck
+    needs: infra-check
     if: needs.precheck.outputs.deploy_allowed == 'true'
     runs-on: ubuntu-latest
 
