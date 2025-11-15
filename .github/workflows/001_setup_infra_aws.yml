@@ -59,8 +59,11 @@ jobs:
 
       - name: 📤 Exportar CloudFront Distribution ID
         id: export_cf_id
-        working-directory: ${{ env.TF_WORKING_DIR }}
+        if: steps.apply.outcome == 'success'
+        working-directory: ./iac/flow 
         run: |
+          # Tenta obter o ID. 
+          # 2>/dev/null: Ignora Warnings (como "No outputs found") para que o shell não capture texto indesejado.
           ID=$(terraform output -raw cloudfront_distribution_id 2>/dev/null)
               
           # Verifica se a variável ID está vazia. Se estiver, falha o passo explicitamente.
