@@ -21,7 +21,7 @@ jobs:
   # 🧩 Checagem da infraestrutura via Terraform Plan
   infra-check:
     name: 🧩 Verificar Terraform Plan
-    uses: 002-check-infra-aws.yml
+    uses: ./.github/workflows/002_check_infra_aws.yml
 
   build-and-push:
     name: ⭐ Build and Push Backend Docker Image
