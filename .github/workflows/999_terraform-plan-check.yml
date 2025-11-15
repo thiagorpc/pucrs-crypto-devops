@@ -6,6 +6,8 @@ on:
         description: "Infraestrutura pronta"
         value: ${{ jobs.plan_check.outputs.infra_is_ready }}
 
+  workflow_dispatch:
+
 jobs:
   plan_check:
     runs-on: ubuntu-latest
