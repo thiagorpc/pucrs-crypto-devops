@@ -29,6 +29,11 @@ jobs:
           cd crypto-ui
           npm install
 
+      - name: 🔍 Run ESLint (Code Quality)
+        run: |
+          cd crypto-ui
+          npm run lint
+
       - name: 🏗️ Build do Frontend
         run: |
           cd crypto-ui
