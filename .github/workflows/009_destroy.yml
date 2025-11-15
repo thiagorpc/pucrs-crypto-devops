@@ -13,7 +13,7 @@ on:
 concurrency:
   group: terraform
   cancel-in-progress: false
-  
+
 env:
   S3_STATE_BUCKET: pucrs-crypto-github-action-tfstate-unique
   DYNAMO_LOCK_TABLE: pucrs-crypto-terraform-lock
@@ -35,6 +35,10 @@ jobs:
       - name: 🖨 Print Infra Output
         run: |
           echo "📢 Infra AWS já está pronta?: ${{ needs.infra-check.outputs.infra_is_ready }}"
+          if [ "${{ needs.infra-check.outputs.infra_is_ready }}" != "true" ]; then
+            echo "❌ Infra não está pronta, abortando!"
+            exit 1
+          fi
 
   # ==========================================================
   # 🚀 JOB 2:Remove Infra AWS
@@ -43,7 +47,7 @@ jobs:
     name: "Terraform Destroy"
     runs-on: ubuntu-latest
     # 🎯 Dependência no novo job de checagem de infraestrutura
-    needs: infra-check
+    needs: print-infra-output
     # 🎯 Só prossegue se o check de infraestrutura for TRUE (Exit Code 0 no Plan)
     if: needs.infra-check.outputs.infra_is_ready == 'true'
 
