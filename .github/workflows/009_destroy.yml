@@ -1,4 +1,4 @@
-name: 009. Destroy Infra AWS - Gold Standard
+name: 009. Destroy Infra AWS 💣
 
 on:
   workflow_dispatch:
@@ -10,23 +10,16 @@ on:
         default: ""
         type: string
 
-permissions:
-  id-token: write
-  contents: read
-
 env:
-  TF_VAR_env: ${{ secrets.TF_ENV }}
-  AWS_REGION: "us-east-1"
+  S3_STATE_BUCKET: pucrs-crypto-github-action-tfstate-unique
+  DYNAMO_LOCK_TABLE: pucrs-crypto-terraform-lock
   TF_MAIN_DIR: ./iac/flow
+  AWS_REGION: us-east-1
 
 jobs:
-  terraform-destroy:
-    name: 💣 Destruir Infraestrutura e Limpar Backend
+  terraform:
+    name: "Terraform ${{ github.event.inputs.terraform_action }}"
     runs-on: ubuntu-latest
-
-    #Proteção para garantir que o usuário digitou 'destroy'
-    if: github.event.inputs.confirm_destroy == 'destroy'
-
     defaults:
       run:
         working-directory: ${{ env.TF_MAIN_DIR }}
@@ -37,7 +30,7 @@ jobs:
       # -----------------------
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
-      
+
       # -----------------------
       # 🔹 2. Setup Terraform
       # -----------------------
@@ -46,25 +39,25 @@ jobs:
         with:
           # Use a versão mais estável/recente. Manter 1.5.0, mas 1.9.x é melhor se possível.
           terraform_version: 1.5.0 
-        
+
       # -----------------------
       # 🔹 3. Configurar Credenciais AWS
       # -----------------------
-      # NOTA: Manteremos o Access Key/Secret Key para consistência com seus exemplos, 
-      # mas o OIDC (OpenID Connect) seria a melhor prática de segurança.
       - name: 🔐 Configurar Credenciais AWS
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
-        
+
+
       # -----------------------
       # 🔹 4. Inicializar Terraform
       # -----------------------
       - name: 🧱 Terraform Init
-        run: terraform init -reconfigure -input=false
-      
+        id: init
+        run: terraform init -reconfigure
+
       # -----------------------
       # 🔹 5. Criar Plano de Destruição (Segurança Operacional)
       # -----------------------
@@ -76,44 +69,51 @@ jobs:
       # -----------------------
       - name: 🔥 Aplicar Destruição (Auto-Aprovar)
         run: terraform apply -auto-approve tfplan.destroy
-      
-      # ----------------------------------------
-      # 🔹 7. Limpar Artefatos do Backend (CRÍTICO)
-      # ----------------------------------------
-      # A partir daqui, mudamos o working-directory para o raiz do repo,
-      # pois a CLI da AWS não depende de arquivos .tf
-      - name: 🛠 Instalar jq para limpeza de S3
-        run: sudo apt-get update && sudo apt-get install -y jq
-        working-directory: ${{ github.workspace }}
-      
+
+
+      # -----------------------
+      # 🔹 7. Criar Plano de Destruição (Segurança Operacional)
+      # -----------------------
+      #- name: 💣 Executar Terraform Destroy
+      #  id: destroy
+      #  run: terraform destroy -auto-approve
+
+
+      # -----------------------
+      # 🔹 8. Criar Plano de Destruição (Segurança Operacional)
+      # -----------------------
       - name: 🗑️ Excluir Tabela DynamoDB do Backend
         run: |
           echo "🗑️ Excluindo tabela DynamoDB: ${{ env.DYNAMO_LOCK_TABLE }}"
-          # O '|| true' garante que o workflow não falhe se a tabela já não existir
           aws dynamodb delete-table \
             --table-name ${{ env.DYNAMO_LOCK_TABLE }} \
             --region ${{ env.AWS_REGION }} || true
           echo "✅ DynamoDB ${{ env.DYNAMO_LOCK_TABLE }} excluída (ou já inexistente)."
-        working-directory: ${{ github.workspace }}
-      
-      - name: 🧹 Limpar e Excluir Bucket S3 (Versões e Bucket)
+
+
+      # -----------------------
+      # 🔹 9. Criar Plano de Destruição (Segurança Operacional)
+      # -----------------------
+      - name: 🧹 Limpar e Excluir Bucket S3 (versões, markers e bucket)
         run: |
+          sudo apt-get update && sudo apt-get install -y jq
+
           BUCKET=${{ env.S3_STATE_BUCKET }}
           echo "🧹 Deletando versões e delete markers do bucket: $BUCKET"
-      
-          # Script para listar e deletar TODAS as versões e delete markers do bucket
-          aws s3api list-object-versions --bucket "$BUCKET" --output json --region ${{ env.AWS_REGION }} \
+
+          aws s3api list-object-versions --bucket "$BUCKET" --output json \
             | jq -r '.Versions[]?, .DeleteMarkers[]? | [.Key, .VersionId] | @tsv' \
             | while IFS=$'\t' read -r key versionId; do
-                aws s3api delete-object --bucket "$BUCKET" --key "$key" --version-id "$versionId" --region ${{ env.AWS_REGION }} || true
+                aws s3api delete-object --bucket "$BUCKET" --key "$key" --version-id "$versionId" || true
               done
-      
+
           echo "🪣 Excluindo bucket S3..."
-          # Exclui o bucket vazio
           aws s3api delete-bucket --bucket "$BUCKET" --region ${{ env.AWS_REGION }} || true
           echo "✅ Bucket S3 $BUCKET excluído com sucesso (ou já inexistente)."
-        working-directory: ${{ github.workspace }}
-      
-      - name: 🎉 Sucesso
+
+
+      # -----------------------
+      # 🔹 10. Criar Plano de Destruição (Segurança Operacional)
+      # -----------------------
+      - name: 🎉 Notificar Sucesso
         run: echo "🎉 Infraestrutura destruída e backend AWS limpo com sucesso!"
-        working-directory: ${{ github.workspace }}
