@@ -1,4 +1,4 @@
-name: "002 Check Infra AWS"
+name: 002 Check Infra AWS
 
 on:
   workflow_call:

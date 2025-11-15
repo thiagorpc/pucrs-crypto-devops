@@ -9,7 +9,7 @@ on:
 
   workflow_dispatch:
   workflow_run:
-    workflows: ["002. Check Infra AWS"]
+    workflows: ["002 Check Infra AWS"]
     types:
       - completed
 
