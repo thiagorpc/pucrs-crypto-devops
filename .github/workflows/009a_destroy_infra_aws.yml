@@ -24,7 +24,7 @@ jobs:
     name: 💣 Destruir Infraestrutura e Limpar Backend
     runs-on: ubuntu-latest
 
-    # Adiciona uma verificação extra para garantir que o usuário digitou 'destroy'
+    #Proteção para garantir que o usuário digitou 'destroy'
     if: github.event.inputs.confirm_destroy == 'destroy'
 
     defaults:

@@ -2,6 +2,13 @@ name: 000. Setup Terraform AWS CH
 
 on:
   workflow_dispatch:
+    inputs:
+      # Força a confirmação manual da destruição na interface do Actions
+      confirm_destroy:
+        description: "Confirmação de Setup: Digite 'setup' para continuar."
+        required: true
+        default: ""
+        type: string
 
 env:
   TF_WORKING_DIR: ./iac/backend
@@ -13,6 +20,10 @@ jobs:
   prepare:
     name: 'Criar Recursos de Estado Remoto'
     runs-on: ubuntu-latest
+
+    #Proteção para garantir que o usuário digitou 'setup'
+    if: github.event.inputs.confirm_destroy == 'setup'
+
     defaults:
       run:
         working-directory: ${{ env.TF_WORKING_DIR }}
