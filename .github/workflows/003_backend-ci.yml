@@ -1,4 +1,4 @@
-name: 002. Backend CI - Build and Push Image
+name: 003. Backend CI - Build and Push Image
 
 on:
   push:
