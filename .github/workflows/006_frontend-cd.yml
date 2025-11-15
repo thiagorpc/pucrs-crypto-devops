@@ -38,8 +38,8 @@ jobs:
 
       - name: 📦 Descompactar build
         run: |
-          unzip frontend-build.zip -d dist
-          ls -ls dist
+          unzip frontend-build.zip -d temp_build
+          ls -l temp_build
 
       - name: 🔐 Configurar Credenciais AWS
         uses: aws-actions/configure-aws-credentials@v4
@@ -54,7 +54,7 @@ jobs:
 
       - name: 🚀 Fazer upload da nova build para o S3
         run: |
-          aws s3 sync dist/ s3://${{ env.S3_FRONTEND_BUCKET }} --delete
+          aws s3 sync temp_build/dist/ s3://${{ env.S3_FRONTEND_BUCKET }} --delete
 
 
       - name: ⚙️ Configurar Terraform
