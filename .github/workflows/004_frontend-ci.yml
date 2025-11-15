@@ -18,7 +18,46 @@ env:
   AWS_REGION: us-east-1
 
 jobs:
+  precheck:
+    runs-on: ubuntu-latest
+    outputs:
+      deploy_allowed: ${{ steps.check.outputs.deploy_allowed }}
+
+    steps:
+      - name: 📦 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🛠 Instalar jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: 📥 Baixar apply_status do Setup Infra
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          workflow: ${{ env.TF_INFRA_WORKFLOW }}
+          name: terraform-apply-status
+          path: .
+
+      - name: 🔍 Validar apply_status
+        id: check
+        run: |
+          if [ ! -f apply_status.txt ]; then
+            echo "deploy_allowed=false" >> $GITHUB_OUTPUT
+            echo "❌ apply_status.txt não encontrado — cancelando."
+            exit 0
+          fi
+
+          STATUS=$(jq -r '.apply' apply_status.txt)
+          if [[ "$STATUS" == "success" ]]; then
+            echo "✅ Setup AWS bem-sucedido. Deploy permitido."
+            echo "deploy_allowed=true" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️ Setup AWS falhou. Deploy bloqueado."
+            echo "deploy_allowed=false" >> $GITHUB_OUTPUT
+          fi
+
   build-frontend:
+    needs: precheck
+    if: needs.precheck.outputs.deploy_allowed == 'true'
     runs-on: ubuntu-latest
 
     steps:
