@@ -48,8 +48,8 @@ jobs:
   # ==========================================================
 
   build-frontend:
+    name: 🚀 Build, Test and Push Frontend
     needs: infra-check
-    if: needs.precheck.outputs.deploy_allowed == 'true'
     runs-on: ubuntu-latest
 
     steps:
