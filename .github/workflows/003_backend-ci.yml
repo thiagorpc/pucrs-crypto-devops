@@ -7,10 +7,7 @@ on:
     paths:
       - 'crypto-api/**'
 
-  # 🔹 Dispara automaticamente quando o workflow Setup AWS for concluído
   workflow_dispatch:
-
-  # 🔹 Dispara automaticamente quando o workflow Setup AWS for concluído
   workflow_run:
     workflows: ["002 Check Infra AWS"]
     types:
