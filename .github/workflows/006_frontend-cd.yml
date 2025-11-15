@@ -3,7 +3,7 @@ name: 006. Frontend CD - Deploy UI
 on:
   workflow_dispatch:
   workflow_run:
-    workflows: ['004. Frontend CI - Build UI']
+    workflows: ['005. Frontend CI - Build UI']
     types:
       - completed
 
