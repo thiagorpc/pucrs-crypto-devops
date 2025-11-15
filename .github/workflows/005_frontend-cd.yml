@@ -60,9 +60,15 @@ jobs:
       - name: 📥 Baixar artifact do build (frontend-build.zip)
         uses: dawidd6/action-download-artifact@v3
         with:
-          workflow: 004. Frontend CI - Build UI
+          #workflow: 004_frontend-ci.yml
+          #name: frontend-build
+          #path: .
+          workflow: 004_frontend-ci.yml
           name: frontend-build
           path: .
+          check_artifacts: true
+          #search_artifacts: true
+          workflow_conclusion: ""
 
       - name: 📦 Descompactar build
         run: unzip frontend-build.zip -d dist
