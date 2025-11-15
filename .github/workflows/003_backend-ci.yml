@@ -24,19 +24,14 @@ jobs:
   # 🧩 Checagem da infraestrutura via Terraform Plan
   infra-check:
     name: 🧩 Verificar Terraform Plan
-    uses: ./.github/actions/terraform-plan-checks
-    #outputs:
-    #  infra_is_ready: ${{ outputs.infra_is_ready }}
-
+    uses: ./.github/workflows/002-check-infra-aws.yml
 
   build-and-push:
     name: ⭐ Build and Push Backend Docker Image
-    runs-on: ubuntu-latest
-    # 🎯 Dependência no novo job de checagem de infraestrutura
     needs: infra-check
-
-    # ✅ Verifica o output do job anterior (não de um step!)
     if: needs.infra-check.outputs.infra_is_ready == 'true'
+
+    runs-on: ubuntu-latest
     
     steps:
       - name: 📥 Checkout Repository
