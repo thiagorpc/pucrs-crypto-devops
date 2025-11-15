@@ -204,7 +204,7 @@ resource "aws_api_gateway_integration_response" "options_proxy_integration_respo
     
     # 🟢 CORREÇÃO DA SINTAXE E REFERÊNCIA DINÂMICA
     # O valor final deve ser uma string literal ('...') que contém a URL do frontend.
-    "method.response.header.Access-Control-Allow-Origin"  = "*"
+    "method.response.header.Access-Control-Allow-Origin"  = "'${aws_cloudfront_distribution.frontend_cdn.domain_name}'"
     // "'${aws_s3_bucket_website_configuration.frontend_website.website_endpoint}'"
     
     //"'${local.frontend_origin_url}'" 

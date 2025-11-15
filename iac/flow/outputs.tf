@@ -54,8 +54,8 @@ output "ui_bucket_name" {
 }
 
 output "react_ui_url" {
-  description = "URL pública do front-end React hospedado no S3"
-  value       = aws_s3_bucket_website_configuration.frontend_website.website_endpoint
+  description = "URL pública do front-end React hospedado no S3 + CloudFront"
+  value       = aws_cloudfront_distribution.frontend_cdn.domain_name 
 }
 
 output "images_bucket_name" {
