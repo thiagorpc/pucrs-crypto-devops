@@ -111,3 +111,5 @@ jobs:
           fi
 
           echo "infra_is_ready=$OUTPUT_VALUE" >> $GITHUB_OUTPUT
+
+          echo "📢 Saída do output infra_is_ready: $OUTPUT_VALUE"

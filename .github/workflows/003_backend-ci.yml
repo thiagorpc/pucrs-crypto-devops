@@ -26,6 +26,15 @@ jobs:
     uses: ./.github/workflows/002_check_infra_aws.yml
     secrets: inherit
 
+
+  print-infra-output:
+    needs: infra-check
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🖨 Print Infra Output
+        run: |
+          echo "📢 infra_is_ready do workflow reutilizável: ${{ needs.infra-check.outputs.infra_is_ready }}"
+
   # ==========================================================
   # 🚀 JOB 2: Build, Test e Push da Imagem no ECR
   # ==========================================================
@@ -33,7 +42,8 @@ jobs:
     name: 🚀 Build, Test and Push Backend Docker Image
     needs: infra-check
     runs-on: ubuntu-latest
-    if: always()  # ← opcional, pode ser needs.infra-check.outputs.infra_is_ready == 'true'
+
+    if: needs.infra-check.outputs.infra_is_ready == 'true'
 
     steps:
       - name: 📥 Checkout Repository
