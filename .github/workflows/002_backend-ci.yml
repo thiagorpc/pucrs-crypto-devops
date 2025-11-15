@@ -75,6 +75,7 @@ jobs:
           fi
 
   build-and-push:
+    name: 🏗️ Build and Push Backend Docker Image
     runs-on: ubuntu-latest
     # 🎯 Dependência no novo job de checagem de infraestrutura
     needs: infra-check
