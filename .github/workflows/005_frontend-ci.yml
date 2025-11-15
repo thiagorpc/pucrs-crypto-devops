@@ -37,7 +37,10 @@ jobs:
       - name: 🖨 Print Infra Output
         run: |
           echo "📢 Infra AWS já está pronta?: ${{ needs.infra-check.outputs.infra_is_ready }}"
-          exit 1
+          if [ "${{ needs.infra-check.outputs.infra_is_ready }}" != "true" ]; then
+            echo "❌ Infra não está pronta, abortando!"
+            exit 1
+          fi
 
   # ==========================================================
   # 🚀 JOB 2: Build, Test e Push da Front-End
