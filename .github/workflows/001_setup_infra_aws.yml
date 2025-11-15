@@ -59,7 +59,7 @@ jobs:
 
       - name: 📤 Exportar CloudFront Distribution ID
         id: export_cf_id
-        working-directory: ./iac/flow # Crucial para rodar no diretório correto
+        working-directory: ${{ env.TF_WORKING_DIR }}
         run: |
           # Tenta obter o ID. 
           # 2>/dev/null: Ignora Warnings (como "No outputs found") para que o shell não capture texto indesejado.
