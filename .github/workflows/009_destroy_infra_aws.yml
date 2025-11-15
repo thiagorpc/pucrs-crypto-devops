@@ -1,4 +1,4 @@
-name: 09. Destroy Infra AWS
+name: 009. Destroy Infra AWS
 
 on:
   # 🔹 Execução manual via GitHub Actions
