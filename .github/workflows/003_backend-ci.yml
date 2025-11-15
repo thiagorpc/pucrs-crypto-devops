@@ -37,7 +37,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: ⚙️ Rodar Terraform Plan (Check Infra)
-        uses: ./.github/actions/check-infra
+        uses: ./.github/workflows/002_check_infra_aws.yml
         # ↑ Aqui você pode trocar para "run: terraform plan"
         # se não houver uma action customizada check-infra
 
