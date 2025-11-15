@@ -22,7 +22,6 @@ jobs:
   # 🧩 JOB 1: Verifica se a infraestrutura AWS está OK
   # ==========================================================
   infra-check:
-    name: 🧩 Checar Infraestrutura AWS
     uses: ./.github/workflows/002_check_infra_aws.yml
     secrets: inherit
 
@@ -40,7 +39,7 @@ jobs:
   # ==========================================================
   build-and-push:
     name: 🚀 Build, Test and Push Backend Docker Image
-    needs: infra-check
+    needs: print-infra-output
     runs-on: ubuntu-latest
 
     if: needs.infra-check.outputs.infra_is_ready == 'true'
