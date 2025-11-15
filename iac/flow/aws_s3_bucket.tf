@@ -19,17 +19,25 @@ resource "aws_s3_bucket_ownership_controls" "ui_ownership" {
   }
 }
 
-resource "aws_s3_bucket_website_configuration" "frontend_website" {
+resource "aws_s3_bucket_ownership_controls" "ui_ownership" {
   bucket = aws_s3_bucket.frontend.id
-
-  index_document {
-    suffix = "index.html"
-  }
-  
-  # Usar index.html para SPAs é mais comum.
-  error_document {
-    key = "index.html"
+  rule {
+    object_ownership = "BucketOwnerEnforced"
   }
 }
+
+
+#resource "aws_s3_bucket_website_configuration" "frontend_website" {
+#  bucket = aws_s3_bucket.frontend.id
+#
+#  index_document {
+#    suffix = "index.html"
+#  }
+#  
+#  # Usar index.html para SPAs é mais comum.
+#  error_document {
+#    key = "index.html"
+#  }
+#}
 
 

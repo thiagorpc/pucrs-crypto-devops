@@ -6,7 +6,7 @@
 resource "aws_cloudfront_distribution" "frontend_cdn" {
   origin {
     domain_name              = aws_s3_bucket.frontend.bucket_regional_domain_name
-    origin_id                = aws_s3_bucket.frontend.id
+    origin_id                = "frontend-s3-origin"
     origin_access_control_id = aws_cloudfront_origin_access_control.frontend_oac.id
   }
 
@@ -16,9 +16,9 @@ resource "aws_cloudfront_distribution" "frontend_cdn" {
   default_root_object = "index.html"
 
   default_cache_behavior {
-    allowed_methods        = ["GET", "HEAD", "OPTIONS"]
+    allowed_methods        = ["GET", "HEAD", "OPTIONS" ]
     cached_methods         = ["GET", "HEAD", "OPTIONS"]
-    target_origin_id       = aws_s3_bucket.frontend.id
+    target_origin_id       = "frontend-s3-origin"
     
     # FORÇA HTTPS
     viewer_protocol_policy = "redirect-to-https" 
@@ -57,7 +57,7 @@ resource "aws_cloudfront_distribution" "frontend_cdn" {
 
 # Acesso Controlado à Origem (OAC)
 resource "aws_cloudfront_origin_access_control" "frontend_oac" {
-  name                              = "${aws_s3_bucket.frontend.id}-oac"
+  name                              = "${aws_s3_bucket.frontend.id}-frontend-oac"
   description                       = "OAC para o bucket S3 do frontend"
   origin_access_control_origin_type = "s3"
   signing_behavior                  = "always"
