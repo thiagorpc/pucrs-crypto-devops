@@ -57,6 +57,12 @@ jobs:
         if: github.event.inputs.terraform_action == 'apply'
         run: terraform apply -auto-approve tfplan
 
+      - name: 📤 Exportar CloudFront Distribution ID
+        id: export_cf_id
+        run: |
+          ID=$(terraform output -raw cloudfront_distribution_id)
+          echo "CLOUDFRONT_DISTRIBUTION_ID=$ID" >> $GITHUB_ENV
+
       - name: 🧾 Gerar sinalizador de Apply
         id: apply_status
         if: always()

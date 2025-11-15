@@ -95,3 +95,7 @@ output "cloudfront_url_domain" {
   description = "Domain name da distribuição CloudFront para acesso HTTPS."
   value       = aws_cloudfront_distribution.frontend_cdn.domain_name 
 }
+
+output "cloudfront_distribution_id" {
+  value = aws_cloudfront_distribution.frontend_cdn.id
+}
