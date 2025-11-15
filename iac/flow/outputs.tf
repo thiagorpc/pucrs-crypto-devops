@@ -98,4 +98,10 @@ output "cloudfront_url_domain" {
 
 output "cloudfront_distribution_id" {
   value = aws_cloudfront_distribution.frontend_cdn.id
+  description = "O ID da distribuição CloudFront."
+}
+
+output "cloudfront_distribution_arn" {
+  value = aws_cloudfront_distribution.frontend_cdn.arn
+  description = "O ARN da distribuição CloudFront."
 }

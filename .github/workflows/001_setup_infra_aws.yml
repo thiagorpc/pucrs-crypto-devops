@@ -59,10 +59,22 @@ jobs:
 
       - name: 📤 Exportar CloudFront Distribution ID
         id: export_cf_id
+        working-directory: ./iac/flow # Crucial para rodar no diretório correto
         run: |
-          ID=$(terraform output -raw cloudfront_distribution_id)
+          # Tenta obter o ID. 
+          # 2>/dev/null: Ignora Warnings (como "No outputs found") para que o shell não capture texto indesejado.
+          ID=$(terraform output -raw cloudfront_distribution_id 2>/dev/null)
+              
+          # Verifica se a variável ID está vazia. Se estiver, falha o passo explicitamente.
+          if [ -z "$ID" ]; then
+            echo "❌ ERRO: O ID da distribuição CloudFront não foi encontrado no Terraform Output."
+            echo "Verifique se a CloudFront Distribution foi criada e se o 'terraform apply' anterior salvou o output no estado remoto."
+            exit 1
+          fi
+              
+          # Exporta o ID limpo para ser usado nos passos seguintes (como no job de invalidação)
           echo "CLOUDFRONT_DISTRIBUTION_ID=$ID" >> $GITHUB_ENV
-          echo "CLOUDFRONT_DISTRIBUTION_ID=$ID"
+          echo "🌎 CloudFront ID exportado com sucesso: $ID"
 
       - name: 🧾 Gerar sinalizador de Apply
         id: apply_status
