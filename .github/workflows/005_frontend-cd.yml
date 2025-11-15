@@ -90,6 +90,15 @@ jobs:
         with:
           terraform_version: 1.5.0
 
+      # 🟢 PASSO CHAVE ADICIONADO: INICIALIZAR O BACKEND
+      - name: 🔑 Inicializar Terraform Backend
+        uses: hashicorp/terraform-github-actions/init@v3
+        with:
+          # Assumindo que seu backend S3 está configurado em iac/flow
+          working_directory: ./iac/flow 
+          # Use -reconfigure para garantir que as configurações do backend sejam lidas corretamente
+          args: -reconfigure 
+
       - name: 🔄 Invalidar Cache do CloudFront
         working-directory: ./iac/flow
         run: |
