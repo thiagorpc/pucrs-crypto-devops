@@ -12,9 +12,6 @@ on:
           - plan
           - apply
 
-concurrency:
-  group: terraform
-  cancel-in-progress: false
    
 env:
   TF_WORKING_DIR: ./iac/flow
