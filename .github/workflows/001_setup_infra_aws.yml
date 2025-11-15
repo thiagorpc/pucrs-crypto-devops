@@ -12,6 +12,7 @@ on:
           - plan
           - apply
 
+          
 env:
   TF_WORKING_DIR: ./iac/flow
   AWS_REGION: us-east-1
