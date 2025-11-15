@@ -53,15 +53,6 @@ jobs:
       backend_ci_success: ${{ steps.ci_status.outputs.backend_ci_success }}
 
     steps:
-      - name: 📢 Set CI Status
-        id: ci_status
-        run: |
-          if [ "${{ needs.infra-check.outputs.infra_is_ready }}" == "true" ]; then
-            echo "backend_ci_success=true" >> $GITHUB_OUTPUT
-          else
-            echo "backend_ci_success=false" >> $GITHUB_OUTPUT
-          fi
-
       - name: 📥 Checkout Repository
         uses: actions/checkout@v4
 
@@ -114,4 +105,10 @@ jobs:
           name: backend-image-tag
           path: image_tag.txt
           retention-days: 3
+      
+      - name: ✅ Set final CI Status
+        id: ci_status
+        run: |
+          echo "backend_ci_success=true" >> $GITHUB_OUTPUT
+
 
