@@ -79,7 +79,7 @@ jobs:
 
       - name: 🧹 Limpar bucket S3 antes do upload
         run: |
-          aws s3 rm s3://${{ env.S3_FRONTEND_BUCKET }} --delete
+          aws s3 rm s3://${{ env.S3_FRONTEND_BUCKET }} --recursive
 
       - name: 🚀 Fazer upload da nova build para o S3
         run: |
@@ -97,7 +97,7 @@ jobs:
           terraform init -reconfigure
         working-directory: ./iac/flow
 
-        
+
       - name: 🔄 Invalidar Cache do CloudFront
         working-directory: ./iac/flow
         run: |
