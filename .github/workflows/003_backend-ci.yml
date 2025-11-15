@@ -9,34 +9,52 @@ on:
 
   workflow_dispatch:
   workflow_run:
-    workflows: ["002 Check Infra AWS"]
+    workflows: ["002. Check Infra AWS"]
     types:
       - completed
-  
-  workflow_call:
-    secrets:
-      AWS_ACCESS_KEY_ID:
-        required: true
-      AWS_SECRET_ACCESS_KEY:
-        required: true
 
 env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: pucrs-crypto-api-repo
-  
+
 jobs:
-  # 🧩 Checagem da infraestrutura via Terraform Plan
+  # ==========================================================
+  # 🧩 JOB 1: Verifica se a infraestrutura AWS está OK
+  # ==========================================================
   infra-check:
-    name: 🧩 Verificar Terraform Plan
-    uses: ./.github/workflows/002_check_infra_aws.yml
-
-  build-and-push:
-    name: ⭐ Build and Push Backend Docker Image
-    needs: infra-check
-    if: ${{needs.infra-check.outputs.infra_is_ready == 'true'}}
-
+    name: 🧩 Verificar Infraestrutura AWS
     runs-on: ubuntu-latest
-    
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🔐 Configurar Credenciais AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: ⚙️ Rodar Terraform Plan (Check Infra)
+        uses: ./.github/actions/check-infra
+        # ↑ Aqui você pode trocar para "run: terraform plan"
+        # se não houver uma action customizada check-infra
+
+    outputs:
+      infra_is_ready: true
+      # ⚠️ Opcional: se quiser condicionalizar o próximo job,
+      # pode usar uma lógica real de checagem no output acima.
+
+  # ==========================================================
+  # 🚀 JOB 2: Build, Test e Push da Imagem no ECR
+  # ==========================================================
+  build-and-push:
+    name: 🚀 Build, Test and Push Backend Docker Image
+    needs: infra-check
+    runs-on: ubuntu-latest
+    if: always()  # ← opcional, pode ser needs.infra-check.outputs.infra_is_ready == 'true'
+
     steps:
       - name: 📥 Checkout Repository
         uses: actions/checkout@v4
@@ -77,7 +95,7 @@ jobs:
           cd ./crypto-api
           npm run test
 
-      - name: ⭐ Build and Push Docker Image
+      - name: 🐳 Build and Push Docker Image
         run: |
           ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
           IMAGE=${ECR_REGISTRY}/${{ env.ECR_REPOSITORY }}:${{ steps.tag.outputs.IMAGE_TAG }}

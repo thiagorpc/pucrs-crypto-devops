@@ -6,6 +6,14 @@ on:
       infra_is_ready:
         description: "Infraestrutura pronta"
         value: ${{ jobs.plan_check.outputs.infra_is_ready }}
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      AWS_REGION:
+        required: true  
+
 
   workflow_dispatch:
 
@@ -14,7 +22,7 @@ on:
     workflows: ["001. Setup Infra AWS"]
     types:
       - completed
-
+  
 env:
   TF_WORKING_DIR: ./iac/flow
   AWS_REGION: us-east-1
