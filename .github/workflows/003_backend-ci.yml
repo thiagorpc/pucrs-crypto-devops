@@ -29,9 +29,6 @@ jobs:
   infra-check:
     name: 🧩 Verificar Terraform Plan
     uses: ./.github/workflows/002_check_infra_aws.yml
-    secrets:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
   build-and-push:
     name: ⭐ Build and Push Backend Docker Image
