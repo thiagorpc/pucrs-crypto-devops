@@ -88,11 +88,20 @@ jobs:
         run: |
           aws s3 sync dist s3://${{ env.S3_FRONTEND_BUCKET }} --delete
 
-      - name: 🌎 Invalidate CloudFront Cache
-        run: |
-          aws cloudfront create-invalidation \
-            --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }} \
-            --paths "/*"
+      #- name: 🌎 Invalidate CloudFront Cache
+      #  run: |
+      #    aws cloudfront create-invalidation \
+      #      --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }} \
+      #      --paths "/*"
 
-      - name: 🎉 Deploy Finalizado
-        run: echo "Frontend deploy finalizado com sucesso!"
+      - name: 🔄 Invalidar Cache do CloudFront
+        run: |
+          CLOUDFRONT_DISTRIBUTION_ID=$(terraform output -raw cloudfront_distribution_id)
+          echo "Distribuição encontrada: $CLOUDFRONT_DISTRIBUTION_ID"
+
+          aws cloudfront create-invalidation \
+            --distribution-id "$CLOUDFRONT_DISTRIBUTION_ID" \
+            --paths "/*
+
+            - name: 🎉 Deploy Finalizado
+              run: echo "Frontend deploy finalizado com sucesso!"
