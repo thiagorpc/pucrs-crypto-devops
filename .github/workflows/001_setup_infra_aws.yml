@@ -49,7 +49,7 @@ jobs:
 
       - name: 🧩 Terraform Plan
         id: plan
-        if: always()
+        # if : always()
         run: terraform plan -out=tfplan
 
       - name: 🚀 Terraform Apply
