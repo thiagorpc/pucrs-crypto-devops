@@ -10,7 +10,7 @@ on:
 env:
   AWS_REGION: us-east-1
   S3_FRONTEND_BUCKET: pucrs-crypto-frontend
-  CLOUDFRONT_DISTRIBUTION_ID: --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }}
+  #CLOUDFRONT_DISTRIBUTION_ID: YOUR_DISTRIBUTION_ID
   TF_INFRA_WORKFLOW: 001_setup_infra_aws.yml
 
 jobs:
