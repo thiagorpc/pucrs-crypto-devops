@@ -3,13 +3,12 @@ name: A9. Destroy Infra AWS 💣
 on:
   workflow_dispatch:
     inputs:
-      terraform_action:
-        description: "Ação do Terraform (destroy)"
+      # Força a confirmação manual da destruição na interface do Actions
+      confirm_destroy:
+        description: "Confirmação de Destruição: Digite 'destroy' para continuar."
         required: true
-        default: "destroy"
-        type: choice
-        options:
-          - destroy
+        default: ""
+        type: string
 
 env:
   S3_STATE_BUCKET: pucrs-crypto-github-action-tfstate-unique
@@ -26,9 +25,24 @@ jobs:
         working-directory: ${{ env.TF_MAIN_DIR }}
 
     steps:
+      # -----------------------
+      # 🔹 1. Checkout do Repositório
+      # -----------------------
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
 
+      # -----------------------
+      # 🔹 2. Setup Terraform
+      # -----------------------
+      - name: ⚙️ Configurar Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          # Use a versão mais estável/recente. Manter 1.5.0, mas 1.9.x é melhor se possível.
+          terraform_version: 1.5.0 
+
+      # -----------------------
+      # 🔹 3. Configurar Credenciais AWS
+      # -----------------------
       - name: 🔐 Configurar Credenciais AWS
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -36,19 +50,45 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: ⚙️ Configurar Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.5.0
 
+      # -----------------------
+      # 🔹 4. Inicializar Terraform
+      # -----------------------
       - name: 🧱 Terraform Init
         id: init
         run: terraform init -reconfigure
 
-      - name: 💣 Executar Terraform Destroy
-        id: destroy
-        run: terraform destroy -auto-approve
+      # -----------------------
+      # 🔹 5. Criar Plano de Destruição (Segurança Operacional)
+      # -----------------------
+      - name: 📝 Criar Plano de Destruição
+        run: terraform plan -destroy -out=tfplan.destroy
+      
+      # -----------------------
+      # 🔹 6. Aplicar Destruição
+      # -----------------------
+      - name: 🔥 Aplicar Destruição (Auto-Aprovar)
+        run: terraform apply -auto-approve tfplan.destroy
 
+
+      # -----------------------
+      # 🔹 7. Aplicar Destruição
+      # -----------------------
+      - name: 🔥 Aplicar Destruição (Auto-Aprovar)
+        run: terraform apply -auto-approve tfplan.destroy
+
+
+      # -----------------------
+      # 🔹 7. Criar Plano de Destruição (Segurança Operacional)
+      # -----------------------
+      #- name: 💣 Executar Terraform Destroy
+      #  id: destroy
+      #  run: terraform destroy -auto-approve
+
+
+      # -----------------------
+      # 🔹 8. Criar Plano de Destruição (Segurança Operacional)
+      # -----------------------
       - name: 🗑️ Excluir Tabela DynamoDB do Backend
         run: |
           echo "🗑️ Excluindo tabela DynamoDB: ${{ env.DYNAMO_LOCK_TABLE }}"
@@ -57,6 +97,10 @@ jobs:
             --region ${{ env.AWS_REGION }} || true
           echo "✅ DynamoDB ${{ env.DYNAMO_LOCK_TABLE }} excluída (ou já inexistente)."
 
+
+      # -----------------------
+      # 🔹 9. Criar Plano de Destruição (Segurança Operacional)
+      # -----------------------
       - name: 🧹 Limpar e Excluir Bucket S3 (versões, markers e bucket)
         run: |
           sudo apt-get update && sudo apt-get install -y jq
@@ -74,5 +118,9 @@ jobs:
           aws s3api delete-bucket --bucket "$BUCKET" --region ${{ env.AWS_REGION }} || true
           echo "✅ Bucket S3 $BUCKET excluído com sucesso (ou já inexistente)."
 
+
+      # -----------------------
+      # 🔹 10. Criar Plano de Destruição (Segurança Operacional)
+      # -----------------------
       - name: 🎉 Notificar Sucesso
         run: echo "🎉 Infraestrutura destruída e backend AWS limpo com sucesso!"
