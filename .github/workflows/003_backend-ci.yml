@@ -13,7 +13,8 @@ on:
   # 🔹 Dispara automaticamente quando o workflow Setup AWS for concluído
   workflow_run:
     workflows: ["002 Check Infra AWS"]
-    types: [completed]
+    types: 
+      - completed
 
 env:
   AWS_REGION: us-east-1
