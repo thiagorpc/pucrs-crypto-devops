@@ -16,7 +16,17 @@ env:
   TF_WORKING_DIR: ./iac/flow
 
 jobs:
+
+  deploy-backend-CI-check-infra:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🖨 Print Brackend CI status
+        run: |
+          echo "📢 Bankend CI completed?: ${{ steps.ci_status.outputs.backend_ci_success }}"
+
   deploy-backend:
+    needs: deploy-backend-CI-check-infra
+
     runs-on: ubuntu-latest
 
     # ✅ Só executa se o workflow CI terminou com sucesso

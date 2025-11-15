@@ -49,6 +49,9 @@ jobs:
     # ✅ Condicional para só rodar se a infra estiver pronta
     if: needs.infra-check.outputs.infra_is_ready == 'true'
 
+    outputs:
+      backend_ci_success: ${{ steps.ci_status.outputs.backend_ci_success }}
+
     steps:
       - name: 📢 Set CI Status
         id: ci_status
@@ -112,5 +115,3 @@ jobs:
           path: image_tag.txt
           retention-days: 3
 
-    outputs:
-      backend_ci_success: ${{ steps.ci_status.outputs.backend_ci_success }}
