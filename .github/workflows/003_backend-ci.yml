@@ -37,6 +37,7 @@ jobs:
       - name: 🖨 Print Infra Output
         run: |
           echo "📢 Infra AWS já está pronta?: ${{ needs.infra-check.outputs.infra_is_ready }}"
+          exit 1
 
   # ==========================================================
   # 🚀 JOB 2: Build, Test e Push da Imagem no ECR
@@ -45,12 +46,6 @@ jobs:
     name: 🚀 Build, Test and Push Backend Docker Image
     needs: print-infra-output
     runs-on: ubuntu-latest
-
-    # ✅ Condicional para só rodar se a infra estiver pronta
-    if: needs.infra-check.outputs.infra_is_ready == 'true'
-
-    outputs:
-      backend_ci_success: ${{ steps.ci_status.outputs.backend_ci_success }}
 
     steps:
       - name: 📥 Checkout Repository
@@ -105,10 +100,3 @@ jobs:
           name: backend-image-tag
           path: image_tag.txt
           retention-days: 3
-      
-      - name: ✅ Set final CI Status
-        id: ci_status
-        run: |
-          echo "backend_ci_success=true" >> $GITHUB_OUTPUT
-
-
