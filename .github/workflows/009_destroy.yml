@@ -17,44 +17,69 @@ env:
   AWS_REGION: us-east-1
 
 jobs:
-  precheck:
+  infra-check:
+    name: 🔍 Checar Estado da Infraestrutura com Plan
     runs-on: ubuntu-latest
+    
     outputs:
-      deploy_allowed: ${{ steps.check.outputs.deploy_allowed }}
+      infra_is_ready: ${{ steps.plan_check.outputs.infra_is_ready }}
+
+    defaults:
+      run:
+        working-directory: ./iac/flow # Diretório do seu código Terraform
 
     steps:
-      - name: Checkout
+      - name: 📦 Checkout Code
         uses: actions/checkout@v4
 
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
-
-      - name: Download apply_status artifact (from Setup Infra)
-        uses: dawidd6/action-download-artifact@v3
+      - name: ⚙️ Configurar Terraform
+        uses: hashicorp/setup-terraform@v3
         with:
-          workflow: 001_setup_infra_aws.yml
-          name: terraform-apply-status
-          path: .
+          terraform_version: 1.5.0
 
-      - name: Check apply_status
-        id: deploy_check
+      - name: 🔐 Configurar Credenciais AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: 🧱 Terraform Init
+        run: terraform init -reconfigure -input=false
+
+      - name: 🔎 Executar Plan com detailed-exitcode
+        id: plan_check
+        # O pipe '|| true' evita que o passo falhe se o código de saída for 2 (mudanças)
         run: |
-          if [ ! -f ./apply_status.txt ]; then
-            echo "deploy_allowed=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-          APPLY_STATUS=$(jq -r '.apply' ./apply_status.txt)
-          if [[ "$APPLY_STATUS" == "success" ]]; then
-            echo "deploy_allowed=true" >> $GITHUB_OUTPUT
+          set +e # Desativa falha imediata do shell
+          
+          # Executa o plan e captura o código de saída
+          terraform plan -detailed-exitcode 
+          EXIT_CODE=$?
+          
+          echo "Código de Saída do Plan: $EXIT_CODE"
+          
+          if [ $EXIT_CODE -eq 0 ]; then
+            echo "✅ Infraestrutura já aplicada (Exit Code 0). Deploy permitido."
+            echo "infra_is_ready=true" >> $GITHUB_OUTPUT
+          elif [ $EXIT_CODE -eq 2 ]; then
+            echo "⚠️ Mudanças pendentes (Exit Code 2). Infraestrutura não pronta ou precisa de apply."
+            echo "infra_is_ready=false" >> $GITHUB_OUTPUT
+            # Não falha o job; apenas bloqueia o deploy
           else
-            echo "deploy_allowed=false" >> $GITHUB_OUTPUT
+            echo "❌ Erro no Terraform Plan (Exit Code 1). Bloqueando deploy."
+            echo "infra_is_ready=false" >> $GITHUB_OUTPUT
+            exit 1 # Falha o passo por erro de execução (código 1)
           fi
+
 
   terraform:
     name: "Terraform Destroy"
     runs-on: ubuntu-latest
-    needs: precheck
-    if: needs.precheck.outputs.deploy_allowed == 'true'
+    # 🎯 Dependência no novo job de checagem de infraestrutura
+    needs: infra-check
+    # 🎯 Só prossegue se o check de infraestrutura for TRUE (Exit Code 0 no Plan)
+    if: needs.infra-check.outputs.infra_is_ready == 'true'
 
     defaults:
       run:
