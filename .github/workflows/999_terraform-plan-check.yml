@@ -47,10 +47,37 @@ jobs:
           set +e
           terraform plan -detailed-exitcode | tee tfplan_output.txt
           EXIT_CODE=${PIPESTATUS[0]}
+
           echo "Código de Saída do Plan: $EXIT_CODE"
+
           OUTPUT_VALUE="false"
+
+          # Extrai a linha que contém o resumo do plano (ex: "Plan: 3 to add, 2 to change, 1 to destroy")
+          PLAN_SUMMARY=$(grep -Eo 'Plan: [0-9]+ to add, [0-9]+ to change, [0-9]+ to destroy' tfplan_output.txt | tail -1)
+
+          if [ -n "$PLAN_SUMMARY" ]; then
+            # Extrai os números individuais
+            ADD=$(echo "$PLAN_SUMMARY" | grep -Eo '[0-9]+' | sed -n 1p)
+            CHANGE=$(echo "$PLAN_SUMMARY" | grep -Eo '[0-9]+' | sed -n 2p)
+            DESTROY=$(echo "$PLAN_SUMMARY" | grep -Eo '[0-9]+' | sed -n 3p)
+
+            echo "📊 Resumo do Terraform Plan:"
+            echo "   ➕ $ADD para adicionar"
+            echo "   ♻️  $CHANGE para alterar"
+            echo "   ❌ $DESTROY para destruir"
+          fi
+
           CHANGES_DETECTED=$(grep -E 'Plan: [1-9]+ to add|Plan: [1-9]+ to change|Plan: [1-9]+ to destroy' tfplan_output.txt)
+
           if [ $EXIT_CODE -eq 0 ] && [ -z "$CHANGES_DETECTED" ]; then
             OUTPUT_VALUE="true"
+            echo "✅ Nenhuma mudança detectada. Infraestrutura pronta."
+          elif [ $EXIT_CODE -eq 2 ]; then
+            echo "⚠️ Mudanças pendentes detectadas."
+          else
+            echo "❌ Erro no Terraform Plan (código $EXIT_CODE)."
+            exit 1
           fi
+
           echo "infra_is_ready=$OUTPUT_VALUE" >> $GITHUB_OUTPUT
+
