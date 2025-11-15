@@ -22,29 +22,9 @@ jobs:
   # 🧩 JOB 1: Verifica se a infraestrutura AWS está OK
   # ==========================================================
   infra-check:
-    name: 🧩 Verificar Infraestrutura AWS
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: 📥 Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: 🔐 Configurar Credenciais AWS
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: ⚙️ Rodar Terraform Plan (Check Infra)
-        uses: ./.github/workflows/002_check_infra_aws.yml
-        # ↑ Aqui você pode trocar para "run: terraform plan"
-        # se não houver uma action customizada check-infra
-
-    outputs:
-      infra_is_ready: true
-      # ⚠️ Opcional: se quiser condicionalizar o próximo job,
-      # pode usar uma lógica real de checagem no output acima.
+    name: 🧩 Checar Infraestrutura AWS
+    uses: ./.github/workflows/002_check_infra_aws.yml
+    secrets: inherit
 
   # ==========================================================
   # 🚀 JOB 2: Build, Test e Push da Imagem no ECR
