@@ -37,7 +37,9 @@ jobs:
           check_artifacts: true
 
       - name: 📦 Descompactar build
-        run: unzip frontend-build.zip -d dist
+        run: |
+          unzip frontend-build.zip -d dist
+          ls -ls dist
 
       - name: 🔐 Configurar Credenciais AWS
         uses: aws-actions/configure-aws-credentials@v4
