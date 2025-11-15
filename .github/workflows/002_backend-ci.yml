@@ -74,43 +74,12 @@ jobs:
             exit 1 # Falha o passo por erro de execução (código 1)
           fi
 
-  precheck:
-    runs-on: ubuntu-latest
-    outputs:
-      deploy_allowed: ${{ steps.deploy_check.outputs.deploy_allowed }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
-
-      - name: Download apply_status artifact (from Setup Infra)
-        uses: dawidd6/action-download-artifact@v3
-        with:
-          workflow: 001_setup_infra_aws.yml
-          name: terraform-apply-status
-          path: .
-
-      - name: Check apply_status
-        id: deploy_check
-        run: |
-          if [ ! -f ./apply_status.txt ]; then
-            echo "deploy_allowed=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-          APPLY_STATUS=$(jq -r '.apply' ./apply_status.txt)
-          if [[ "$APPLY_STATUS" == "success" ]]; then
-            echo "deploy_allowed=true" >> $GITHUB_OUTPUT
-          else
-            echo "deploy_allowed=false" >> $GITHUB_OUTPUT
-          fi
-          
   build-and-push:
     runs-on: ubuntu-latest
-    needs: precheck
-    if: needs.precheck.outputs.deploy_allowed == 'true'
+    # 🎯 Dependência no novo job de checagem de infraestrutura
+    needs: infra-check
+    # 🎯 Só prossegue se o check de infraestrutura for TRUE (Exit Code 0 no Plan)
+    if: needs.infra-check.outputs.infra_is_ready == 'true'
     
     steps:
       - name: 📥 Checkout Repository
