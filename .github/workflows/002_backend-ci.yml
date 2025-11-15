@@ -93,7 +93,7 @@ jobs:
 
 
   build-and-push:
-    name: 🏗️ Build and Push Backend Docker Image
+    name: ⭐ Build and Push Backend Docker Image
     runs-on: ubuntu-latest
     # 🎯 Dependência no novo job de checagem de infraestrutura
     needs: infra-check
@@ -140,7 +140,7 @@ jobs:
           cd ./crypto-api
           npm run test
 
-      - name: 🏗️ Build and Push Docker Image
+      - name: ⭐ Build and Push Docker Image
         run: |
           ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
           IMAGE=${ECR_REGISTRY}/${{ env.ECR_REPOSITORY }}:${{ steps.tag.outputs.IMAGE_TAG }}

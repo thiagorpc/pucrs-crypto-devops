@@ -75,7 +75,7 @@ jobs:
           cd crypto-ui
           npm run lint
 
-      - name: 🏗️ Build do Frontend
+      - name: ⭐ Build do Frontend
         run: |
           cd crypto-ui
           npm run build
