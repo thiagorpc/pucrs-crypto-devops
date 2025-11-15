@@ -31,27 +31,23 @@ resource "aws_s3_bucket" "images" {
 # Política S3 para permitir acesso SOMENTE ao CloudFront (OAC)
 resource "aws_s3_bucket_policy" "frontend_bucket_policy" {
   bucket = aws_s3_bucket.frontend.id
-
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Sid       = "AllowCloudFrontServicePrincipal"
-        Effect    = "Allow"
-        Principal = {
-          Service = "cloudfront.amazonaws.com"
-        }
-        Action    = ["s3:GetObject"]
-        Resource  = "${aws_s3_bucket.frontend.arn}/*"
+        Sid = "AllowCloudFrontOAC"
+        Effect = "Allow"
+        Principal = { Service = "cloudfront.amazonaws.com" }
+        Action = ["s3:GetObject"]
+        Resource = "${aws_s3_bucket.frontend.arn}/*"
         Condition = {
           StringEquals = {
-            "AWS:SourceArn" = aws_cloudfront_distribution.frontend_cdn.arn
+            "AWS:SourceArn" = aws_cloudfront_origin_access_control.frontend_oac.arn
           }
         }
       }
     ]
   })
-
-  depends_on = [aws_cloudfront_distribution.frontend_cdn]
+  depends_on = [aws_cloudfront_origin_access_control.frontend_oac]
 }
 
