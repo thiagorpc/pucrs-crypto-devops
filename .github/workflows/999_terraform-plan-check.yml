@@ -1,0 +1,30 @@
+name: "999 Terraform Plan Check"
+on:
+  workflow_call:
+    outputs:
+      infra_is_ready:
+        description: "Infraestrutura pronta"
+        value: ${{ jobs.plan_check.outputs.infra_is_ready }}
+
+jobs:
+  plan_check:
+    runs-on: ubuntu-latest
+    outputs:
+      infra_is_ready: ${{ steps.plan.outputs.infra_is_ready }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: 🧱 Terraform Init
+        run: terraform init -reconfigure -input=false
+      - name: 🔎 Plan
+        id: plan
+        run: |
+          set +e
+          terraform plan -detailed-exitcode | tee tfplan_output.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          echo "Código de Saída do Plan: $EXIT_CODE"
+          OUTPUT_VALUE="false"
+          CHANGES_DETECTED=$(grep -E 'Plan: [1-9]+ to add|Plan: [1-9]+ to change|Plan: [1-9]+ to destroy' tfplan_output.txt)
+          if [ $EXIT_CODE -eq 0 ] && [ -z "$CHANGES_DETECTED" ]; then
+            OUTPUT_VALUE="true"
+          fi
+          echo "infra_is_ready=$OUTPUT_VALUE" >> $GITHUB_OUTPUT
