@@ -42,7 +42,9 @@ jobs:
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
       - name: 🔍 Run Backend Tests
-        run: npm run test
+        run: |
+            cd ./crypto-api
+            npm run test
 
       - name: Build and Push Image
         run: |
