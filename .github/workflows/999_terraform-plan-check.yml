@@ -24,9 +24,23 @@ jobs:
       infra_is_ready: ${{ steps.plan.outputs.infra_is_ready }}
 
     steps:
+      # -----------------------
+      # 🔹 1. Checkout do Repositório
+      # -----------------------
       - name: 📦 Checkout Code
         uses: actions/checkout@v4
 
+      # -----------------------
+      # 🔹 2. Setup Terraform
+      # -----------------------
+      - name: ⚙️ Configurar Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.0
+
+      # -----------------------
+      # 🔹 3. Configurar Credenciais AWS
+      # -----------------------
       - name: 🔐 Configurar Credenciais AWS
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -34,28 +48,32 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: ⚙️ Configurar Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.5.0
-
+      # -----------------------
+      # 🔹 4. Inicializar Terraform
+      # -----------------------
       - name: 🧱 Terraform Init
         run: terraform init -reconfigure -input=false
+      
+      # -----------------------
+      # 🔹 5. Verificar como está a Infra.
+      # -----------------------
       - name: 🔎 Plan
         id: plan
         run: |
           set +e
 
-          # 🔹 Redireciona stdout (1) e stderr (2) para o mesmo tee
-          terraform plan -detailed-exitcode 2>&1 | tee tfplan_output.txt
+          echo "📦 Executando terraform plan com saída detalhada..."
+          terraform plan -detailed-exitcode -out=tfplan.binary 2>&1 | tee tfplan_output.txt
           EXIT_CODE=${PIPESTATUS[0]}
-
           echo "Código de Saída do Plan: $EXIT_CODE"
 
           OUTPUT_VALUE="false"
 
-          # 🔹 Agora o grep consegue encontrar o resumo completo
-          PLAN_SUMMARY=$(grep -Eo 'Plan: [0-9]+ to add, [0-9]+ to change, [0-9]+ to destroy' tfplan_output.txt | tail -1)
+          # 🔹 Converte o plano binário em texto e salva
+          terraform show -no-color tfplan.binary > tfplan_show.txt
+
+          # 🔹 Busca pela linha "Plan: X to add, Y to change, Z to destroy"
+          PLAN_SUMMARY=$(grep -Eo 'Plan: [0-9]+ to add, [0-9]+ to change, [0-9]+ to destroy' tfplan_output.txt tfplan_show.txt | tail -1)
 
           if [ -n "$PLAN_SUMMARY" ]; then
             ADD=$(echo "$PLAN_SUMMARY" | grep -Eo '[0-9]+' | sed -n 1p)
@@ -67,11 +85,11 @@ jobs:
             echo "   ♻️  $CHANGE para alterar"
             echo "   ❌ $DESTROY para destruir"
           else
-            echo "⚠️ Nenhum resumo de plano encontrado — verifique se o Terraform produziu saída."
+            echo "⚠️ Nenhum resumo de plano encontrado — pode ser que não haja mudanças ou o Terraform ocultou o resumo."
           fi
 
-          # 🔹 Detecta mudanças pela linha "Plan:"
-          CHANGES_DETECTED=$(grep -E 'Plan: [1-9]+ to add|Plan: [1-9]+ to change|Plan: [1-9]+ to destroy' tfplan_output.txt)
+          # 🔹 Detecta se há mudanças pendentes
+          CHANGES_DETECTED=$(echo "$ADD$CHANGE$DESTROY" | grep -E '[1-9]')
 
           if [ $EXIT_CODE -eq 0 ] && [ -z "$CHANGES_DETECTED" ]; then
             OUTPUT_VALUE="true"
@@ -84,5 +102,6 @@ jobs:
           fi
 
           echo "infra_is_ready=$OUTPUT_VALUE" >> $GITHUB_OUTPUT
+
 
 
