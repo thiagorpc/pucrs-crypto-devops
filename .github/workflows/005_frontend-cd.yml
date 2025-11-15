@@ -116,3 +116,24 @@ jobs:
 
       - name: 🎉 Deploy Finalizado
         run: echo "Frontend deploy finalizado com sucesso!"
+        
+      - name: 🎯 Obter Domain Name do CloudFront
+        id: get_cdn_domain
+        run: |
+          CDN_DOMAIN=$(aws cloudfront list-distributions \
+            --query "DistributionList.Items[?Comment=='CDN para o frontend React no S3'].DomainName" \
+            --output text \
+            --region us-east-1) # CloudFront é sempre global/us-east-1
+
+          if [ -z "$CDN_DOMAIN" ]; then
+            echo "⚠️ Aviso: Distribuição CloudFront não encontrada. Usando URL S3."
+            echo "CDN_DOMAIN=${{ steps.show_url.outputs.URL }}" >> $GITHUB_ENV
+            exit 0
+          fi
+
+          echo "CDN_DOMAIN=https://$CDN_DOMAIN" >> $GITHUB_ENV
+          echo "✅ CloudFront Domain: https://$CDN_DOMAIN"
+
+      - name: 💬 Notificar Novo Domain Name
+        # Note que a URL estará no ambiente (env.CDN_DOMAIN)
+        run: echo "O novo Frontend HTTPS está em ${{ env.CDN_DOMAIN }}"
