@@ -69,10 +69,8 @@ jobs:
 
           OUTPUT_VALUE="false"
 
-          # 🔹 Converte o plano binário em texto e salva
           terraform show -no-color tfplan.binary > tfplan_show.txt
 
-          # 🔹 Busca pela linha "Plan: X to add, Y to change, Z to destroy"
           PLAN_SUMMARY=$(grep -Eo 'Plan: [0-9]+ to add, [0-9]+ to change, [0-9]+ to destroy' tfplan_output.txt tfplan_show.txt | tail -1)
 
           if [ -n "$PLAN_SUMMARY" ]; then
@@ -85,23 +83,24 @@ jobs:
             echo "   ♻️  $CHANGE para alterar"
             echo "   ❌ $DESTROY para destruir"
           else
-            echo "⚠️ Nenhum resumo de plano encontrado — pode ser que não haja mudanças ou o Terraform ocultou o resumo."
+            echo "⚠️ Nenhum resumo de plano encontrado."
           fi
 
-          # 🔹 Detecta se há mudanças pendentes
-          CHANGES_DETECTED=$(echo "$ADD$CHANGE$DESTROY" | grep -E '[1-9]')
+          # 🔹 Verifica se há tarefas pendentes mesmo se o exit code for 0
+          CHANGES_TOTAL=$((ADD + CHANGE + DESTROY))
 
-          if [ $EXIT_CODE -eq 0 ] && [ -z "$CHANGES_DETECTED" ]; then
-            OUTPUT_VALUE="true"
+          if [ "$CHANGES_TOTAL" -gt 0 ]; then
+            echo "⚠️ Foram detectadas $CHANGES_TOTAL mudanças pendentes (ADD=$ADD, CHANGE=$CHANGE, DESTROY=$DESTROY)."
+            OUTPUT_VALUE="false"
+          elif [ $EXIT_CODE -eq 0 ]; then
             echo "✅ Nenhuma mudança detectada. Infraestrutura pronta."
+            OUTPUT_VALUE="true"
           elif [ $EXIT_CODE -eq 2 ]; then
-            echo "⚠️ Mudanças pendentes detectadas."
+            echo "⚠️ Mudanças pendentes detectadas (Exit Code 2)."
+            OUTPUT_VALUE="false"
           else
             echo "❌ Erro no Terraform Plan (código $EXIT_CODE)."
             exit 1
           fi
 
           echo "infra_is_ready=$OUTPUT_VALUE" >> $GITHUB_OUTPUT
-
-
-
