@@ -47,10 +47,7 @@ jobs:
   terraform:
     name: "Terraform Destroy"
     runs-on: ubuntu-latest
-    # 🎯 Dependência no novo job de checagem de infraestrutura
     needs: print-infra-output
-    # 🎯 Só prossegue se o check de infraestrutura for TRUE (Exit Code 0 no Plan)
-    if: needs.infra-check.outputs.infra_is_ready == 'true'
 
     defaults:
       run:
