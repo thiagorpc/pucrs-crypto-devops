@@ -29,6 +29,7 @@ jobs:
     secrets: inherit
 
   print-infra-output:
+    name: Resultado da Verificação de Infraestrutura
     needs: infra-check
     runs-on: ubuntu-latest
     steps:
