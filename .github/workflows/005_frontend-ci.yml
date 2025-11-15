@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'crypto-ui/**'
+      
   workflow_dispatch:
 
   # 🔹 Dispara automaticamente quando o workflow Setup AWS for concluído
@@ -49,7 +50,7 @@ jobs:
 
   build-frontend:
     name: 🚀 Build, Test and Push Frontend
-    needs: infra-check
+    needs: print-infra-output
     runs-on: ubuntu-latest
 
     steps:

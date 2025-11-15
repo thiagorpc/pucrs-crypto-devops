@@ -8,6 +8,8 @@ on:
       - 'crypto-api/**'
 
   workflow_dispatch:
+
+  # 🔹 Dispara automaticamente quando o workflow Setup AWS for concluído
   workflow_run:
     workflows: ["001. Setup Infra AWS"]
     types:
