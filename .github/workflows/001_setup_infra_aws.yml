@@ -62,6 +62,7 @@ jobs:
         run: |
           ID=$(terraform output -raw cloudfront_distribution_id)
           echo "CLOUDFRONT_DISTRIBUTION_ID=$ID" >> $GITHUB_ENV
+          echo "CLOUDFRONT_DISTRIBUTION_ID=$ID"
 
       - name: 🧾 Gerar sinalizador de Apply
         id: apply_status
