@@ -10,7 +10,6 @@ on:
 env:
   AWS_REGION: us-east-1
   S3_FRONTEND_BUCKET: pucrs-crypto-frontend
-  #CLOUDFRONT_DISTRIBUTION_ID: YOUR_DISTRIBUTION_ID
   TF_INFRA_WORKFLOW: 001_setup_infra_aws.yml
 
 jobs:
@@ -38,13 +37,16 @@ jobs:
         run: |
           if [ ! -f apply_status.txt ]; then
             echo "deploy_allowed=false" >> $GITHUB_OUTPUT
+            echo "❌ apply_status.txt não encontrado — cancelando."
             exit 0
           fi
 
           STATUS=$(jq -r '.apply' apply_status.txt)
           if [[ "$STATUS" == "success" ]]; then
+            echo "✅ Setup AWS bem-sucedido. Deploy permitido."
             echo "deploy_allowed=true" >> $GITHUB_OUTPUT
           else
+            echo "⚠️ Setup AWS falhou. Deploy bloqueado."
             echo "deploy_allowed=false" >> $GITHUB_OUTPUT
           fi
 
@@ -60,15 +62,10 @@ jobs:
       - name: 📥 Baixar artifact do build (frontend-build.zip)
         uses: dawidd6/action-download-artifact@v3
         with:
-          #workflow: 004_frontend-ci.yml
-          #name: frontend-build
-          #path: .
           workflow: 004_frontend-ci.yml
           name: frontend-build
           path: .
           check_artifacts: true
-          #search_artifacts: true
-          workflow_conclusion: ""
 
       - name: 📦 Descompactar build
         run: unzip frontend-build.zip -d dist
@@ -88,20 +85,25 @@ jobs:
         run: |
           aws s3 sync dist s3://${{ env.S3_FRONTEND_BUCKET }} --delete
 
-      #- name: 🌎 Invalidate CloudFront Cache
-      #  run: |
-      #    aws cloudfront create-invalidation \
-      #      --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }} \
-      #      --paths "/*"
+      - name: ⚙️ Configurar Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.0
 
       - name: 🔄 Invalidar Cache do CloudFront
+        working-directory: ./iac/flow
         run: |
           CLOUDFRONT_DISTRIBUTION_ID=$(terraform output -raw cloudfront_distribution_id)
-          echo "Distribuição encontrada: $CLOUDFRONT_DISTRIBUTION_ID"
+          echo "🌎 Distribuição encontrada: $CLOUDFRONT_DISTRIBUTION_ID"
+
+          if [ -z "$CLOUDFRONT_DISTRIBUTION_ID" ]; then
+            echo "❌ Nenhuma distribuição encontrada no Terraform Output!"
+            exit 1
+          fi
 
           aws cloudfront create-invalidation \
             --distribution-id "$CLOUDFRONT_DISTRIBUTION_ID" \
-            --paths "/*
+            --paths "/*"
 
-            - name: 🎉 Deploy Finalizado
-              run: echo "Frontend deploy finalizado com sucesso!"
+      - name: 🎉 Deploy Finalizado
+        run: echo "Frontend deploy finalizado com sucesso!"
