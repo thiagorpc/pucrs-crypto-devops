@@ -10,6 +10,10 @@ on:
         default: ""
         type: string
 
+concurrency:
+  group: terraform
+  cancel-in-progress: false
+  
 env:
   S3_STATE_BUCKET: pucrs-crypto-github-action-tfstate-unique
   DYNAMO_LOCK_TABLE: pucrs-crypto-terraform-lock

@@ -12,6 +12,10 @@ env:
   S3_FRONTEND_BUCKET: pucrs-crypto-frontend
   TF_INFRA_WORKFLOW: 001_setup_infra_aws.yml
 
+concurrency:
+  group: terraform
+  cancel-in-progress: false
+  
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -23,7 +27,7 @@ jobs:
       - name: 📥 Baixar artifact do build (frontend-build.zip)
         uses: dawidd6/action-download-artifact@v3
         with:
-          workflow: 004_frontend-ci.yml
+          workflow: 005_frontend-ci.yml
           name: frontend-build
           path: .
           check_artifacts: true

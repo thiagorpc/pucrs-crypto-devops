@@ -8,6 +8,11 @@ on:
   schedule:
     - cron: "0 3 * * *"
 
+    
+concurrency:
+  group: terraform
+  cancel-in-progress: false
+  
 jobs:
   precheck:
     runs-on: ubuntu-latest

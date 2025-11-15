@@ -7,6 +7,10 @@ on:
     types:
       - completed
 
+concurrency:
+  group: terraform
+  cancel-in-progress: false
+  
 env:
   AWS_REGION: us-east-1
   TF_WORKING_DIR: ./iac/flow
@@ -22,7 +26,7 @@ jobs:
       - name: Download image_tag artifact (from CI)
         uses: dawidd6/action-download-artifact@v3
         with:
-          workflow: 002_backend-ci.yml
+          workflow: 003_backend-ci.yml
           name: backend-image-tag
           path: .
           check_artifacts: true

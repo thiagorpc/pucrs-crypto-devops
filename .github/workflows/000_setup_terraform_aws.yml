@@ -10,6 +10,10 @@ on:
         default: ""
         type: string
 
+concurrency:
+  group: terraform
+  cancel-in-progress: false
+  
 env:
   TF_WORKING_DIR: ./iac/backend
   AWS_REGION: us-east-1

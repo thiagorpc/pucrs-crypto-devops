@@ -10,10 +10,14 @@ on:
 
   # 🔹 Dispara automaticamente quando o workflow Setup AWS for concluído
   workflow_run:
-    workflows: ["002 Check Infra AWS"]
+    workflows: ["001. Setup Infra AWS"]
     types:
       - completed
 
+concurrency:
+  group: terraform
+  cancel-in-progress: false
+  
 env:
   AWS_REGION: us-east-1
 
