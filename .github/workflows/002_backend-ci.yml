@@ -52,44 +52,37 @@ jobs:
       - name: 🔎 Executar Plan com detailed-exitcode (Checagem Robusta)
         id: plan_check
         run: |
-          # Importante: set +e DESATIVA a falha imediata, permitindo ler o Exit Code 2 ou 0.
-          set +e 
-
-          # 1. Executa o plan, salva a saída em um arquivo temporário e captura o código de saída
+          set +e
+              
           terraform plan -detailed-exitcode | tee tfplan_output.txt
-          EXIT_CODE=$?
-
+          EXIT_CODE=${PIPESTATUS[0]}  # Corrigido para capturar o código certo
+              
           echo "Código de Saída do Plan: $EXIT_CODE"
-
+              
           OUTPUT_VALUE="false"
-
-          # 2. Verifica se houve mudanças lendo o conteúdo do plano (Fallback para Exit Code 0)
-          # Grep procura por qualquer linha que contenha "Plan:" seguida por [1-9]+ e "to add" ou "to change" ou "to destroy"
+              
           CHANGES_DETECTED=$(grep -E 'Plan: [1-9]+ to add|Plan: [1-9]+ to change|Plan: [1-9]+ to destroy' tfplan_output.txt)
-
+              
           if [ $EXIT_CODE -eq 0 ]; then
             if [ -n "$CHANGES_DETECTED" ]; then
-              # CASO DE CONTRADIÇÃO (o que aconteceu com você): EXIT_CODE é 0, mas o Plan mostra mudanças.
-              echo "🚨 ATENÇÃO: Exit Code 0 (ERRADO) foi reportado, mas o plano CONTOU MUDANÇAS (e.g., 63 to add). Forçando bloqueio (infra_is_ready=false)."
+              echo "🚨 Exit Code 0, mas mudanças detectadas. Forçando bloqueio."
               OUTPUT_VALUE="false"
             else
-              echo "✅ Exit Code 0: Nenhuma mudança detectada na saída de texto. Build e Push permitidos."
+              echo "✅ Nenhuma mudança detectada."
               OUTPUT_VALUE="true"
             fi
-
           elif [ $EXIT_CODE -eq 2 ]; then
-            # Este é o caminho esperado se houver mudanças (Ex: 63 to add)
-            echo "⚠️ Exit Code 2: Mudanças pendentes. Infraestrutura não está no estado final. Bloqueando."
+            echo "⚠️ Mudanças pendentes. Infra não está pronta."
             OUTPUT_VALUE="false"
-
           else
-            echo "❌ Exit Code 1: Erro no Terraform Plan (código 1). Bloqueando Build e Push."
+            echo "❌ Erro no Terraform Plan."
             OUTPUT_VALUE="false"
-            exit 1 # Falha o job por erro de execução do Terraform
+            exit 1
           fi
-
+              
           echo "infra_is_ready=$OUTPUT_VALUE" >> $GITHUB_OUTPUT
           echo "Resultado final de infra_is_ready exportado: $OUTPUT_VALUE"
+
 
 
   build-and-push:
