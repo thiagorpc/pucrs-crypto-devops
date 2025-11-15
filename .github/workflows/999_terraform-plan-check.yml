@@ -8,6 +8,10 @@ on:
 
   workflow_dispatch:
 
+env:
+  TF_WORKING_DIR: ./iac/flow
+  AWS_REGION: us-east-1
+
 jobs:
   plan_check:
     runs-on: ubuntu-latest
