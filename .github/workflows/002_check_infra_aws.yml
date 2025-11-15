@@ -21,6 +21,7 @@ env:
 
 jobs:
   plan_check:
+    name: 🧩 Checar Infraestrutura AWS
     runs-on: ubuntu-latest
     
     defaults:
