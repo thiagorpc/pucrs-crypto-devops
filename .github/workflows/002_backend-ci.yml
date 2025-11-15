@@ -51,28 +51,34 @@ jobs:
 
       - name: 🔎 Executar Plan com detailed-exitcode
         id: plan_check
-        # O pipe '|| true' evita que o passo falhe se o código de saída for 2 (mudanças)
         run: |
           set +e # Desativa falha imediata do shell
-          
+            
           # Executa o plan e captura o código de saída
+          # O código 0 significa que a infraestrutura está no estado desejado (pronta).
+          # O código 2 significa que há mudanças pendentes (infraestrutura precisa de apply).
           terraform plan -detailed-exitcode 
           EXIT_CODE=$?
-          
+            
           echo "Código de Saída do Plan: $EXIT_CODE"
-          
+            
+          OUTPUT_VALUE="false"
+            
           if [ $EXIT_CODE -eq 0 ]; then
-            echo "✅ Infraestrutura já aplicada (Exit Code 0). Deploy permitido."
-            echo "infra_is_ready=true" >> $GITHUB_OUTPUT
+            echo "✅ Exit Code 0: Infraestrutura já aplicada. Build e Push permitidos."
+            OUTPUT_VALUE="true"
           elif [ $EXIT_CODE -eq 2 ]; then
-            echo "⚠️ Mudanças pendentes (Exit Code 2). Infraestrutura não pronta ou precisa de apply."
-            echo "infra_is_ready=false" >> $GITHUB_OUTPUT
-            # Não falha o job; apenas bloqueia o deploy
+            echo "⚠️ Exit Code 2: Mudanças pendentes. Infraestrutura não está no estado final."
+            OUTPUT_VALUE="false"
+            # O job não falha aqui, apenas bloqueia o build-and-push
           else
-            echo "❌ Erro no Terraform Plan (Exit Code 1). Bloqueando deploy."
-            echo "infra_is_ready=false" >> $GITHUB_OUTPUT
-            exit 1 # Falha o passo por erro de execução (código 1)
+            echo "❌ Exit Code 1: Erro no Terraform Plan. Bloqueando Build e Push."
+            OUTPUT_VALUE="false"
+            exit 1 # Falha o job por erro de execução do Terraform
           fi
+            
+          echo "infra_is_ready=$OUTPUT_VALUE" >> $GITHUB_OUTPUT
+          echo "Resultado final de infra_is_ready exportado: $OUTPUT_VALUE"
 
   build-and-push:
     name: 🏗️ Build and Push Backend Docker Image
