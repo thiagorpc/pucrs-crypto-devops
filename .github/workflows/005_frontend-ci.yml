@@ -72,10 +72,28 @@ jobs:
           cd crypto-ui
           npm run lint
 
+      - name: 🎯 Obter DNS do API Gateway
+        id: get_api_gateway_dns
+        run: |
+          APIGW_ID=$(aws apigateway get-rest-apis \
+            --region ${{ env.AWS_REGION }} \
+            --query "items[?name=='${{ env.APIGW_NAME }}'].id" \
+            --output text)
+
+          if [ -z "$APIGW_ID" ]; then
+            echo "Erro: Não foi possível encontrar o ID para o API Gateway ${{ env.APIGW_NAME }}."
+            exit 1
+          fi
+
+          APIGW_STAGE="prod"
+          APIGW_DNS_NAME="${APIGW_ID}.execute-api.${{ env.AWS_REGION }}.amazonaws.com/${APIGW_STAGE}"
+          echo "APIGW_URL=https://$APIGW_DNS_NAME" >> $GITHUB_ENV
+          echo "✅ API Gateway DNS: https://$APIGW_DNS_NAME"
+
       - name: ⭐ Build do Frontend
         run: |
           cd crypto-ui
-          npm run build
+          VITE_API_URL=${{ env.APIGW_URL }} npm run build
 
       - name: 📦 Preparar artifact (frontend-build.zip)
         run: |
