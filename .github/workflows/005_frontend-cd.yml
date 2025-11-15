@@ -79,7 +79,7 @@ jobs:
 
       - name: 🧹 Limpar bucket S3 antes do upload
         run: |
-          aws s3 rm s3://${{ env.S3_FRONTEND_BUCKET }} --recursive
+          aws s3 rm s3://${{ env.S3_FRONTEND_BUCKET }} --delete
 
       - name: 🚀 Fazer upload da nova build para o S3
         run: |
@@ -92,16 +92,16 @@ jobs:
 
       # 🟢 PASSO CHAVE ADICIONADO: INICIALIZAR O BACKEND
       - name: 🔑 Inicializar Terraform Backend
-        uses: hashicorp/terraform-github-actions/init@v3
-        with:
-          # Assumindo que seu backend S3 está configurado em iac/flow
-          working_directory: ./iac/flow 
-          # Use -reconfigure para garantir que as configurações do backend sejam lidas corretamente
-          args: -reconfigure 
+        # Usando o mesmo action, mas passando o working_directory como parâmetro do run
+        run: |
+          terraform init -reconfigure
+        working-directory: ./iac/flow
 
+        
       - name: 🔄 Invalidar Cache do CloudFront
         working-directory: ./iac/flow
         run: |
+          # O output agora deve funcionar, pois o backend foi inicializado
           CLOUDFRONT_DISTRIBUTION_ID=$(terraform output -raw cloudfront_distribution_id)
           echo "🌎 Distribuição encontrada: $CLOUDFRONT_DISTRIBUTION_ID"
 
