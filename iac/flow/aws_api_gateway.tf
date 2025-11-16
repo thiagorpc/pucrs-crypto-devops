@@ -77,7 +77,7 @@ resource "aws_api_gateway_deployment" "project_deployment" {
 # 6️⃣ Log Group (dinâmico, sem dependência circular)
 resource "aws_cloudwatch_log_group" "api_gw_logs" {
   name              = "/aws/apigateway/${var.project_name}-api-prod"
-  retention_in_days = 14
+  retention_in_days = 2
 }
 
 # 7️⃣ IAM Role para Logs
