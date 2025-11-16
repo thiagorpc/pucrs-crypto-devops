@@ -53,6 +53,11 @@ jobs:
         # if : always()
         run: terraform plan -out=tfplan
 
+      - name: 🧪 Validar Código Terraform
+        run: terraform validate
+        if: github.event.inputs.terraform_action == 'apply'
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
       - name: 🚀 Terraform Apply
         id: apply
         if: github.event.inputs.terraform_action == 'apply'
