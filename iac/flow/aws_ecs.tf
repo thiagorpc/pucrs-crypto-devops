@@ -153,27 +153,30 @@ resource "aws_ecs_task_definition" "task" {
   execution_role_arn = aws_iam_role.task_execution_role.arn
   task_role_arn      = aws_iam_role.task_role.arn
 
-  container_definitions = jsonencode([{
-    name      = "${var.project_name}-api"
-    image     = "${aws_ecr_repository.image_repo.repository_url}:${var.image_tag}"
-    essential = true
-    portMappings = [
-      { containerPort = 3000, protocol = "tcp" }
+  container_definitions = jsonencode([{ 
+    name = "${var.project_name}-api" 
+    image = "${aws_ecr_repository.image_repo.repository_url}:${var.image_tag}" 
+    essential = true 
+    portMappings = [ 
+      { containerPort = 3000, protocol = "tcp" } 
     ]
 
     # Configuração de secrets para a task
     secrets = [
-      { name = "ENCRYPTION_KEY", valueFrom = data.aws_secretsmanager_secret.encryption_key.arn }
+      { 
+        name = "ENCRYPTION_KEY", 
+        valueFrom = data.aws_secretsmanager_secret.encryption_key.arn,
+      }
     ]
 
     # Configuração de logs do container no CloudWatch
-    logConfiguration = {
-      logDriver = "awslogs"
-      options = {
-        "awslogs-group"         = aws_cloudwatch_log_group.log.name
-        "awslogs-region"        = var.aws_region
+    logConfiguration = { 
+      logDriver = "awslogs" 
+      options = { 
+        "awslogs-group" = aws_cloudwatch_log_group.log.name
+        "awslogs-region" = var.aws_region
         "awslogs-stream-prefix" = "ecs"
-      }
+        }
     }
 
     # Variaveis de ambiente do container
