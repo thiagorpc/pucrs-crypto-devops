@@ -22,32 +22,11 @@ env:
 
 jobs:
   # ==========================================================
-  # 🧩 JOB 1: Verifica se a infraestrutura AWS está OK
-  # ==========================================================
-  infra-check:
-    uses: ./.github/workflows/002_check_infra_aws.yml
-    secrets: inherit
-
-  print-infra-output:
-    name: Resultado da Verificação de Infraestrutura
-    needs: infra-check
-    runs-on: ubuntu-latest
-    steps:
-      - name: 🖨 Print Infra Output
-        run: |
-          echo "📢 Infra AWS já está pronta?: ${{ needs.infra-check.outputs.infra_is_ready }}"
-          if [ "${{ needs.infra-check.outputs.infra_is_ready }}" != "true" ]; then
-            echo "❌ Infra não está pronta, abortando!"
-            exit 1
-          fi
-
-  # ==========================================================
   # 🚀 JOB 2:Remove Infra AWS
   # ==========================================================
   terraform:
     name: "Terraform Destroy"
     runs-on: ubuntu-latest
-    needs: print-infra-output
 
     defaults:
       run:
