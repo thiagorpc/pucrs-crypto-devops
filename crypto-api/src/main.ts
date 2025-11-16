@@ -26,7 +26,7 @@ async function bootstrap() {
 
   const logger = new Logger('Bootstrap');
 
-  logger.log(`🚀 API. rodando em http://${host}:${port}`);
+  logger.log(`🚀 API... rodando em http://${host}:${port}`);
   logger.log(`🚀 Permitido CORS: ${allowedOrigins.toString()}`);
 }
 
