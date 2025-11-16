@@ -63,3 +63,4 @@ jobs:
         run: terraform apply -auto-approve -var="image_tag=${{ steps.readtag.outputs.IMAGE_TAG }}"
         working-directory: ${{ env.TF_WORKING_DIR }}
 
+

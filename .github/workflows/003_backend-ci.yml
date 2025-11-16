@@ -71,12 +71,18 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: 🧩 Determine Image Tag
-        id: tag
+      # 🏷️ Definir variáveis de imagem
+      - name: 🏷️ Definir Variáveis de Imagem
+        id: vars
         run: |
           IMAGE_TAG=$(date +'%Y%m%d')-${GITHUB_RUN_NUMBER}-${GITHUB_SHA::7}
           echo "$IMAGE_TAG" > image_tag.txt
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
+          ECR_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}
+          echo "ECR_URI=$ECR_URI" >> $GITHUB_OUTPUT
+          echo "🔖 Tag: $IMAGE_TAG"
+          echo "⭐ ECR URI: $ECR_URI"
+
 
       - name: 📦 Install Backend Dependencies
         run: |
@@ -92,17 +98,6 @@ jobs:
         run: |
           cd ./crypto-api
           npm run test
-
-      # 🏷️ Definir variáveis de imagem
-      - name: 🏷️ Definir Variáveis de Imagem
-        id: vars
-        run: |
-          IMAGE_TAG=$(date +'%Y%m%d')-${GITHUB_RUN_NUMBER}-${GITHUB_SHA::7}
-          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
-          ECR_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}
-          echo "ECR_URI=$ECR_URI" >> $GITHUB_OUTPUT
-          echo "🔖 Tag: $IMAGE_TAG"
-          echo "⭐ ECR URI: $ECR_URI"
       
 
       # 🐳 Build e Push
