@@ -144,7 +144,7 @@ resource "aws_iam_role_policy_attachment" "ecs_s3_access_attach" {
 
 # ECS Task Definition - define containers, roles, secrets e variaveis de ambiente
 resource "aws_ecs_task_definition" "task" {
-  family       = "${var.project_name}-api" #"Nome do serviço ECS que será executado no Fargate."
+  family       = "${var.project_name}-api"
   cpu          = var.ecs_cpu
   memory       = var.ecs_memory
   network_mode = "awsvpc"
