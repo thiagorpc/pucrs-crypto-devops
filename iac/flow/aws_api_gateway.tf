@@ -166,6 +166,11 @@ resource "aws_api_gateway_integration" "options_proxy_integration" {
   resource_id = aws_api_gateway_resource.proxy.id
   http_method = aws_api_gateway_method.options_proxy.http_method
   type        = "MOCK" # Intercepta e responde no API GW
+
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}" 
+    # O API Gateway lê isto e entende que a integração MOCK foi um sucesso (Status 200).
+  }
 }
 
 # 💡 2A. Resposta do Método (Define os cabeçalhos CORS)
