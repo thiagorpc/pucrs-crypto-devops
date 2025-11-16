@@ -157,7 +157,9 @@ resource "aws_ecs_task_definition" "task" {
     name      = "${var.project_name}-api"
     image     = "${aws_ecr_repository.image_repo.repository_url}:${var.image_tag}"
     essential = true
-    portMappings = [{ containerPort = 3000, protocol = "tcp" }]
+    portMappings = [
+      { containerPort = 3000, protocol = "tcp" }
+    ]
 
     # Configuração de secrets para a task
     secrets = [
