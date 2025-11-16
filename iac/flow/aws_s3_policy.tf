@@ -2,12 +2,12 @@
 # File: ./iac/flow/aws_s3_policy.tf
 # ============================
 
-# Configuração de bloqueio de acesso público do bucket Frontend
-# Permite aplicação de políticas públicas específicas (como CloudFront OAC)
+# Configuração de bloqueio de acesso publico do bucket Frontend
+# Permite aplicação de políticas publicas específicas (como CloudFront OAC)
 resource "aws_s3_bucket_public_access_block" "frontend_public_access_block" {
   bucket = aws_s3_bucket.frontend.id
 
-  # Permite que a política pública definida abaixo seja aplicada
+  # Permite que a política publica definida abaixo seja aplicada
   block_public_policy = false
 
   # Mantém outras restrições de segurança

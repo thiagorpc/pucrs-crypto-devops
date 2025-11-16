@@ -51,7 +51,7 @@ resource "aws_cloudfront_distribution" "frontend_cdn" {
     cloudfront_default_certificate = true
   }
 
-  # Restrições geográficas (nenhuma restrição aplicada)
+  # Restrições geograficas (nenhuma restrição aplicada)
   restrictions {
     geo_restriction {
       restriction_type = "none"

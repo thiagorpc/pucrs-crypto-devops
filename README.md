@@ -172,7 +172,7 @@ Para rodar o projeto localmente, adicione as seguintes variáveis no seu arquivo
 
 ---
 
-## 5. Referências e Links Úteis
+## 5. Referências e Links uteis
 
 ### 5.1. Ferramentas
 - [Editor README.md](https://readme.so/editor)

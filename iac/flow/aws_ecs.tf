@@ -7,7 +7,7 @@ resource "aws_ecr_repository" "image_repo" {
   name                 = "${var.project_name}-api-repo"
   image_tag_mutability = "MUTABLE"
 
-  # Habilita scan automático de vulnerabilidades nas imagens
+  # Habilita scan automatico de vulnerabilidades nas imagens
   image_scanning_configuration {
     scan_on_push = true
   }
@@ -108,7 +108,7 @@ resource "aws_iam_policy" "terraform_secrets_read" {
   })
 }
 
-# Anexa a política Terraform ao usuário de automação
+# Anexa a política Terraform ao usuario de automação
 resource "aws_iam_user_policy_attachment" "bot_secrets_read_attach" {
   user       = "mitel-message-hub-terraform-github-bot"
   policy_arn = aws_iam_policy.terraform_secrets_read.arn
@@ -142,7 +142,7 @@ resource "aws_iam_role_policy_attachment" "ecs_s3_access_attach" {
   policy_arn = aws_iam_policy.ecs_s3_access_policy.arn
 }
 
-# ECS Task Definition - define containers, roles, secrets e variáveis de ambiente
+# ECS Task Definition - define containers, roles, secrets e variaveis de ambiente
 resource "aws_ecs_task_definition" "task" {
   family                   = "${var.project_name}-api"
   cpu                      = var.ecs_cpu
@@ -174,7 +174,7 @@ resource "aws_ecs_task_definition" "task" {
       }
     }
 
-    # Variáveis de ambiente do container
+    # Variaveis de ambiente do container
     environment = [
       { name = "NODE_ENV", value = var.project_stage },
       { name = "PORT", value = "${var.container_port}" },
@@ -213,14 +213,14 @@ resource "aws_ecs_service" "fargate" {
   ]
 }
 
-# ECR Lifecycle Policy - mantém apenas as últimas 10 imagens
+# ECR Lifecycle Policy - mantém apenas as ultimas 10 imagens
 resource "aws_ecr_lifecycle_policy" "api_cleanup" {
   repository = aws_ecr_repository.image_repo.name
   policy = jsonencode({
     rules = [
       {
         rulePriority = 1
-        description = "Manter as últimas 10 imagens"
+        description = "Manter as ultimas 10 imagens"
         selection = {
           tagStatus   = "any"
           countType   = "imageCountMoreThan"

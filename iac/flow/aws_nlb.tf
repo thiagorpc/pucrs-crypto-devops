@@ -3,14 +3,14 @@
 # ============================
 
 # Network Load Balancer (NLB) externo para o backend ECS
-# Distribui tráfego TCP para os targets (IPs do Fargate)
+# Distribui trafego TCP para os targets (IPs do Fargate)
 resource "aws_lb" "api_nlb" {
   name               = "${var.project_name}-api-nlb"
   internal           = false               # NLB externo para ser acessado pelo API Gateway
   load_balancer_type = "network"
   subnets            = aws_subnet.public_subnets[*].id
 
-  enable_cross_zone_load_balancing = true  # Balanceamento de tráfego entre zonas
+  enable_cross_zone_load_balancing = true  # Balanceamento de trafego entre zonas
   tags = {
     Name = "${var.project_name}-api-nlb"
   }
@@ -32,7 +32,7 @@ resource "aws_lb_target_group" "lb_target_group" {
     matcher             = "200"
     interval            = 10                # Intervalo entre verificações
     timeout             = 5                 # Timeout da verificação
-    healthy_threshold   = 2                 # Quantidade de verificações saudáveis para considerar healthy
+    healthy_threshold   = 2                 # Quantidade de verificações saudaveis para considerar healthy
     unhealthy_threshold = 2                 # Quantidade de verificações falhas para considerar unhealthy
   }
 }

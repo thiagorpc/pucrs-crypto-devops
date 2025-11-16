@@ -3,11 +3,11 @@
 # ============================
 
 # DynamoDB Table para controlar locks do Terraform
-# Garante que múltiplos applies simultâneos não corrompam o estado
+# Garante que multiplos applies simultâneos não corrompam o estado
 resource "aws_dynamodb_table" "lock_table" {
   name         = "${var.project_name}-terraform-lock"
   billing_mode = "PAY_PER_REQUEST"  # Pagamento por demanda (sem precisar definir capacidade)
-  hash_key     = "LockID"            # Chave primária da tabela
+  hash_key     = "LockID"            # Chave primaria da tabela
 
   attribute {
     name = "LockID"

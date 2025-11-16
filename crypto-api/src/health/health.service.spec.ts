@@ -46,7 +46,7 @@ describe('HealthService', () => {
     // Garante que não são a mesma referência
     expect(result1).not.toBe(result2);
 
-    // Garante que o conteúdo status é igual
+    // Garante que o conteudo status é igual
     expect(result1.status).toBe(result2.status);
 
     // Mas os timestamps são diferentes ou iguais em ordem cronológica

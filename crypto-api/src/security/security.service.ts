@@ -38,7 +38,7 @@ export class SecurityService {
   //  // 64MB de memória (custo de memória)
   //  memoryCost: 65536,
   //
-  //  // Número de iterações (custo de tempo)
+  //  // Numero de iterações (custo de tempo)
   //  timeCost: 3,
   //
   //  // Threads de CPU (custo de paralelismo)
@@ -200,7 +200,7 @@ export class SecurityService {
         const errorMessage = String(e instanceof Error ? e.message : e);
 
         this.logger.error(`❌ Erro durante a decriptografia: ${errorMessage}`);
-        // Se falhar o parse, retorna a string pura (útil para strings não-JSON)
+        // Se falhar o parse, retorna a string pura (util para strings não-JSON)
         return decrypted;
       }
     } catch (e) {
@@ -220,7 +220,7 @@ export class SecurityService {
 
   /**
    * Demonstra o conceito de Assinatura Digital (Tipicamente RSA)
-   * Útil para autenticar o emissor dos dados.
+   * util para autenticar o emissor dos dados.
    * NOTA: Este é um exemplo conceitual, não um método de criptografia de dados.
    */
   public signData(data: string, privateKey: string): string {

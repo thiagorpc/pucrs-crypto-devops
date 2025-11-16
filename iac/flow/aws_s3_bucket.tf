@@ -3,7 +3,7 @@
 # ============================
 
 # Bucket S3 para hospedagem do frontend React
-# Permite armazenar arquivos estáticos do UI
+# Permite armazenar arquivos estaticos do UI
 resource "aws_s3_bucket" "frontend" {
   bucket = "${var.project_name}-frontend"
   tags = {

@@ -3,7 +3,7 @@
 # ============================
 
 # Configuração do Terraform Backend
-# Define onde o estado remoto será armazenado e como o locking será gerenciado.
+# Define onde o estado remoto sera armazenado e como o locking sera gerenciado.
 terraform {
   backend "s3" {
     # Bucket S3 para armazenar o estado do Terraform

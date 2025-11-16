@@ -18,7 +18,7 @@ variable "project_stage" {
 
 # Região da AWS
 variable "aws_region" {
-  description = "Região AWS onde a infraestrutura será criada. Ex: us-east-1"
+  description = "Região AWS onde a infraestrutura sera criada. Ex: us-east-1"
   type        = string
   default     = "us-east-1"
 }
@@ -30,9 +30,9 @@ variable "vpc_cidr" {
   default     = "10.0.0.0/16"
 }
 
-# Lista de subnets públicas
+# Lista de subnets publicas
 variable "public_subnet_cidrs" {
-  description = "Lista de CIDRs para subnets públicas"
+  description = "Lista de CIDRs para subnets publicas"
   type        = list(string)
   default     = ["10.0.1.0/24", "10.0.2.0/24"]
 }
@@ -46,14 +46,14 @@ variable "private_subnet_cidrs" {
 
 # Host do container
 variable "container_host" {
-  description = "Endereço IP onde o container está escutando"
+  description = "Endereço IP onde o container esta escutando"
   type        = string
   default     = "0.0.0.0"
 }
 
 # Porta do container
 variable "container_port" {
-  description = "Porta em que o container está escutando"
+  description = "Porta em que o container esta escutando"
   type        = number
   default     = 3000
 }
@@ -92,7 +92,7 @@ variable "image_tag" {
 
 # ARN da chave de criptografia no Secrets Manager (opcional)
 variable "secrets_encryption_key" {
-  description = "ARN da chave de criptografia no AWS Secrets Manager. Se vazio, será usado o padrão."
+  description = "ARN da chave de criptografia no AWS Secrets Manager. Se vazio, sera usado o padrão."
   type        = string
   default     = ""
 }

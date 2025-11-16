@@ -12,12 +12,12 @@ output "vpc_id" {
 }
 
 output "public_subnets_ids" {
-  description = "Lista de IDs das subnets públicas"
+  description = "Lista de IDs das subnets publicas"
   value       = aws_subnet.public_subnets[*].id
 }
 
 output "nlb_dns_name" {
-  description = "DNS público do Network Load Balancer (NLB)"
+  description = "DNS publico do Network Load Balancer (NLB)"
   value       = aws_lb.api_nlb.dns_name
 }
 
@@ -26,7 +26,7 @@ output "nlb_dns_name" {
 # ============================
 
 output "ecs_security_group_id" {
-  description = "ID do Security Group utilizado pelas Tasks ECS (recebe tráfego da VPC/NLB)"
+  description = "ID do Security Group utilizado pelas Tasks ECS (recebe trafego da VPC/NLB)"
   value       = aws_security_group.ecs_sg.id
 }
 
@@ -49,12 +49,12 @@ output "ecr_repository_url" {
 # ============================
 
 output "ui_bucket_name" {
-  description = "Nome do bucket S3 onde o front-end React está hospedado"
+  description = "Nome do bucket S3 onde o front-end React esta hospedado"
   value       = aws_s3_bucket.frontend.bucket
 }
 
 output "react_ui_url" {
-  description = "URL pública do front-end React hospedado no S3 via CloudFront"
+  description = "URL publica do front-end React hospedado no S3 via CloudFront"
   value       = aws_cloudfront_distribution.frontend_cdn.domain_name 
 }
 
@@ -73,7 +73,7 @@ output "terraform_lock_table" {
 # ============================
 
 output "api_gateway_invoke_url" {
-  description = "URL pública de invocação da API via API Gateway (Stage /prod)"
+  description = "URL publica de invocação da API via API Gateway (Stage /prod)"
   value       = aws_api_gateway_stage.prod_stage.invoke_url
 }
 

@@ -16,7 +16,7 @@ resource "aws_vpc" "vpc" {
 data "aws_availability_zones" "available" {}
 
 # ============================
-# Subnets públicas
+# Subnets publicas
 # ============================
 resource "aws_subnet" "public_subnets" {
   count                   = length(var.public_subnet_cidrs)
@@ -40,7 +40,7 @@ resource "aws_subnet" "private_subnets" {
 }
 
 # ============================
-# Internet Gateway para acesso público
+# Internet Gateway para acesso publico
 # ============================
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.vpc.id
@@ -48,7 +48,7 @@ resource "aws_internet_gateway" "igw" {
 }
 
 # ============================
-# Tabela de roteamento pública
+# Tabela de roteamento publica
 # ============================
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.vpc.id
@@ -59,7 +59,7 @@ resource "aws_route_table" "public" {
   tags = { Name = "${var.project_name}-public-rt" }
 }
 
-# Associação da tabela de roteamento às subnets públicas
+# Associação da tabela de roteamento às subnets publicas
 resource "aws_route_table_association" "public_assoc" {
   count          = length(var.public_subnet_cidrs)
   subnet_id      = aws_subnet.public_subnets[count.index].id
@@ -106,7 +106,7 @@ resource "aws_route_table_association" "private_assoc" {
 # Security Groups
 # ============================
 
-# Security Group para ECS (apenas tráfego do NLB permitido)
+# Security Group para ECS (apenas trafego do NLB permitido)
 resource "aws_security_group" "ecs_sg" {
   name        = "${var.project_name}-ecs-sg"
   description = "Permite acesso apenas do NLB"
@@ -121,7 +121,7 @@ resource "aws_security_group" "ecs_sg" {
   }
 
   egress {
-    description = "Acesso público via NAT Gateway"
+    description = "Acesso publico via NAT Gateway"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -134,7 +134,7 @@ resource "aws_security_group" "ecs_sg" {
 # Security Group para VPC Endpoints
 resource "aws_security_group" "endpoint_sg" {
   name        = "${var.project_name}-endpoint-sg"
-  description = "Permite tráfego do ECS SG para VPC Endpoints"
+  description = "Permite trafego do ECS SG para VPC Endpoints"
   vpc_id      = aws_vpc.vpc.id
 
   ingress {

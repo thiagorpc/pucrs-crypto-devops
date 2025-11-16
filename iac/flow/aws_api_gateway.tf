@@ -49,7 +49,7 @@ resource "aws_api_gateway_integration" "nlb_integration" {
   }
 }
 
-# Deployment do API Gateway, redeploy é acionado automaticamente quando há mudanças
+# Deployment do API Gateway, redeploy é acionado automaticamente quando ha mudanças
 resource "aws_api_gateway_deployment" "project_deployment" {
   rest_api_id = aws_api_gateway_rest_api.project_api_gateway.id
 
