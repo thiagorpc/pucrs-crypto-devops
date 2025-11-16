@@ -54,7 +54,7 @@ output "ui_bucket_name" {
 }
 
 output "react_ui_url" {
-  description = "URL pública do front-end React hospedado no S3 + CloudFront"
+  description = "URL pública do front-end React hospedado no S3 via CloudFront"
   value       = aws_cloudfront_distribution.frontend_cdn.domain_name 
 }
 
@@ -75,7 +75,6 @@ output "terraform_lock_table" {
 output "api_gateway_invoke_url" {
   description = "URL pública de invocação da API via API Gateway (Stage /prod)"
   value       = aws_api_gateway_stage.prod_stage.invoke_url
-  #value       = "https://${aws_api_gateway_rest_api.project_api_gateway.id}.execute-api.${data.aws_region.current.name}.amazonaws.com/${aws_api_gateway_stage.prod_stage.stage_name}"
 }
 
 # ============================
@@ -88,20 +87,20 @@ output "aws_region" {
 }
 
 # ============================
-# 🧭 CloudFront
+# ☁️ CloudFront
 # ============================
 
 output "cloudfront_url_domain" {
-  description = "Domain name da distribuição CloudFront para acesso HTTPS."
+  description = "Domain name da distribuição CloudFront para acesso HTTPS"
   value       = aws_cloudfront_distribution.frontend_cdn.domain_name 
 }
 
 output "cloudfront_distribution_id" {
-  value = aws_cloudfront_distribution.frontend_cdn.id
-  description = "O ID da distribuição CloudFront."
+  description = "ID da distribuição CloudFront"
+  value       = aws_cloudfront_distribution.frontend_cdn.id
 }
 
 output "cloudfront_distribution_arn" {
-  value = aws_cloudfront_distribution.frontend_cdn.arn
-  description = "O ARN da distribuição CloudFront."
+  description = "ARN da distribuição CloudFront"
+  value       = aws_cloudfront_distribution.frontend_cdn.arn
 }

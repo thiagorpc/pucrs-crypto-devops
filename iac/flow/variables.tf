@@ -4,19 +4,21 @@
 
 # Nome do projeto
 variable "project_name" {
-  type    = string
-  default = "pucrs-crypto"
+  description = "Nome do projeto usado para nomeação de recursos"
+  type        = string
+  default     = "pucrs-crypto"
 }
 
-# NODEENV do projeto
+# Ambiente do projeto (NODE_ENV)
 variable "project_stage" {
-  type    = string
-  default = "production"
+  description = "Ambiente do projeto (ex: development, staging, production)"
+  type        = string
+  default     = "production"
 }
 
 # Região da AWS
 variable "aws_region" {
-  description = "A região da AWS onde a infraestrutura será implantada. Exemplo: us-east-1, us-west-2"
+  description = "Região AWS onde a infraestrutura será criada. Ex: us-east-1"
   type        = string
   default     = "us-east-1"
 }
@@ -28,76 +30,69 @@ variable "vpc_cidr" {
   default     = "10.0.0.0/16"
 }
 
-# Subnets públicas
+# Lista de subnets públicas
 variable "public_subnet_cidrs" {
-  description = "Lista de CIDRs das subnets públicas para o projeto."
+  description = "Lista de CIDRs para subnets públicas"
   type        = list(string)
   default     = ["10.0.1.0/24", "10.0.2.0/24"]
 }
 
-# Subnets privadas (A SER ADICIONADO)
+# Lista de subnets privadas
 variable "private_subnet_cidrs" {
-  description = "Lista de CIDRs das subnets privadas para o projeto."
+  description = "Lista de CIDRs para subnets privadas"
   type        = list(string)
-  default     = ["10.0.3.0/24", "10.0.4.0/24"] // Exemplo de CIDRs
+  default     = ["10.0.3.0/24", "10.0.4.0/24"]
 }
 
 # Host do container
 variable "container_host" {
-  description = "HOst do container onde a aplicação está escutando."
+  description = "Endereço IP onde o container está escutando"
   type        = string
   default     = "0.0.0.0"
 }
 
 # Porta do container
 variable "container_port" {
-  description = "Porta do container onde a aplicação está escutando."
-  type        = string
+  description = "Porta em que o container está escutando"
+  type        = number
   default     = 3000
 }
 
-# Time ZOne
+# Time Zone do container
 variable "container_TZ" {
-  description = "Defini o valor do TimeZOne para o Container"
+  description = "TimeZone configurado no container"
   type        = string
   default     = "America/Sao_Paulo"
 }
 
 # ============================
-# ECS
+# ECS (Fargate)
 # ============================
 
-# Tamanho da instância ECS Fargate (CPU)
+# CPU da Task ECS
 variable "ecs_cpu" {
   description = "Quantidade de CPU alocada para a task ECS Fargate. Exemplo: '256' (0.25 vCPU)"
   type        = string
   default     = "256"
 }
 
-# Tamanho da memória ECS Fargate (RAM)
+# Memória da Task ECS
 variable "ecs_memory" {
-  description = "Quantidade de memória (RAM) alocada para a task ECS Fargate. Exemplo: '512' (512MB)"
+  description = "Quantidade de memória RAM alocada para a task ECS Fargate. Exemplo: '512' (512MB)"
   type        = string
   default     = "512"
 }
 
-
-
 # Tag da imagem Docker
-# Utilizado pelo FARGATE para ele reconhecer a nova versão e colocar em produção
 variable "image_tag" {
-  description = "TAG imagem Docker para o projeto crypto"
+  description = "Tag da imagem Docker utilizada pelo ECS"
   type        = string
-  default     = "latest" 
+  default     = "latest"
 }
 
-# AWS Secrets encryption key
-//variable "secrets_encryption_key" {
-//  description = "Variavel Encription KEY na AWS."
-//  type        = string
-//  default     = "arn:aws:secretsmanager:us-east-1:202533542500:secret:pucrs-crypto-api/encryption-key-X6j4JI"
-//}
-
+# ARN da chave de criptografia no Secrets Manager (opcional)
 variable "secrets_encryption_key" {
-  default = ""
+  description = "ARN da chave de criptografia no AWS Secrets Manager. Se vazio, será usado o padrão."
+  type        = string
+  default     = ""
 }

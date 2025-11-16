@@ -1,7 +1,9 @@
 # ============================
 # File: ./iac/flow/aws_vpc.tf
 # ============================
-# REDE: VPC, Subnets e Internet Gateway
+
+# ============================
+# VPC principal
 # ============================
 resource "aws_vpc" "vpc" {
   cidr_block           = var.vpc_cidr
@@ -10,8 +12,12 @@ resource "aws_vpc" "vpc" {
   tags                 = { Name = "${var.project_name}-vpc" }
 }
 
+# Captura zonas de disponibilidade disponíveis
 data "aws_availability_zones" "available" {}
 
+# ============================
+# Subnets públicas
+# ============================
 resource "aws_subnet" "public_subnets" {
   count                   = length(var.public_subnet_cidrs)
   vpc_id                  = aws_vpc.vpc.id
@@ -21,20 +27,29 @@ resource "aws_subnet" "public_subnets" {
   tags                    = { Name = "${var.project_name}-public-${count.index}" }
 }
 
+# ============================
+# Subnets privadas
+# ============================
 resource "aws_subnet" "private_subnets" {
   count                   = length(var.private_subnet_cidrs)
   vpc_id                  = aws_vpc.vpc.id
   cidr_block              = var.private_subnet_cidrs[count.index]
-  map_public_ip_on_launch = false # CORRIGIDO: Garante que são privadas.
+  map_public_ip_on_launch = false
   availability_zone       = data.aws_availability_zones.available.names[count.index]
   tags                    = { Name = "${var.project_name}-private-${count.index}" }
 }
 
+# ============================
+# Internet Gateway para acesso público
+# ============================
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.vpc.id
   tags   = { Name = "${var.project_name}-igw" }
 }
 
+# ============================
+# Tabela de roteamento pública
+# ============================
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.vpc.id
   route {
@@ -44,6 +59,7 @@ resource "aws_route_table" "public" {
   tags = { Name = "${var.project_name}-public-rt" }
 }
 
+# Associação da tabela de roteamento às subnets públicas
 resource "aws_route_table_association" "public_assoc" {
   count          = length(var.public_subnet_cidrs)
   subnet_id      = aws_subnet.public_subnets[count.index].id
@@ -51,18 +67,17 @@ resource "aws_route_table_association" "public_assoc" {
 }
 
 # ============================
-# INFRAESTRUTURA DE REDE PRIVADA (NAT Gateway e Rotas)
+# NAT Gateway e tabelas privadas
 # ============================
 
-# 1. Endereço IP El astico (EIP) para o NAT Gateway
+# Elastic IP para NAT Gateway
 resource "aws_eip" "nat_gateway" {
   count      = 1
-  # vpc = true
   depends_on = [aws_internet_gateway.igw]
   tags       = { Name = "${var.project_name}-nat-eip" }
 }
 
-# 2. Criação do NAT Gateway na Subnet Pública (necess ario para acesso à internet)
+# NAT Gateway para permitir que subnets privadas acessem a internet
 resource "aws_nat_gateway" "nat" {
   count         = 1
   allocation_id = aws_eip.nat_gateway[count.index].id
@@ -70,7 +85,7 @@ resource "aws_nat_gateway" "nat" {
   tags          = { Name = "${var.project_name}-nat-gateway" }
 }
 
-# 3. Tabela de Roteamento Privada
+# Tabela de roteamento privada
 resource "aws_route_table" "private" {
   vpc_id = aws_vpc.vpc.id
   route {
@@ -80,7 +95,7 @@ resource "aws_route_table" "private" {
   tags = { Name = "${var.project_name}-private-rt" }
 }
 
-# 4. Associação da Tabela de Roteamento às Subnets Privadas
+# Associação da tabela de roteamento às subnets privadas
 resource "aws_route_table_association" "private_assoc" {
   count          = length(var.private_subnet_cidrs)
   subnet_id      = aws_subnet.private_subnets[count.index].id
@@ -88,10 +103,10 @@ resource "aws_route_table_association" "private_assoc" {
 }
 
 # ============================
-# SECURITY GROUPS (SEPARADOS POR CAMADA)
+# Security Groups
 # ============================
 
-# 2. Security Group para o ECS (Privado, Porta do Contêiner)
+# Security Group para ECS (apenas tráfego do NLB permitido)
 resource "aws_security_group" "ecs_sg" {
   name        = "${var.project_name}-ecs-sg"
   description = "Permite acesso apenas do NLB"
@@ -102,27 +117,26 @@ resource "aws_security_group" "ecs_sg" {
     from_port   = var.container_port
     to_port     = var.container_port
     protocol    = "tcp"
-    # Regra de tr afego de entrada mais segura: Permite apenas o NLB (assumindo que ele est a na VPC)
     cidr_blocks = [aws_vpc.vpc.cidr_block]
   }
 
   egress {
-    description = "Acesso Publico"
+    description = "Acesso público via NAT Gateway"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"] # OK para Tasks que usam NAT Gateway
+    cidr_blocks = ["0.0.0.0/0"]
   }
+
   tags = { Name = "${var.project_name}-ecs-sg" }
 }
 
-# 3. Security Group para os VPC Endpoints
+# Security Group para VPC Endpoints
 resource "aws_security_group" "endpoint_sg" {
   name        = "${var.project_name}-endpoint-sg"
-  description = "Permite tr afego de entrada do ECS SG para os VPC Endpoints"
+  description = "Permite tráfego do ECS SG para VPC Endpoints"
   vpc_id      = aws_vpc.vpc.id
 
-  # Ingress: Permite tr afego de entrada do SG do ECS (onde a Task roda)
   ingress {
     from_port       = 443
     to_port         = 443
@@ -137,28 +151,28 @@ resource "aws_security_group" "endpoint_sg" {
     security_groups = [aws_security_group.ecs_sg.id]
   }
 
-    ingress {
+  ingress {
     from_port       = 3000
     to_port         = 3000
     protocol        = "tcp"
     security_groups = [aws_security_group.ecs_sg.id]
   }
 
-  # Egress: Permite todo o tr afego de saída
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
   tags = { Name = "${var.project_name}-endpoint-sg" }
 }
 
-# ====================================================================================
-# VPC ENDPOINTS DE INTERFACE (INTERFACE ENDPOINTS)
-# ====================================================================================
+# ============================
+# VPC Interface Endpoints
+# ============================
 
-# 1. Endpoint para Secrets Manager (CORRIGIDO: Removido Duplicação)
+# Endpoint Secrets Manager
 resource "aws_vpc_endpoint" "secrets_manager" {
   vpc_id              = aws_vpc.vpc.id
   service_name        = "com.amazonaws.${var.aws_region}.secretsmanager"
@@ -169,7 +183,7 @@ resource "aws_vpc_endpoint" "secrets_manager" {
   tags                = { Name = "${var.project_name}-secretsmanager-endpoint" }
 }
 
-# 2. Endpoint para CloudWatch Logs (NOVO - Resolve a falha de log stream)
+# Endpoint CloudWatch Logs
 resource "aws_vpc_endpoint" "logs" {
   vpc_id              = aws_vpc.vpc.id
   service_name        = "com.amazonaws.${var.aws_region}.logs"
@@ -180,30 +194,23 @@ resource "aws_vpc_endpoint" "logs" {
   tags                = { Name = "${var.project_name}-logs-endpoint" }
 }
 
-# ====================================================================================
-# ECR ENDPOINTS (Interface Endpoints)
-# Essenciais para pull de imagem em subnets privadas.
-# ====================================================================================
-
-# 3. Endpoint para ECR API (Autenticação e Controle)
+# Endpoint ECR API (Autenticação)
 resource "aws_vpc_endpoint" "ecr_api" {
   vpc_id              = aws_vpc.vpc.id
   service_name        = "com.amazonaws.${var.aws_region}.ecr.api"
   vpc_endpoint_type   = "Interface"
   security_group_ids  = [aws_security_group.endpoint_sg.id]
-  # Usa as subnets privadas para que o tráfego fique na VPC
   subnet_ids          = aws_subnet.private_subnets[*].id
   private_dns_enabled = true
   tags                = { Name = "${var.project_name}-ecr-api-endpoint" }
 }
 
-# 4. Endpoint para ECR DKR (Data Plane / Docker Pull)
+# Endpoint ECR DKR (Docker Pull)
 resource "aws_vpc_endpoint" "ecr_dkr" {
   vpc_id              = aws_vpc.vpc.id
   service_name        = "com.amazonaws.${var.aws_region}.ecr.dkr"
   vpc_endpoint_type   = "Interface"
   security_group_ids  = [aws_security_group.endpoint_sg.id]
-  # Usa as subnets privadas para que o tráfego fique na VPC
   subnet_ids          = aws_subnet.private_subnets[*].id
   private_dns_enabled = true
   tags                = { Name = "${var.project_name}-ecr-dkr-endpoint" }

@@ -6,25 +6,20 @@
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
-//locals {
-//  # O endpoint do S3-Website omite o protocolo. Incluímos 'http://' aqui.
-//  frontend_origin_url = "http://${aws_s3_bucket_website_configuration.frontend_website.website_endpoint}"
-//}
-
-# 1️⃣ API Base
+# API Gateway Base para o backend ECS/NLB
 resource "aws_api_gateway_rest_api" "project_api_gateway" {
   name        = "${var.project_name}-api-gateway"
   description = "API Gateway para o backend ECS/NLB"
 }
 
-# 2️⃣ Recurso Root (path "/{proxy+}")
+# Recurso Root com path "/{proxy+}" para capturar qualquer rota
 resource "aws_api_gateway_resource" "proxy" {
   rest_api_id = aws_api_gateway_rest_api.project_api_gateway.id
   parent_id   = aws_api_gateway_rest_api.project_api_gateway.root_resource_id
-  path_part   = "{proxy+}" # Captura qualquer path (ex: /health, /users, etc.)
+  path_part   = "{proxy+}"
 }
 
-# 3️⃣ Método (ANY)
+# Método ANY no recurso proxy (captura todas as requisições)
 resource "aws_api_gateway_method" "proxy_method" {
   rest_api_id   = aws_api_gateway_rest_api.project_api_gateway.id
   resource_id   = aws_api_gateway_resource.proxy.id
@@ -36,7 +31,7 @@ resource "aws_api_gateway_method" "proxy_method" {
   }
 }
 
-# 4️⃣ Integração com o NLB
+# Integração do API Gateway com o NLB via VPC Link
 resource "aws_api_gateway_integration" "nlb_integration" {
   depends_on = [aws_api_gateway_method.proxy_method]
 
@@ -54,11 +49,10 @@ resource "aws_api_gateway_integration" "nlb_integration" {
   }
 }
 
-# 5️⃣ Deployment
+# Deployment do API Gateway, redeploy é acionado automaticamente quando há mudanças
 resource "aws_api_gateway_deployment" "project_deployment" {
   rest_api_id = aws_api_gateway_rest_api.project_api_gateway.id
 
-  # Gatilho para redeploy em caso de mudança
   triggers = {
     redeployment = sha1(jsonencode([
       aws_api_gateway_resource.proxy.id,
@@ -76,13 +70,13 @@ resource "aws_api_gateway_deployment" "project_deployment" {
   }
 }
 
-# 6️⃣ Log Group (dinâmico, sem dependência circular)
+# CloudWatch Log Group para armazenar logs do API Gateway
 resource "aws_cloudwatch_log_group" "api_gw_logs" {
   name              = "/aws/apigateway/${var.project_name}-api-prod"
   retention_in_days = 3
 }
 
-# 7️⃣ IAM Role para Logs
+# IAM Role para que o API Gateway possa escrever logs no CloudWatch
 data "aws_iam_policy_document" "apigw_log_assume_role" {
   statement {
     actions = ["sts:AssumeRole"]
@@ -103,7 +97,7 @@ resource "aws_iam_role_policy_attachment" "apigw_cloudwatch_attach" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
 }
 
-# 8️⃣ Conta do API Gateway configurada para logs
+# Configuração da conta do API Gateway para habilitar envio de logs
 resource "aws_api_gateway_account" "apigw_account_settings" {
   cloudwatch_role_arn = aws_iam_role.apigw_cloudwatch_log_role.arn
 
@@ -112,7 +106,7 @@ resource "aws_api_gateway_account" "apigw_account_settings" {
   }
 }
 
-# 9️⃣ Stage (ex: /prod)
+# Stage de produção (/prod) com logs ativados e X-Ray habilitado
 resource "aws_api_gateway_stage" "prod_stage" {
   deployment_id = aws_api_gateway_deployment.project_deployment.id
   rest_api_id   = aws_api_gateway_rest_api.project_api_gateway.id
@@ -132,14 +126,14 @@ resource "aws_api_gateway_stage" "prod_stage" {
   xray_tracing_enabled = true
 }
 
-# 🔟 VPC Link (para o NLB)
+# VPC Link entre API Gateway e NLB
 resource "aws_api_gateway_vpc_link" "project_vpc_link" {
   name        = "${var.project_name}-nlb-link"
   description = "VPC Link entre API Gateway e NLB"
   target_arns = [aws_lb.api_nlb.arn]
 }
 
-# 1️⃣1️⃣ Configuração de Logs e Métricas (Method Settings)
+# Configuração de métricas e logs para todos os métodos do stage
 resource "aws_api_gateway_method_settings" "proxy_method_settings" {
   rest_api_id = aws_api_gateway_rest_api.project_api_gateway.id
   stage_name  = aws_api_gateway_stage.prod_stage.stage_name
@@ -154,28 +148,27 @@ resource "aws_api_gateway_method_settings" "proxy_method_settings" {
   depends_on = [aws_api_gateway_stage.prod_stage]
 }
 
-# 💡 1A. Criação do Método OPTIONS (Pré-voo CORS) no recurso {proxy+}
+# Método OPTIONS para pré-voo CORS
 resource "aws_api_gateway_method" "options_proxy" {
   rest_api_id   = aws_api_gateway_rest_api.project_api_gateway.id
-  resource_id   = aws_api_gateway_resource.proxy.id # No {proxy+}
+  resource_id   = aws_api_gateway_resource.proxy.id
   http_method   = "OPTIONS"
   authorization = "NONE"
 }
 
-# 💡 1B. Resposta da Integração (MOCK)
+# Integração MOCK para resposta do OPTIONS (pré-voo CORS)
 resource "aws_api_gateway_integration" "options_proxy_integration" {
   rest_api_id = aws_api_gateway_rest_api.project_api_gateway.id
   resource_id = aws_api_gateway_resource.proxy.id
   http_method = aws_api_gateway_method.options_proxy.http_method
-  type        = "MOCK" # Intercepta e responde no API GW
+  type        = "MOCK"
 
   request_templates = {
-    "application/json" = "{\"statusCode\": 200}" 
-    # O API Gateway lê isto e entende que a integração MOCK foi um sucesso (Status 200).
+    "application/json" = "{\"statusCode\": 200}"
   }
 }
 
-# 💡 2A. Resposta do Método (Define os cabeçalhos CORS)
+# Resposta do método OPTIONS definindo cabeçalhos CORS
 resource "aws_api_gateway_method_response" "options_proxy_response" {
   rest_api_id = aws_api_gateway_rest_api.project_api_gateway.id
   resource_id = aws_api_gateway_resource.proxy.id
@@ -193,14 +186,13 @@ resource "aws_api_gateway_method_response" "options_proxy_response" {
   }
 }
 
-# 💡 2B. Resposta da Integração (Mapeamento dos valores dos cabeçalhos)
+# Integração da resposta OPTIONS mapeando os cabeçalhos CORS
 resource "aws_api_gateway_integration_response" "options_proxy_integration_response" {
   rest_api_id = aws_api_gateway_rest_api.project_api_gateway.id
   resource_id = aws_api_gateway_resource.proxy.id
   http_method = aws_api_gateway_method.options_proxy.http_method
   status_code = aws_api_gateway_method_response.options_proxy_response.status_code
-  
-  # Note que não há template de mapeamento necessário aqui, pois a resposta é vazia.
+
   response_templates = {
     "application/json" = ""
   }
@@ -208,73 +200,8 @@ resource "aws_api_gateway_integration_response" "options_proxy_integration_respo
   response_parameters = {
     "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,OPTIONS,PUT,PATCH,DELETE,ANY'", 
     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'https://${aws_cloudfront_distribution.frontend_cdn.domain_name}'" # Use a variável de origem do seu frontend
+    "method.response.header.Access-Control-Allow-Origin"  = "'https://${aws_cloudfront_distribution.frontend_cdn.domain_name}'"
   }
 
   depends_on = [aws_api_gateway_method_response.options_proxy_response]
 }
-
-/*
-
-# 1. Criação do Método OPTIONS (Pré-voo CORS)
-resource "aws_api_gateway_method" "options_proxy" { # 💡 Renomeado para 'proxy'
-  # CORREÇÃO: Usando a referência correta da sua API
-  rest_api_id   = aws_api_gateway_rest_api.project_api_gateway.id 
-  # CORREÇÃO: Usando o recurso proxy, que captura todas as rotas
-  resource_id   = aws_api_gateway_resource.proxy.id 
-  http_method   = "OPTIONS"
-  authorization = "NONE"
-}
-
-# 2. Resposta da Integração (Mock)
-resource "aws_api_gateway_integration" "options_proxy_integration" { # 💡 Renomeado
-  rest_api_id = aws_api_gateway_rest_api.project_api_gateway.id
-  resource_id = aws_api_gateway_resource.proxy.id
-  http_method = aws_api_gateway_method.options_proxy.http_method
-  type        = "MOCK"
-}
-
-# 3. Resposta do Método (Define os cabeçalhos CORS)
-resource "aws_api_gateway_method_response" "options_proxy_response" { # 💡 Renomeado
-  rest_api_id = aws_api_gateway_rest_api.project_api_gateway.id
-  resource_id = aws_api_gateway_resource.proxy.id
-  http_method = aws_api_gateway_method.options_proxy.http_method
-  status_code = "200"
-
-  response_models = {
-    "application/json" = "Empty"
-  }
-
-  response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = true,
-    "method.response.header.Access-Control-Allow-Methods" = true,
-    "method.response.header.Access-Control-Allow-Origin"  = true
-  }
-}
-
-# 4. Resposta da Integração (Mapeamento dos valores dos cabeçalhos)
-resource "aws_api_gateway_integration_response" "options_proxy_integration_response" { # 💡 Renomeado
-  rest_api_id = aws_api_gateway_rest_api.project_api_gateway.id
-  resource_id = aws_api_gateway_resource.proxy.id
-  http_method = aws_api_gateway_method.options_proxy.http_method
-  status_code = aws_api_gateway_method_response.options_proxy_response.status_code
-
-  response_templates = {
-    "application/json" = ""
-  }
-
-  response_parameters = {
-    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,OPTIONS,ANY'", 
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    
-    # 🟢 CORREÇÃO DA SINTAXE E REFERÊNCIA DINÂMICA
-    # O valor final deve ser uma string literal ('...') que contém a URL do frontend.
-    "method.response.header.Access-Control-Allow-Origin"  = "'${aws_cloudfront_distribution.frontend_cdn.domain_name}'"
-    // "'${aws_s3_bucket_website_configuration.frontend_website.website_endpoint}'"
-    
-    //"'${local.frontend_origin_url}'" 
-  }
-
-  depends_on = [aws_api_gateway_method_response.options_proxy_response]
-}
-*/
