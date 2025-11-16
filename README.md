@@ -21,7 +21,9 @@ O projeto consiste em uma **API de Criptografia (Backend)** e uma **Interface de
 ### 1.1. Descrição dos Serviços
 
 * **Crypto API (Backend):** Desenvolvida em **NestJS** (TypeScript), expõe *endpoints* RESTful (`/encrypt`, `/decrypt`, `/health`). A API é containerizada com Docker e rodará em **AWS Fargate** (serviço *serverless* de contêineres).
-* **Crypto UI (Frontend):** Desenvolvida em **NestJS** (TypeScript), aprezenta uma página web estática simples (HTML/CSS/JavaScript) que consome a Crypto API. A UI será hospedada em um **AWS S3 Bucket** configurado para hospedagem de sites estáticos.
+
+* **Crypto UI (Frontend):** Desenvolvida em **React + Vite (TypeScript)**, apresenta uma página web estática que consome a Crypto API. A UI é hospedada em um **AWS S3 Bucket**, distribuída via **Amazon CloudFront** para acesso global.
+
 
 ### 1.2. Stack Tecnológica
 
