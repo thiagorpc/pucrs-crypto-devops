@@ -1,0 +1,81 @@
+{
+	"Version": "2025-11-15",
+	"Statement": [
+		{
+			"Sid": "TerraformBackendAndSecrets",
+			"Effect": "Allow",
+			"Action": [
+				"s3:GetObject",
+				"s3:PutObject",
+				"s3:ListBucket",
+				"s3:DeleteObject",
+				"dynamodb:GetItem",
+				"dynamodb:PutItem",
+				"dynamodb:DeleteItem",
+				"dynamodb:DescribeTable",
+				"secretsmanager:DescribeSecret",
+				"secretsmanager:GetSecretValue",
+				"secretsmanager:GetResourcePolicy"
+			],
+			"Resource": [
+				"arn:aws:s3:::pucrs-crypto-github-action-tfstate-unique",
+				"arn:aws:s3:::pucrs-crypto-github-action-tfstate-unique/*",
+				"arn:aws:dynamodb:us-east-1:##### ID da sua Conta AWS :#####:table/pucrs-crypto-terraform-lock",
+				"arn:aws:secretsmanager:us-east-1:##### ID da sua Conta AWS :#####:secret:pucrs-crypto-api/encryption-key-*"
+			]
+		},
+		{
+			"Sid": "TerraformResourceManagement",
+			"Effect": "Allow",
+			"Action": [
+				"ec2:*",
+				"ecs:*",
+				"ecr:*",
+				"elasticloadbalancing:*",
+				"sts:AssumeRole",
+				"logs:*",
+				"cloudwatch:*",
+				"cloudwatch:GenerateQuery",
+				"cloudwatch:GenerateQueryResultsSummary",
+				"iam:*",
+				"organizations:DescribeAccount",
+				"organizations:DescribeOrganization",
+				"organizations:DescribeOrganizationalUnit",
+				"organizations:DescribePolicy",
+				"organizations:ListChildren",
+				"organizations:ListParents",
+				"organizations:ListPoliciesForTarget",
+				"organizations:ListRoots",
+				"organizations:ListPolicies",
+				"organizations:ListTargetsForPolicy",
+				"s3:*",
+				"cloudfront:CreateOriginAccessControl",
+				"cloudfront:GetOriginAccessControl",
+				"cloudfront:UpdateOriginAccessControl",
+				"cloudfront:DeleteOriginAccessControl",
+				"cloudfront:CreateDistribution",
+				"cloudfront:GetDistribution",
+				"cloudfront:UpdateDistribution",
+				"cloudfront:DeleteDistribution",
+				"cloudfront:ListDistributions",
+				"cloudfront:TagResource",
+				"cloudfront:ListTagsForResource",
+				"cloudfront:CreateInvalidation"
+			],
+			"Resource": "*"
+		},
+		{
+			"Sid": "ApiGatewayManagement",
+			"Effect": "Allow",
+			"Action": "apigateway:*",
+			"Resource": [
+				"arn:aws:apigateway:us-east-1::/restapis",
+				"arn:aws:apigateway:us-east-1::/restapis/*",
+				"arn:aws:apigateway:us-east-1::/domainnames",
+				"arn:aws:apigateway:us-east-1::/vpclinks",
+				"arn:aws:apigateway:us-east-1::/vpclinks/*",
+				"arn:aws:apigateway:us-east-1::/account"
+			]
+		}
+	]
+}
