@@ -6,7 +6,7 @@
 resource "aws_cloudfront_distribution" "frontend_cdn" {
   origin {
     domain_name              = aws_s3_bucket.frontend.bucket_regional_domain_name
-    origin_id                = "frontend-s3-origin"
+    origin_id                = "S3-Origin-${aws_s3_bucket.static_site_bucket.id}"
     origin_access_control_id = aws_cloudfront_origin_access_control.frontend_oac.id
   }
 
@@ -16,9 +16,10 @@ resource "aws_cloudfront_distribution" "frontend_cdn" {
   default_root_object = "index.html"
 
   default_cache_behavior {
-    allowed_methods        = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
-    cached_methods         = ["GET", "HEAD"]
-    target_origin_id       = "frontend-s3-origin"
+    allowed_methods   = ["GET", "HEAD", "OPTIONS", "POST", "PUT", "PATCH", "DELETE"]
+    cached_methods    = ["GET", "HEAD"]
+    target_origin_id  = "S3-Origin-${aws_s3_bucket.static_site_bucket.id}"
+    #"frontend-s3-origin"
 
     # FORÇA HTTPS
     viewer_protocol_policy = "redirect-to-https" 

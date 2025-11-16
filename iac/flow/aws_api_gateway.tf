@@ -63,7 +63,9 @@ resource "aws_api_gateway_deployment" "project_deployment" {
     redeployment = sha1(jsonencode([
       aws_api_gateway_resource.proxy.id,
       aws_api_gateway_method.proxy_method.id,
-      aws_api_gateway_integration.nlb_integration.id
+      aws_api_gateway_integration.nlb_integration.id,
+      aws_api_gateway_method.options_proxy.id,
+      aws_api_gateway_integration.options_proxy_integration.id
     ]))
   }
 
@@ -148,6 +150,61 @@ resource "aws_api_gateway_method_settings" "proxy_method_settings" {
   }
 
   depends_on = [aws_api_gateway_stage.prod_stage]
+}
+
+# 💡 1A. Criação do Método OPTIONS (Pré-voo CORS) no recurso {proxy+}
+resource "aws_api_gateway_method" "options_proxy" {
+  rest_api_id   = aws_api_gateway_rest_api.project_api_gateway.id
+  resource_id   = aws_api_gateway_resource.proxy.id # No {proxy+}
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+# 💡 1B. Resposta da Integração (MOCK)
+resource "aws_api_gateway_integration" "options_proxy_integration" {
+  rest_api_id = aws_api_gateway_rest_api.project_api_gateway.id
+  resource_id = aws_api_gateway_resource.proxy.id
+  http_method = aws_api_gateway_method.options_proxy.http_method
+  type        = "MOCK" # Intercepta e responde no API GW
+}
+
+# 💡 2A. Resposta do Método (Define os cabeçalhos CORS)
+resource "aws_api_gateway_method_response" "options_proxy_response" {
+  rest_api_id = aws_api_gateway_rest_api.project_api_gateway.id
+  resource_id = aws_api_gateway_resource.proxy.id
+  http_method = aws_api_gateway_method.options_proxy.http_method
+  status_code = "200"
+
+  response_models = {
+    "application/json" = "Empty"
+  }
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true,
+    "method.response.header.Access-Control-Allow-Methods" = true,
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+# 💡 2B. Resposta da Integração (Mapeamento dos valores dos cabeçalhos)
+resource "aws_api_gateway_integration_response" "options_proxy_integration_response" {
+  rest_api_id = aws_api_gateway_rest_api.project_api_gateway.id
+  resource_id = aws_api_gateway_resource.proxy.id
+  http_method = aws_api_gateway_method.options_proxy.http_method
+  status_code = aws_api_gateway_method_response.options_proxy_response.status_code
+  
+  # Note que não há template de mapeamento necessário aqui, pois a resposta é vazia.
+  response_templates = {
+    "application/json" = ""
+  }
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,OPTIONS,ANY'", 
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Origin"  = "'${aws_cloudfront_distribution.frontend_cdn.domain_name}'" # Use a variável de origem do seu frontend
+  }
+
+  depends_on = [aws_api_gateway_method_response.options_proxy_response]
 }
 
 /*
