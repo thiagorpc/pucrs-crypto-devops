@@ -93,12 +93,32 @@ jobs:
           cd ./crypto-api
           npm run test
 
-      - name: 🐳 Build and Push Docker Image
+      # 🏷️ Definir variáveis de imagem
+      - name: 🏷️ Definir Variáveis de Imagem
+        id: vars
         run: |
-          ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
-          IMAGE=${ECR_REGISTRY}/${{ env.ECR_REPOSITORY }}:${{ steps.tag.outputs.IMAGE_TAG }}
-          docker build -t $IMAGE ./crypto-api
-          docker push $IMAGE
+          IMAGE_TAG=$(date +'%Y%m%d')-${GITHUB_RUN_NUMBER}-${GITHUB_SHA::7}
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
+          ECR_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}
+          echo "ECR_URI=$ECR_URI" >> $GITHUB_OUTPUT
+          echo "🔖 Tag: $IMAGE_TAG"
+          echo "⭐ ECR URI: $ECR_URI"
+      
+
+      # 🐳 Build e Push
+      - name: 🐳 Build, Tag e Push da Imagem
+        run: |
+          docker build -t ${{ steps.vars.outputs.ECR_URI }}:${{ steps.vars.outputs.IMAGE_TAG }} ./crypto-api
+          docker tag ${{ steps.vars.outputs.ECR_URI }}:${{ steps.vars.outputs.IMAGE_TAG }} ${{ steps.vars.outputs.ECR_URI }}:latest
+          docker push ${{ steps.vars.outputs.ECR_URI }}:${{ steps.vars.outputs.IMAGE_TAG }}
+          docker push ${{ steps.vars.outputs.ECR_URI }}:latest
+
+      #- name: 🐳 Build and Push Docker Image
+      #  run: |
+      #    ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
+      #    IMAGE=${ECR_REGISTRY}/${{ env.ECR_REPOSITORY }}:${{ steps.tag.outputs.IMAGE_TAG }}
+      #    docker build -t $IMAGE ./crypto-api
+      #    docker push $IMAGE
 
       - name: 📤 Upload Image Tag Artifact
         uses: actions/upload-artifact@v4
