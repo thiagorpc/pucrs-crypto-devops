@@ -39,8 +39,7 @@ O projeto consiste em uma **API de Criptografia (Backend)** e uma **Interface de
 | :--- | :--- | :--- | 
 | **Integração Contínua (CI)** | Implementar **dois pipelines de CI** (Backend e Frontend) no GitHub Actions, automatizando *linting*, testes, *build* de contêineres e empacotamento. | *Plano de Integração Contínua* | 
 | **Infraestrutura como Código (IaC)** | Utilizar **Terraform** para provisionar e gerenciar **toda** a infraestrutura AWS (VPC, Fargate, ECR, Load Balancer, S3). | *Especificação da Infraestrutura* | 
-| **Qualidade & Segurança** | Garantir 100% de testes automatizados e integrar uma etapa de **Análise de Segurança Estática (SAST)** no pipeline do Backend (DevSecOps). | *Define o critério de sucesso para esse caso prático de estudo* | 
-
+| **Qualidade & Segurança** | Garantir a execução de testes automatizados e integrar uma etapa futura de **Análise de Segurança Estática (SAST)** no pipeline do Backend (DevSecOps). | *Define o critério de sucesso para esse caso prático de estudo* | 
 
 ---
 
@@ -125,7 +124,7 @@ O workflow de CI/CD é acionado automaticamente:
 
 2. Merge na main: Dispara o pipeline de IaC (Terraform).
 
-[!NOTE] O pipeline de IaC executa terraform plan e terraform apply, provisionando o ECS Fargate, S3 para o Frontend e o Load Balancer na AWS.
+[!NOTE] O pipeline de IaC executa terraform plan e terraform apply, provisionando o ECS Fargate (para o backend) e o S3 + CloudFront (para o frontend) na AWS.
 
 
 ### 4.2. Comandos de Inicialização e Testes
@@ -171,6 +170,20 @@ Para rodar o projeto localmente, adicione as seguintes variáveis no seu arquivo
     # Chave usada na criptografia (Superior a 32 caracteres)
     ENCRYPTION_KEY="MinhaChaveUltraSecreta1234567890"
 ```
+
+### 4.4. Workflows de Automação Disponíveis
+
+| Workflow | Descrição |
+|-----------|------------|
+| `000_setup_terraform_aws.yml` | Configura o backend remoto (S3 e DynamoDB) |
+| `001_setup_infra_aws.yml` | Provisiona infraestrutura AWS |
+| `002_check_infra_aws.yml` | Valida integridade da infraestrutura |
+| `003_backend-ci.yml` | Build, teste e push da imagem Docker do backend |
+| `004_backend-cd.yml` | Deploy automatizado do backend via Terraform |
+| `005_frontend-ci.yml` | Build e teste do frontend React (Vite) |
+| `006_frontend-cd.yml` | Deploy do frontend em S3 e invalidação CloudFront |
+| `009_destroy.yml` | Destrói e limpa todos os recursos AWS |
+
 
 ---
 
