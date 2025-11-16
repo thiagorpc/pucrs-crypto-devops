@@ -42,6 +42,7 @@ jobs:
         run: |
           IMAGE_TAG=$(cat image_tag.txt)
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
+          cat image_tag.txt
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -60,7 +61,10 @@ jobs:
         working-directory: ${{ env.TF_WORKING_DIR }}
 
       - name: Terraform Apply (Deploy)
-        run: terraform apply -auto-approve -var="image_tag=${{ steps.readtag.outputs.IMAGE_TAG }}"
+        run: |
+          terraform apply -auto-approve -var="image_tag=${{ steps.readtag.outputs.IMAGE_TAG }}"
+          echo "🚀 Deploying backend with image tag: ${{ steps.readtag.outputs.IMAGE_TAG }}"
+
         working-directory: ${{ env.TF_WORKING_DIR }}
 
 
