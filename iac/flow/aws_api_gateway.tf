@@ -206,7 +206,7 @@ resource "aws_api_gateway_integration_response" "options_proxy_integration_respo
   }
 
   response_parameters = {
-    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,OPTIONS,ANY'", 
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,OPTIONS,PUT,PATCH,DELETE,ANY'", 
     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
     "method.response.header.Access-Control-Allow-Origin"  = "'https://${aws_cloudfront_distribution.frontend_cdn.domain_name}'" # Use a variável de origem do seu frontend
   }
