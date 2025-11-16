@@ -16,10 +16,10 @@ resource "aws_cloudfront_distribution" "frontend_cdn" {
   default_root_object = "index.html"
 
   default_cache_behavior {
-    allowed_methods        = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE" ]
-    cached_methods         = ["GET", "HEAD", "OPTIONS"]
+    allowed_methods        = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
+    cached_methods         = ["GET", "HEAD"]
     target_origin_id       = "frontend-s3-origin"
-    
+
     # FORÇA HTTPS
     viewer_protocol_policy = "redirect-to-https" 
     
@@ -29,11 +29,13 @@ resource "aws_cloudfront_distribution" "frontend_cdn" {
 
     # ESSENCIAL PARA CORS
     forwarded_values {
-      query_string = false
+      query_string = true
       headers = [
-        "Origin",
-        "Access-Control-Request-Method",
-        "Access-Control-Request-Headers"
+          "Origin",
+          "Access-Control-Request-Method",
+          "Access-Control-Request-Headers",
+          "Authorization",
+          "Content-Type"
       ]
       cookies {
         forward = "none"
