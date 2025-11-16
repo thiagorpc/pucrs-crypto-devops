@@ -20,8 +20,8 @@
 			"Resource": [
 				"arn:aws:s3:::pucrs-crypto-github-action-tfstate-unique",
 				"arn:aws:s3:::pucrs-crypto-github-action-tfstate-unique/*",
-				"arn:aws:dynamodb:us-east-1:##### ID da sua Conta AWS :#####:table/pucrs-crypto-terraform-lock",
-				"arn:aws:secretsmanager:us-east-1:##### ID da sua Conta AWS :#####:secret:pucrs-crypto-api/encryption-key-*"
+				"arn:aws:dynamodb:us-east-1:##### ID da sua Conta AWS #####:table/pucrs-crypto-terraform-lock",
+				"arn:aws:secretsmanager:us-east-1:##### ID da sua Conta AWS #####:secret:pucrs-crypto-api/encryption-key-*"
 			]
 		},
 		{
