@@ -144,49 +144,51 @@ resource "aws_iam_role_policy_attachment" "ecs_s3_access_attach" {
 
 # ECS Task Definition - define containers, roles, secrets e variaveis de ambiente
 resource "aws_ecs_task_definition" "task" {
-  family                   = "${var.project_name}-api"
-  cpu                      = var.ecs_cpu
-  memory                   = var.ecs_memory
-  network_mode             = "awsvpc"
-  requires_compatibilities = ["FARGATE"]
+  family       = "${var.project_name}-api" #"Nome do serviço ECS que será executado no Fargate."
+  cpu          = var.ecs_cpu
+  memory       = var.ecs_memory
+  network_mode = "awsvpc"
+  requires_compatibilities = [
+    "FARGATE"
+  ]
 
+  # Task Execution Role (para logs, secrets, pull de imagem)
   execution_role_arn = aws_iam_role.task_execution_role.arn
-  task_role_arn      = aws_iam_role.task_role.arn
+  # execution_role_arn = aws_iam_role.ecs_execution_role.arn
+  # Task Role (para acesso S3, usada pelo runtime da aplicação)
+  task_role_arn = aws_iam_role.task_role.arn
 
-  container_definitions = jsonencode([{ 
-    name = "${var.project_name}-api" 
-    image = "${aws_ecr_repository.image_repo.repository_url}:${var.image_tag}" 
-    essential = true 
-    portMappings = [ 
-      { containerPort="3000", protocol= "tcp"} 
+  container_definitions = jsonencode([{
+    name      = "${var.project_name}-api"
+    image     = "${aws_ecr_repository.image_repo.repository_url}:${var.image_tag}"
+    essential = true
+    portMappings = [
+      { containerPort = 3000, protocol = "tcp" }
     ]
 
-    # Configuração de secrets para a task
     secrets = [
-      { 
-        name = "ENCRYPTION_KEY", 
+      {
+        name      = "ENCRYPTION_KEY",
         valueFrom = data.aws_secretsmanager_secret.encryption_key.arn,
       }
     ]
 
-    # Configuração de logs do container no CloudWatch
-    logConfiguration = { 
-      logDriver = "awslogs" 
-      options = { 
-        "awslogs-group" = aws_cloudwatch_log_group.log.name
-        "awslogs-region" = var.aws_region
+    logConfiguration = {
+      logDriver = "awslogs"
+      options = {
+        "awslogs-group"         = aws_cloudwatch_log_group.log.name
+        "awslogs-region"        = var.aws_region
         "awslogs-stream-prefix" = "ecs"
-        }
+      }
     }
 
-    # Variaveis de ambiente do container
     environment = [
       { name = "NODE_ENV", value = var.project_stage },
       { name = "PORT", value = "${var.container_port}" },
       { name = "HOST", value = var.container_host },
       { name = "TZ", value = var.container_TZ },
       { name = "IMAGE_BUCKET_NAME", value = aws_s3_bucket.images.bucket },
-      { name = "CORS_ORIGIN", value = "https://${aws_cloudfront_distribution.frontend_cdn.domain_name}" }
+      { name = "CORS_ORIGIN", value = "https://${aws_cloudfront_distribution.frontend_cdn.domain_name}"  }
     ]
   }])
 }
