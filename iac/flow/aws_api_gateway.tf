@@ -64,8 +64,10 @@ resource "aws_api_gateway_deployment" "project_deployment" {
       aws_api_gateway_resource.proxy.id,
       aws_api_gateway_method.proxy_method.id,
       aws_api_gateway_integration.nlb_integration.id,
-      aws_api_gateway_method.options_proxy.id,
-      aws_api_gateway_integration.options_proxy_integration.id
+      aws_api_gateway_integration.options_proxy_integration.id,
+      aws_api_gateway_method.options_proxy.id, 
+      aws_api_gateway_method_response.options_proxy_response.id,
+      aws_api_gateway_integration_response.options_proxy_integration_response.id,
     ]))
   }
 
