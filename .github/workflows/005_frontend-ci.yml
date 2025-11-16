@@ -31,19 +31,22 @@ jobs:
     uses: ./.github/workflows/002_check_infra_aws.yml
     secrets: inherit
 
-
   print-infra-output:
     name: Resultado da Verificação de Infraestrutura
     needs: infra-check
     runs-on: ubuntu-latest
     steps:
-      - name: 🖨 Print Infra Output
-        run: |
-          echo "📢 Infra AWS já está pronta?: ${{ needs.infra-check.outputs.infra_is_ready }}"
-          if [ "${{ needs.infra-check.outputs.infra_is_ready }}" != "true" ]; then
-            echo "❌ Infra não está pronta, abortando!"
-            exit 1
-          fi
+    - name: 🖨 Print Infra Output
+      run: |
+        echo "📢 Infra AWS já está pronta?: ${{ needs.infra-check.outputs.infra_is_ready }}"
+        echo "🔹 Evento que disparou o workflow: ${{ github.event_name }}"
+        
+        if [ "${{ github.event_name }}" != "push" ] && [ "${{ needs.infra-check.outputs.infra_is_ready }}" != "true" ]; then
+          echo "❌ Infra não está pronta e o evento não é push — abortando!"
+          exit 1
+        else
+          echo "✅ Prosseguindo mesmo que a infra não esteja pronta (push detectado ou infra OK)."
+        fi
 
   # ==========================================================
   # 🚀 JOB 2: Build, Test e Push da Front-End

@@ -31,7 +31,6 @@ jobs:
     uses: ./.github/workflows/002_check_infra_aws.yml
     secrets: inherit
 
-
   print-infra-output:
     name: Resultado da Verificação de Infraestrutura
     needs: infra-check
