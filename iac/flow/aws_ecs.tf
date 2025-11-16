@@ -184,7 +184,8 @@ resource "aws_ecs_task_definition" "task" {
 
     environment = [
       { name = "NODE_ENV", value = var.project_stage },
-      { name = "PORT", value = "${var.container_port}" },
+      #{ name = "PORT", value = "${var.container_port}" },
+      { name = "PORT", value = tostring(var.container_port) },
       { name = "HOST", value = var.container_host },
       { name = "TZ", value = var.container_TZ },
       { name = "IMAGE_BUCKET_NAME", value = aws_s3_bucket.images.bucket },
