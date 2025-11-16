@@ -22,3 +22,4 @@ terraform {
     dynamodb_table = "pucrs-crypto-terraform-lock"
   }
 }
+

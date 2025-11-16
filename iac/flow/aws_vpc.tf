@@ -215,3 +215,4 @@ resource "aws_vpc_endpoint" "ecr_dkr" {
   private_dns_enabled = true
   tags                = { Name = "${var.project_name}-ecr-dkr-endpoint" }
 }
+

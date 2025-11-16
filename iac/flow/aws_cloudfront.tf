@@ -68,3 +68,4 @@ resource "aws_cloudfront_origin_access_control" "frontend_oac" {
   signing_behavior                  = "always"
   signing_protocol                  = "sigv4"
 }
+

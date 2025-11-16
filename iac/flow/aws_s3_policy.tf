@@ -50,3 +50,4 @@ resource "aws_s3_bucket_policy" "frontend_bucket_policy" {
   # Garante que a distribuição CloudFront esteja criada antes de aplicar a política
   depends_on = [aws_cloudfront_distribution.frontend_cdn]
 }
+

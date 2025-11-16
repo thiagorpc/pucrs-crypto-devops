@@ -104,3 +104,4 @@ output "cloudfront_distribution_arn" {
   description = "ARN da distribuição CloudFront"
   value       = aws_cloudfront_distribution.frontend_cdn.arn
 }
+

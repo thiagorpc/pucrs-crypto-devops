@@ -23,3 +23,4 @@ resource "aws_s3_bucket_versioning" "state_bucket_versioning" {
     status = "Enabled"
   }
 }
+

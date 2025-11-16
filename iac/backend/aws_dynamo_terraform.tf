@@ -14,3 +14,4 @@ resource "aws_dynamodb_table" "lock_table" {
     type = "S"  # Tipo String
   }
 }
+

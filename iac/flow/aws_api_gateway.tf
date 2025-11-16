@@ -205,3 +205,4 @@ resource "aws_api_gateway_integration_response" "options_proxy_integration_respo
 
   depends_on = [aws_api_gateway_method_response.options_proxy_response]
 }
+

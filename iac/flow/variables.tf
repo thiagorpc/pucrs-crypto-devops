@@ -96,3 +96,4 @@ variable "secrets_encryption_key" {
   type        = string
   default     = ""
 }
+

@@ -231,3 +231,4 @@ resource "aws_ecr_lifecycle_policy" "api_cleanup" {
     ]
   })
 }
+

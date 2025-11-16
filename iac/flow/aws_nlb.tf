@@ -52,3 +52,4 @@ resource "aws_lb_listener" "nlb_listener" {
     target_group_arn = aws_lb_target_group.lb_target_group.arn
   }
 }
+
