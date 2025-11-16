@@ -16,7 +16,7 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: '*',
+    origin: allowedOrigins,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
@@ -25,7 +25,7 @@ async function bootstrap() {
 
   const logger = new Logger('Bootstrap');
 
-  logger.log(`🚀 API... rodando em http://${host}:${port}`);
+  logger.log(`🚀 API. rodando em http://${host}:${port}`);
   logger.log(`🚀 Permitido CORS: ${allowedOrigins.toString()}`);
 }
 
