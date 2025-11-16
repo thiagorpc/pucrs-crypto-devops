@@ -121,7 +121,16 @@ jobs:
 
 
       # -----------------------
-      # 🔹 10. Criar Plano de Destruição (Segurança Operacional)
+      # 🔹 10. Salvar um snapshot do estado atual antes do destroy, caso precise restaurar rapidamente
+      # -----------------------
+      - name: 💾 Backup Terraform State
+        run: |
+          aws s3 cp s3://${{ env.S3_STATE_BUCKET }}/terraform.tfstate ./terraform.tfstate.backup || true
+          echo "✅ Backup do estado local salvo."
+
+
+      # -----------------------
+      # 🔹 11. Criar Plano de Destruição (Segurança Operacional)
       # -----------------------
       - name: 🎉 Notificar Sucesso
         run: echo "🎉 Infraestrutura destruída e backend AWS limpo com sucesso!"

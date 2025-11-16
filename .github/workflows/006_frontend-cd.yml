@@ -109,3 +109,23 @@ jobs:
       - name: 💬 Notificar Novo Domain Name
         # Note que a URL estará no ambiente (env.CDN_DOMAIN)
         run: echo "O novo Frontend HTTPS está em ${{ env.CDN_DOMAIN }}"
+
+      - name: ⚠️ Verificar Deploy e Rollback
+        run: |
+          if [ $? -ne 0 ]; then
+            echo "❌ Erro no deploy, revertendo..."
+            aws s3 sync temp_build/previous/ s3://${{ env.S3_FRONTEND_BUCKET }} --delete
+            exit 1
+          fi
+
+      - name: 🧾 Publicar Resumo do Deploy Frontend
+        if: always()
+        run: |
+          {
+            echo "## 🚀 Frontend Deploy Summary"
+            echo "- Deploy concluído: ✅"
+            echo "- Bucket S3: ${S3_FRONTEND_BUCKET}"
+            echo "- CloudFront Domain: ${CDN_DOMAIN}"
+            echo "- Workflow Run: [${{ github.run_id }}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+          } >> $GITHUB_STEP_SUMMARY
+

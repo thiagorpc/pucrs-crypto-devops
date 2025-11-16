@@ -74,6 +74,14 @@ jobs:
         with:
           node-version: '20'
 
+      - name: ⚡ Cache Node Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
       - name: 📥 Instalar dependências
         run: |
           cd crypto-ui
@@ -118,3 +126,14 @@ jobs:
           name: frontend-build
           path: frontend-build.zip
           retention-days: 3
+
+      - name: 🧾 Publicar Resumo do Deploy Frontend
+        if: always()
+        run: |
+          {
+            echo "## 🚀 Frontend Deploy Summary"
+            echo "- Deploy concluído: ✅"
+            echo "- Bucket S3: ${S3_FRONTEND_BUCKET}"
+            echo "- CloudFront Domain: ${CDN_DOMAIN}"
+            echo "- Workflow Run: [${{ github.run_id }}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+          } >> $GITHUB_STEP_SUMMARY

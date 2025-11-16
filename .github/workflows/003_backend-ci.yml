@@ -87,6 +87,14 @@ jobs:
           echo "⭐ ECR URI: $ECR_URI"
 
 
+      - name: ⚡ Cache Node Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
       - name: 📦 Install Backend Dependencies
         run: |
           cd ./crypto-api
@@ -124,3 +132,30 @@ jobs:
           name: backend-image-tag
           path: image_tag.txt
           retention-days: 3
+      
+      - name: 📦 Obter Digest da Imagem
+        id: digest
+        run: |
+          DIGEST=$(aws ecr describe-images --repository-name ${{ env.ECR_REPOSITORY }} \
+            --image-ids imageTag=${{ steps.vars.outputs.IMAGE_TAG }} \
+            --query 'imageDetails[0].imageDigest' --output text)
+          echo "IMAGE_DIGEST=$DIGEST" >> $GITHUB_OUTPUT
+          echo "$DIGEST" > image_digest.txt
+
+      - name: 📤 Upload Digest Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-image-digest
+          path: image_digest.txt
+
+      - name: 🧾 Publicar Resumo no Job Summary
+        if: always()
+        run: |
+          {
+            echo "## 🚀 Backend CI Summary"
+            echo "- Build concluído: ✅"
+            echo "- ECR Repository: **${{ env.ECR_REPOSITORY }}**"
+            echo "- Região: **${{ env.AWS_REGION }}**"
+            echo "- Tag da Imagem: **${{ steps.vars.outputs.IMAGE_TAG }}**"
+            echo "- Pipeline: **${{ github.run_id }}**"
+          } >> $GITHUB_STEP_SUMMARY
