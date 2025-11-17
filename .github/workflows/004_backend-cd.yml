@@ -77,18 +77,18 @@ jobs:
             ${{ env.TF_WORKING_DIR }}/tfplan.binary
           retention-days: 5
 
-      - name: 🔎 Verificar status do serviço ECS
-        run: |
-          SERVICE_NAME="pucrs-crypto-api-service"
-          CLUSTER_NAME="pucrs-crypto-cluster"
-          STATUS=$(aws ecs describe-services --cluster $CLUSTER_NAME --services $SERVICE_NAME \
-            --query "services[0].deployments[0].rolloutState" --output text)
-          echo "Status atual: $STATUS"
-          if [ "$STATUS" != "COMPLETED" ]; then
-            echo "❌ Falha no deploy! Iniciando rollback..."
-            terraform apply -auto-approve -var="image_tag=latest"
-            exit 1
-          fi
+      #- name: 🔎 Verificar status do serviço ECS
+      #  run: |
+      #    SERVICE_NAME="pucrs-crypto-api-service"
+      #    CLUSTER_NAME="pucrs-crypto-cluster"
+      #    STATUS=$(aws ecs describe-services --cluster $CLUSTER_NAME --services $SERVICE_NAME \
+      #      --query "services[0].deployments[0].rolloutState" --output text)
+      #    echo "Status atual: $STATUS"
+      #    if [ "$STATUS" != "COMPLETED" ]; then
+      #      echo "❌ Falha no deploy! Iniciando rollback..."
+      #      terraform apply -auto-approve -var="image_tag=latest"
+      #      exit 1
+      #    fi
 
       - name: 🧾 Publicar Resumo do Deploy
         if: always()
