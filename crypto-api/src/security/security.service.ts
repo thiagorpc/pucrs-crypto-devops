@@ -17,10 +17,7 @@ import { promisify } from 'util';
  * Define os algoritmos suportados para criptografia e decriptografia.
  */
 export enum CryptoAlgorithm {
-  AES_256_GCM = 'aes-256-gcm', // Padrão recomendado para dados simétricos
-  // RSA não terá métodos diretos 'encrypt'/'decrypt' aqui,
-  // mas usará chaves e funções específicas (ex: sign/verify, publicEncrypt/privateDecrypt).
-  // Manteremos as funções genéricas 'encrypt/decrypt' focadas em AES para os dados da config.
+  AES_256_GCM = 'aes-256-gcm',
 }
 
 @Injectable()
