@@ -1,4 +1,4 @@
-name: 000. Setup Terraform AWS CH
+name: 000. Setup Terraform AWS
 
 on:
   workflow_dispatch:
