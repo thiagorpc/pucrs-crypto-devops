@@ -1,0 +1,38 @@
+name: 008. Terraform Unlock 🔓
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_unlock:
+        description: "Digite 'unlock' para confirmar o destravamento"
+        required: true
+        default: ""
+        type: string
+
+env:
+  AWS_REGION: us-east-1
+  DYNAMO_LOCK_TABLE: pucrs-crypto-terraform-lock
+
+jobs:
+  unlock:
+    if: github.event.inputs.confirm_unlock == 'unlock'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🔐 Configurar Credenciais AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: 🗝️ Remover Lock Terraform
+        run: |
+          echo "Listando locks ativos..."
+          aws dynamodb scan --table-name ${{ env.DYNAMO_LOCK_TABLE }} --output table
+
+          echo "Removendo lock padrão..."
+          aws dynamodb delete-item \
+            --table-name ${{ env.DYNAMO_LOCK_TABLE }} \
+            --key '{"LockID": {"S": "default"}}'
+
+          echo "✅ Lock liberado com sucesso!"
