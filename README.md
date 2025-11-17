@@ -1,9 +1,17 @@
 # 🛡️ PUC-RS Crypto DevOps
-
-[![Status CI Backend](https://img.shields.io/badge/CI%20Backend-Sucesso-27ae60?style=for-the-badge)](https://github.com/thiagorpc/pucrs-crypto-devops/actions)
-[![Status CI Frontend](https://img.shields.io/badge/CI%20Frontend-Sucesso-27ae60?style=for-the-badge)](https://github.com/thiagorpc/pucrs-crypto-devops/actions)
 [![IaC (Terraform)](https://img.shields.io/badge/Infraestrutura-Aplicada-3498db?style=for-the-badge)](https://github.com/thiagorpc/pucrs-crypto-devops/tree/main/iac)
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](https://choosealicense.com/licenses/mit/)
+
+
+## Operação
+[![000. Setup Terraform AWS CH](https://github.com/thiagorpc/pucrs-crypto-devops/actions/workflows/000_setup_terraform_aws.yml/badge.svg)](https://github.com/thiagorpc/pucrs-crypto-devops/actions/workflows/000_setup_terraform_aws.yml)
+[![001. Setup Infra AWS](https://github.com/thiagorpc/pucrs-crypto-devops/actions/workflows/001_setup_infra_aws.yml/badge.svg)](https://github.com/thiagorpc/pucrs-crypto-devops/actions/workflows/001_setup_infra_aws.yml)'
+[![002. Check Infra AWS](https://github.com/thiagorpc/pucrs-crypto-devops/actions/workflows/002_check_infra_aws.yml/badge.svg)](https://github.com/thiagorpc/pucrs-crypto-devops/actions/workflows/002_check_infra_aws.yml)
+[![003. Backend CI - Build and Push Image](https://github.com/thiagorpc/pucrs-crypto-devops/actions/workflows/003_backend-ci.yml/badge.svg)](https://github.com/thiagorpc/pucrs-crypto-devops/actions/workflows/003_backend-ci.yml)
+[![004. Backend CD - Deploy](https://github.com/thiagorpc/pucrs-crypto-devops/actions/workflows/004_backend-cd.yml/badge.svg)](https://github.com/thiagorpc/pucrs-crypto-devops/actions/workflows/004_backend-cd.yml)
+[![005. Frontend CI - Build UI](https://github.com/thiagorpc/pucrs-crypto-devops/actions/workflows/005_frontend-ci.yml/badge.svg)](https://github.com/thiagorpc/pucrs-crypto-devops/actions/workflows/005_frontend-ci.yml)
+[![006. Frontend CD - Deploy UI](https://github.com/thiagorpc/pucrs-crypto-devops/actions/workflows/006_frontend-cd.yml/badge.svg)](https://github.com/thiagorpc/pucrs-crypto-devops/actions/workflows/006_frontend-cd.yml)
+
 
 ## Visão Geral do Projeto
 
