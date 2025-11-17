@@ -101,9 +101,25 @@ Para que o GitHub Actions execute o Terraform e interaja com a AWS, é essencial
 
 
 
-### 3.2. Configurando Segredos no GitHub
+### 3.2. Configurando Credenciais da AWS
 
-1. No seu repositório GitHub, vá para **Settings > Secrets and Variables > Actions**.
+## 3.2.1. Uso Atual — GitHub Secrets (Acesso via Access Keys)
+
+Atualmente, o pipeline do projeto utiliza credenciais programáticas da AWS armazenadas como segredos no GitHub Actions.
+
+Essas credenciais permitem que o Terraform, Docker e demais ações (aws-actions/configure-aws-credentials@v4) interajam com a conta AWS para:
+
+- Provisionar e destruir infraestrutura (Terraform)
+- Fazer login no ECR e publicar imagens
+- Executar comandos S3, ECS, CloudFront e API Gateway
+- Essas chaves são criadas no IAM Console da AWS e armazenadas como segredos:
+
+Nome do Secret	Descrição
+- *AWS_ACCESS_KEY_ID*	Identificador público da credencial do usuário IAM
+- *AWS_SECRET_ACCESS_KEY*	Chave privada da credencial do usuário IAM
+
+
+1. Configure esse secgredo no seu repositório GitHub através do menu **Settings > Secrets and Variables > Actions**.
 
 2. Clique em **New repository secret** e crie os dois segredos a seguir, utilizando as chaves geradas pelo IAM:
 
@@ -112,6 +128,56 @@ Para que o GitHub Actions execute o Terraform e interaja com a AWS, é essencial
 | **AWS_ACCESS_KEY_ID** | Chave de Acesso do Usuário IAM | 
 | **AWS_SECRET_ACCESS_KEY** | Chave Secreta do Usuário IAM |
 
+
+## 3.2.2. Boas Práticas de Segurança
+
+🔒 Nunca exponha chaves em logs ou variáveis de ambiente públicas.
+
+♻️ Rotacione periodicamente as Access Keys (recomenda-se a cada 90 dias).
+
+🧩 Use um usuário IAM exclusivo para o GitHub Actions (ex: github-actions-user) com permissões mínimas.
+
+🧱 Armazene a política mínima necessária — o README já inclui o JSON com escopo limitado a ec2, ecs, ecr, s3, iam, cloudwatch, logs e elasticloadbalancing.
+
+
+## 3.2.3. Futuro — Acesso sem Chaves via IAM Roles (OIDC Federation)
+
+Como evolução natural de segurança, o projeto planeja migrar do uso de Access Keys fixas para IAM Roles temporárias, utilizando OpenID Connect (OIDC) entre o GitHub Actions e a AWS.
+
+Esse modelo elimina completamente o uso de chaves estáticas.
+
+| Método                         | Descrição                                        | Benefício                                               |
+| ------------------------------ | ------------------------------------------------ | ------------------------------------------------------- |
+| **Access Keys (atual)**        | Chaves armazenadas nos Secrets do GitHub         | Simples, mas requer rotação manual                      |
+| **IAM Role via OIDC (futuro)** | GitHub assume um papel IAM temporário autorizado | Zero exposição de chaves, autenticação de curta duração |
+
+
+🔄 Migração planejada
+
+- Criar um IAM Role na AWS confiando no provedor OIDC do GitHub (token.actions.githubusercontent.com)
+
+- Atribuir políticas necessárias (ex: ECR, ECS, S3, CloudFront)
+
+- Atualizar os workflows para usar o bloco:
+
+```yaml
+    - name: 🔐 Configurar Credenciais AWS via OIDC
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::<ACCOUNT_ID>:role/GitHubActionsRole
+        aws-region: us-east-1
+```
+
+Dessa forma:
+- O GitHub autentica diretamente com a AWS sem segredos.
+- As permissões são temporárias e válidas apenas durante o job.
+- A auditoria é centralizada no IAM Role e no OpenID Provider
+
+
+## 3.2.4. Referência Oficial AWS
+- [📘 Use IAM Roles to Connect GitHub Actions to AWS (OIDC)](https://chatgpt.com/c/691a1d41-fbcc-832d-b12a-2584604e277b#:~:text=3.2.4.%20Refer%C3%AAncia%20Oficial,credentials%40v4%20%E2%80%94%20Documenta%C3%A7%C3%A3o)
+
+- [🧰 aws-actions/configure-aws-credentials@v4 — Documentação](https://github.com/aws-actions/configure-aws-credentials)
 
 ---
 
