@@ -91,6 +91,11 @@ jobs:
         run: |
           cd crypto-ui
           npm run lint
+      
+      - name: 🧪 Run Frontend Tests (VITEST)
+        run: |
+          cd ./crypto-ui
+          npm run test
 
       - name: 🎯 Obter DNS do API Gateway
         id: get_api_gateway_dns
