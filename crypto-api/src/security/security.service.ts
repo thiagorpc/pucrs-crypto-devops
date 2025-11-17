@@ -111,7 +111,6 @@ export class SecurityService {
       }
     }
 
-    // --- BLOCO TRY-CATCH PARA A LÓGICA DE CRIPTOGRAFIA ---
     try {
       // 1. Gere IV (12 bytes é o recomendado para GCM)
       const iv = randomBytes(12);
