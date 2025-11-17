@@ -106,6 +106,24 @@ jobs:
           echo "CDN_DOMAIN=https://$CDN_DOMAIN" >> $GITHUB_ENV
           echo "✅ CloudFront Domain: https://$CDN_DOMAIN"
 
+      - name: 🎯 Obter DNS do API Gateway
+        id: get_api_gateway_dns
+        run: |
+          APIGW_ID=$(aws apigateway get-rest-apis \
+            --region ${{ env.AWS_REGION }} \
+            --query "items[?name=='${{ env.APIGW_NAME }}'].id" \
+            --output text)
+
+          if [ -z "$APIGW_ID" ]; then
+            echo "Erro: Não foi possível encontrar o ID para o API Gateway ${{ env.APIGW_NAME }}."
+            exit 1
+          fi
+
+          APIGW_STAGE="prod"
+          APIGW_DNS_NAME="${APIGW_ID}.execute-api.${{ env.AWS_REGION }}.amazonaws.com/${APIGW_STAGE}"
+          echo "APIGW_URL=https://$APIGW_DNS_NAME" >> $GITHUB_ENV
+          echo "✅ API Gateway DNS: https://$APIGW_DNS_NAME"
+
       - name: 💬 Notificar Novo Domain Name
         # Note que a URL estará no ambiente (env.CDN_DOMAIN)
         run: echo "O novo Frontend HTTPS está em ${{ env.CDN_DOMAIN }}"
@@ -125,6 +143,7 @@ jobs:
             echo "## 🚀 Frontend Deploy Summary"
             echo "- Deploy concluído: ✅"
             echo "- Bucket S3: ${S3_FRONTEND_BUCKET}"
+            echo "- API Gateway: ${APIGW_ID}"
             echo "- CloudFront Domain: ${CDN_DOMAIN}"
             echo "- Workflow Run: [${{ github.run_id }}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
           } >> $GITHUB_STEP_SUMMARY
