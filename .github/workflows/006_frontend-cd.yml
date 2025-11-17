@@ -11,6 +11,7 @@ env:
   AWS_REGION: us-east-1
   S3_FRONTEND_BUCKET: pucrs-crypto-frontend
   TF_INFRA_WORKFLOW: 001_setup_infra_aws.yml
+  APIGW_NAME: pucrs-crypto-api-gateway
 
 concurrency:
   group: terraform
@@ -143,7 +144,7 @@ jobs:
             echo "## 🚀 Frontend Deploy Summary"
             echo "- Deploy concluído: ✅"
             echo "- Bucket S3: ${S3_FRONTEND_BUCKET}"
-            echo "- API Gateway: ${APIGW_DNS_NAME}"
+            echo "- API Gateway: ${APIGW_URL}"
             echo "- CloudFront Domain: ${CDN_DOMAIN}"
             echo "- Workflow Run: [${{ github.run_id }}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
           } >> $GITHUB_STEP_SUMMARY
