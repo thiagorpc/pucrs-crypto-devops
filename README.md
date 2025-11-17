@@ -4,7 +4,7 @@
 
 
 ## Operação
-[![000. Setup Terraform AWS CH](https://github.com/thiagorpc/pucrs-crypto-devops/actions/workflows/000_setup_terraform_aws.yml/badge.svg)](https://github.com/thiagorpc/pucrs-crypto-devops/actions/workflows/000_setup_terraform_aws.yml)
+[![000. Setup Terraform AWS](https://github.com/thiagorpc/pucrs-crypto-devops/actions/workflows/000_setup_terraform_aws.yml/badge.svg)](https://github.com/thiagorpc/pucrs-crypto-devops/actions/workflows/000_setup_terraform_aws.yml)
 [![001. Setup Infra AWS](https://github.com/thiagorpc/pucrs-crypto-devops/actions/workflows/001_setup_infra_aws.yml/badge.svg)](https://github.com/thiagorpc/pucrs-crypto-devops/actions/workflows/001_setup_infra_aws.yml)'
 [![002. Check Infra AWS](https://github.com/thiagorpc/pucrs-crypto-devops/actions/workflows/002_check_infra_aws.yml/badge.svg)](https://github.com/thiagorpc/pucrs-crypto-devops/actions/workflows/002_check_infra_aws.yml)
 [![003. Backend CI - Build and Push Image](https://github.com/thiagorpc/pucrs-crypto-devops/actions/workflows/003_backend-ci.yml/badge.svg)](https://github.com/thiagorpc/pucrs-crypto-devops/actions/workflows/003_backend-ci.yml)
